@@ -20,7 +20,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/ChrisThoung/fsic',
-    py_modules=['fsic'],
+    py_modules=['fsic', 'fsictools'],
     python_requires='>=3.6',
 
 

@@ -2,21 +2,19 @@
 """
 fsic
 ====
-Streamlined/barebones implementation of FSIC.
-
-Doesn't (yet?) implement the graph-based algorithm to reorder equations for
-more efficient solution. This only has implications for performance.
+Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.1.0.dev'
+__version__ = '0.2.0.dev'
 
 
+import copy
 import enum
 import itertools
 import numbers
 import re
-import types
-import typing
+from types import FunctionType
+from typing import Dict, List, NamedTuple, Union
 
 import numpy as np
 
@@ -103,11 +101,11 @@ replacement_function_names = {
     'min': 'min',
 }
 
-class Term(typing.NamedTuple):
+class Term(NamedTuple):
     """Container for information about a single term of an equation."""
     name: str
     type: Type
-    index: typing.Union[int, None]
+    index: Union[int, None]
 
     def __str__(self):
         """Standardised representation of the term."""
@@ -142,14 +140,14 @@ class Term(typing.NamedTuple):
         return code
 
 
-class Symbol(typing.NamedTuple):
+class Symbol(NamedTuple):
     """Container for information about a single symbol of an equation or model."""
     name: str
     type: Type
-    lags: typing.Union[int, None]
-    leads: typing.Union[int, None]
-    equation: typing.Union[str, None]
-    code: typing.Union[str, None]
+    lags: Union[int, None]
+    leads: Union[int, None]
+    equation: Union[str, None]
+    code: Union[str, None]
 
     def combine(self, other):
         """Combine the attributes of two symbols."""
@@ -289,11 +287,11 @@ def parse_equation(equation: str):
 
     # `symbols` stores the final symbols and is successively updated in the
     # loop below
-    symbols = {}
+    symbols: Dict = {}
 
     # `functions` keeps track of functions seen, to avoid duplicating entries
     # in `symbols`
-    functions = {}
+    functions: Dict = {}
 
     for term in terms:
         symbol = Symbol(name=term.name,
@@ -332,7 +330,7 @@ def parse_model(model: str):
 
     # Store combined symbols to a dictionary, successively combining in the
     # loop below
-    symbols = {}
+    symbols: Dict = {}
     for symbol in itertools.chain(*symbols_by_equation):
         name = symbol.name
         symbols[name] = symbols.get(name, symbol).combine(symbol)
@@ -345,11 +343,14 @@ def parse_model(model: str):
 class BaseModel:
     """Base class for economic models."""
 
-    ENDOGENOUS = []
-    EXOGENOUS = []
+    ENDOGENOUS: List = []
+    EXOGENOUS: List = []
 
-    PARAMETERS = []
-    ERRORS = []
+    PARAMETERS: List = []
+    ERRORS: List = []
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
 
     LAGS = 0
     LEADS = 0
@@ -372,10 +373,10 @@ class BaseModel:
         """
         # Initialise model attributes
         self.__dict__['span'] = span
-        self.__dict__['names'] = self.ENDOGENOUS + self.EXOGENOUS + self.PARAMETERS + self.ERRORS
+        self.__dict__['names'] = self.NAMES
 
-        self.__dict__['status'] = ['-'] * len(self.span)
-        self.__dict__['iterations'] = [-1] * len(self.span)
+        self.__dict__['_status'] = np.full(len(self.span), '-', dtype=str)
+        self.__dict__['_iterations'] = np.full(len(self.span), -1, dtype=int)
 
         self.__dict__['_dtype'] = dtype
 
@@ -391,12 +392,15 @@ class BaseModel:
             except ValueError:
                 raise DimensionError("Invalid assignment for '{}': "
                                      "must be either a number or "
-                                     "a sequence of identical length".format(name))
+                                     "a sequence of identical length "
+                                     "(expect {} elements)".format(
+                                         name, len(self.span)))
 
     def __getattr__(self, name):
         """Over-riding method to provide indirect access to internal model
         variables as needed."""
-        if name in self.__dict__['names']:
+        if (name in self.__dict__['names'] or
+            name in ['status', 'iterations']):
             return self.__dict__['_' + name]
         else:
             return super().__getattribute__(name)
@@ -404,13 +408,35 @@ class BaseModel:
     def __setattr__(self, name, value):
         """Over-riding method to provide indirect access to internal model
         variables as needed."""
-        if name in self.__dict__['names']:
+        if (name in self.__dict__['names'] or
+            name == 'iterations'):
             if isinstance(value, numbers.Number):
                 self.__dict__['_' + name][:] = value
             elif len(self.__dict__['_' + name]) == len(value):
-                self.__dict__['_' + name] = np.array(value, dtype=self._dtype)
+                self.__dict__['_' + name] = np.array(
+                    value,
+                    dtype=self.__dict__['_' + name].dtype)
             else:
-                raise DimensionError('Invalid assignment: must be either a number or a sequence of identical length')
+                raise DimensionError("Invalid assignment for '{}': "
+                                     "must be either a number or "
+                                     "a sequence of identical length "
+                                     "(expect {} elements)".format(
+                                         name, len(self.span)))
+
+        elif name == 'status':
+            if isinstance(value, str):
+                self.__dict__['_' + name][:] = value
+            elif len(self.__dict__['_' + name]) == len(value):
+                self.__dict__['_' + name] = np.array(
+                    value,
+                    dtype=self.__dict__['_' + name].dtype)
+            else:
+                raise DimensionError("Invalid assignment for '{}': "
+                                     "must be either a string or "
+                                     "a sequence of identical length "
+                                     "(expect {} elements)".format(
+                                         name, len(self.span)))
+
         else:
             super.__setattr__(self, name, value)
 
@@ -468,6 +494,23 @@ class BaseModel:
                 location = self.span.index(index)
                 self.__dict__['_' + name][location] = value
 
+    def copy(self):
+        """Return a copy of the current (state of the) model instance."""
+        copied = self.__class__(span=copy.deepcopy(self.span))
+        copied.__dict__.update(
+            {k: copy.deepcopy(v)
+             for k, v in self.__dict__.items()})
+        return copied
+
+    __copy__ = copy
+    __deepcopy__ = copy
+
+    def __dir__(self):
+        return sorted(
+            dir(type(self)) +
+            self.__dict__['names'] +
+            ['span', 'names', 'status', 'iterations'])
+
     @property
     def values(self):
         """Model variable values as a 2D (variables x time) array."""
@@ -475,7 +518,7 @@ class BaseModel:
             self.__getattribute__('_' + name) for name in self.names
         ])
 
-    def solve(self, *, start=None, end=None, max_iter=100, tol=1e-10):
+    def solve(self, *, start=None, end=None, max_iter=100, tol=1e-10, **kwargs):
         """Solve the model. Use default periods if none provided.
 
         Parameters
@@ -490,6 +533,8 @@ class BaseModel:
             Maximum number of iterations to solution each period
         tol : float
             Tolerance for convergence
+        kwargs :
+            Further keyword arguments to pass to the solution routines
         """
         # Default start and end periods
         if start is None:
@@ -503,9 +548,9 @@ class BaseModel:
 
         # Solve
         for t in range(start_t, end_t + 1):
-            self.solve_t(t, max_iter=max_iter, tol=tol)
+            self.solve_t(t, max_iter=max_iter, tol=tol, **kwargs)
 
-    def solve_period(self, period, *, max_iter=100, tol=1e-10):
+    def solve_period(self, period, *, max_iter=100, tol=1e-10, **kwargs):
         """Solve a single period.
 
         Parameters
@@ -516,11 +561,13 @@ class BaseModel:
             Maximum number of iterations to solution each period
         tol : float
             Tolerance for convergence
+        kwargs :
+            Further keyword arguments to pass to the solution routines
         """
         t = self.span.index(period)
-        self.solve_t(t, max_iter=max_iter, tol=tol)
+        self.solve_t(t, max_iter=max_iter, tol=tol, **kwargs)
 
-    def solve_t(self, t, *, max_iter=100, tol=1e-10):
+    def solve_t(self, t, *, max_iter=100, tol=1e-10, **kwargs):
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -531,21 +578,23 @@ class BaseModel:
             Maximum number of iterations to solution each period
         tol : float
             Tolerance for convergence
+        kwargs :
+            Further keyword arguments to pass to the solution routines
         """
-        def get_endogenous_values():
-            """Return a 1D NumPy array of endogenous variable values for the current period."""
+        def get_check_values():
+            """Return a 1D NumPy array of variable values for checking in the current period."""
             return np.array([
-                self.__dict__['_' + name][t] for name in self.ENDOGENOUS
+                self.__dict__['_' + name][t] for name in self.CHECK
             ])
 
         status = '-'
 
-        current_values = get_endogenous_values()
+        current_values = get_check_values()
 
         for iteration in range(1, max_iter + 1):
             previous_values = current_values.copy()
-            self._evaluate(t)
-            current_values = get_endogenous_values()
+            self._evaluate(t, **kwargs)
+            current_values = get_check_values()
 
             diff = current_values - previous_values
             diff_squared = diff ** 2
@@ -559,8 +608,16 @@ class BaseModel:
         self.status[t] = status
         self.iterations[t] = iteration
 
-    def _evaluate(self, t, *, max_iter=100, tol=1e-10):
-        """Evaluate the system of equations."""
+    def _evaluate(self, t, **kwargs):
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        kwargs :
+            Further keyword arguments for solution
+        """
         raise NotImplementedError('Method must be over-ridden by a child class')
 
 
@@ -572,6 +629,9 @@ class Model(BaseModel):
     PARAMETERS = {parameters}
     ERRORS = {errors}
 
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
+
     LAGS = {lags}
     LEADS = {leads}
 
@@ -579,7 +639,7 @@ class Model(BaseModel):
 {equations}\
 '''
 
-def build_model_definition(symbols: list, *, order: typing.Union[types.FunctionType, None] = None):
+def build_model_definition(symbols: list, *, order: Union[FunctionType, None] = None):
     """Return a model class definition string from the contents of `symbols`.
 
     If passed, `order` must be a function that takes one argument: the initial
@@ -620,7 +680,7 @@ def build_model_definition(symbols: list, *, order: typing.Union[types.FunctionT
 
     return model_definition_string
 
-def build_model(symbols: list, *, order: typing.Union[types.FunctionType, None] = None):
+def build_model(symbols: list, *, order: Union[FunctionType, None] = None):
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
 
     If passed, `order` must be a function that takes one argument: the initial

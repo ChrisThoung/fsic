@@ -81,6 +81,17 @@ which each item of the:
 * second axis ('columns') is a *period*, with corresponding labels in
   `model.span`
 
+If you've installed [`pandas`](https://pandas.pydata.org/), you can convert the
+contents of the model to a DataFrame for inspection, using `to_dataframe()`,
+from the `fsictools` module:
+
+```python
+import fsictools
+
+
+results = fsictools.to_dataframe(model)
+```
+
 For a more detailed example, see my
 [post](https://www.christhoung.com/2018/07/08/fsic-gl2007-pc/) and accompanying
 [notebook](https://github.com/ChrisThoung/website/tree/master/code/2018-07-08_fsic_pc)

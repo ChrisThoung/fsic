@@ -2,7 +2,7 @@
 """
 test_fsic
 =========
-Test suite for barebones FSIC implementation.
+Test suite for FSIC.
 
 Example equations/models are adapted from:
 
@@ -27,6 +27,16 @@ import unittest
 import numpy as np
 
 import fsic
+
+
+SIM = fsic.build_model(fsic.parse_model(
+'''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''))
 
 
 class TestRegexes(unittest.TestCase):
@@ -55,6 +65,15 @@ H = (
         ]
 
         self.assertEqual(fsic.equation_re.findall(script), expected)
+
+
+class TestTerm(unittest.TestCase):
+
+    def test_str(self):
+        # Check that `str` representations are as expected
+        self.assertEqual(str(fsic.Term('C', fsic.Type.VARIABLE, -1)), 'C[t-1]')
+        self.assertEqual(str(fsic.Term('C', fsic.Type.VARIABLE,  0)), 'C[t]')
+        self.assertEqual(str(fsic.Term('C', fsic.Type.VARIABLE,  1)), 'C[t+1]')
 
 
 class TestParsers(unittest.TestCase):
@@ -187,6 +206,76 @@ H = H[-1] + YD - C
         self.assertEqual(fsic.parse_model(model), expected)
 
 
+class TestInit(unittest.TestCase):
+
+    def test_init_dimension_error(self):
+        with self.assertRaises(fsic.DimensionError):
+            # C is invalid because it has the wrong shape
+            SIM(range(10), C=[0, 0])
+
+
+class TestInterface(unittest.TestCase):
+
+    def setUp(self):
+        self.model = SIM(range(10))
+
+    def test_dir(self):
+        # Check that `dir(model)` includes the model's variable names
+        for name in self.model.names + ['span', 'names', 'status', 'iterations']:
+            self.assertIn(name, dir(self.model))
+
+    def test_modify_iterations(self):
+        # Check that the `iterations` attribute stays as a NumPy array
+        iterations = np.full(10, -1, dtype=int)
+
+        self.assertEqual(self.model.iterations.shape, iterations.shape)
+        self.assertTrue(np.all(self.model.iterations == iterations))
+
+        # Set all values to 1
+        self.model.iterations = 1
+        iterations[:] = 1
+
+        self.assertEqual(self.model.iterations.shape, iterations.shape)
+        self.assertTrue(np.all(self.model.iterations == iterations))
+
+        # Assign a sequence
+        self.model.iterations = range(0, 20, 2)
+        iterations = np.arange(0, 20, 2)
+
+        self.assertEqual(self.model.iterations.shape, iterations.shape)
+        self.assertTrue(np.all(self.model.iterations == iterations))
+
+    def test_modify_iterations_errors(self):
+        # Check that `iterations` assignment errors are as expected
+        with self.assertRaises(fsic.DimensionError):
+            self.model.iterations = [0, 1]  # Incompatible dimensions
+
+    def test_modify_status(self):
+        # Check that the `status` attribute stays as a NumPy array
+        status = np.full(10, '-')
+
+        self.assertEqual(self.model.status.shape, status.shape)
+        self.assertTrue(np.all(self.model.status == status))
+
+        # Set all values to '.'
+        self.model.status = '.'
+        status[:] = '.'
+
+        self.assertEqual(self.model.status.shape, status.shape)
+        self.assertTrue(np.all(self.model.status == status))
+
+        # Assign a sequence
+        self.model.status = ['-', '.'] * 5
+        status = np.array(['-', '.'] * 5)
+
+        self.assertEqual(self.model.status.shape, status.shape)
+        self.assertTrue(np.all(self.model.status == status))
+
+    def test_modify_status_errors(self):
+        # Check that `status` assignment errors are as expected
+        with self.assertRaises(fsic.DimensionError):
+            self.model.status = ['-', '.']  # Incompatible dimensions
+
 class TestModelContainerMethods(unittest.TestCase):
 
     def setUp(self):
@@ -271,6 +360,11 @@ class TestModelContainerMethods(unittest.TestCase):
         self.assertTrue(np.allclose(self.model['YD'],
                                     expected))
 
+    def test_setitem_dimension_error(self):
+        # Test check for misaligned dimensions at assignment
+        with self.assertRaises(fsic.DimensionError):
+            self.model.C = [0, 0]
+
 
 class TestOrder(unittest.TestCase):
 
@@ -293,6 +387,9 @@ H = H[-1] + YD - C
 
     PARAMETERS = ['alpha_1', 'alpha_2', 'theta']
     ERRORS = []
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
 
     LAGS = 1
     LEADS = 0
@@ -327,6 +424,9 @@ H = H[-1] + YD - C
 
     PARAMETERS = ['alpha_1', 'alpha_2', 'theta']
     ERRORS = []
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
 
     LAGS = 1
     LEADS = 0
@@ -429,6 +529,33 @@ Y = 0.72 * Q
         self.assertEqual(round_1dp(ami.M[-1]), 657.0)
         self.assertEqual(round_1dp(ami.Q[-1]), 5327.0)
         self.assertEqual(round_1dp(ami.Y[-1]), 3835.4)
+
+
+class TestCopy(unittest.TestCase):
+
+    def setUp(self):
+        self.model = SIM(range(1945, 2010 + 1),
+                         alpha_1=0.6, alpha_2=0.4,
+                         theta=0.2)
+
+    def test_copy(self):
+        self.model.G = 20
+
+        duplicate_model = self.model.copy()
+
+        # Values should be identical at this point
+        self.assertTrue(np.allclose(self.model.values,
+                                    duplicate_model.values))
+
+        # The solved model should have different values to the duplicate
+        self.model.solve()
+        self.assertFalse(np.allclose(self.model.values,
+                                     duplicate_model.values))
+
+        # The solved duplicate should match the original again
+        duplicate_model.solve()
+        self.assertTrue(np.allclose(self.model.values,
+                                    duplicate_model.values))
 
 
 if __name__ == '__main__':
