@@ -14,7 +14,7 @@ import itertools
 import numbers
 import re
 from types import FunctionType
-from typing import Dict, List, NamedTuple, Union
+from typing import Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
 
@@ -105,9 +105,9 @@ class Term(NamedTuple):
     """Container for information about a single term of an equation."""
     name: str
     type: Type
-    index: Union[int, None]
+    index: Optional[int]
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Standardised representation of the term."""
         expression = self.name
 
@@ -125,7 +125,7 @@ class Term(NamedTuple):
         return expression
 
     @property
-    def code(self):
+    def code(self) -> str:
         """Representation of the term in code for model solution."""
         code = str(self)
 
