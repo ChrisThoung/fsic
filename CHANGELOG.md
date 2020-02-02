@@ -9,6 +9,15 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- New `fsictools` function, `symbols_to_dataframe()`, to inspect a model
+  definition more easily (requires [`pandas`](https://pandas.pydata.org/))
+
+### Changed
+
+- Renamed `fsictools.to_dataframe()` to `fsictools.model_to_dataframe()`
+
 
 ## [0.2.0.dev] - 2019-12-03
 
