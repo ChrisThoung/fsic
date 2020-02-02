@@ -11,6 +11,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Support in model objects (derived from `BaseModel`) for tab completion of
+  variable names when indexing e.g. `model['`
 - New `fsictools` function, `symbols_to_dataframe()`, to inspect a model
   definition more easily (requires [`pandas`](https://pandas.pydata.org/))
 

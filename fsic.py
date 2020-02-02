@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.2.0.dev'
+__version__ = '0.2.1.dev'
 
 
 import copy
@@ -510,6 +510,9 @@ class BaseModel:
             dir(type(self)) +
             self.__dict__['names'] +
             ['span', 'names', 'status', 'iterations'])
+
+    def _ipython_key_completions_(self):
+        return self.__dict__['names']
 
     @property
     def values(self):
