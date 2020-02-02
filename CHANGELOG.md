@@ -9,6 +9,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+
+## [0.2.1.dev] - 2020-02-02
+
+Minor changes to improve usability.
+
 ### Added
 
 - Support in model objects (derived from `BaseModel`) for tab completion of
