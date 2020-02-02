@@ -6,13 +6,23 @@ Status](https://travis-ci.org/ChrisThoung/fsic.svg?branch=master)](https://travi
 Tools for macroeconomic modelling in Python.
 
 
+## How to...
+
+* install the Python modules (`fsic` and `fsictools`): run either:  
+  `$ python setup.py install`  
+  `$ pip install .`
+* run the test suite: run `python test_fsics.py` or use a `unittest`-compatible
+  test framework (e.g. `unittest`, `pytest`, `nose`/`nose2`; other test
+  frameworks are available) - these are the same tests that [Travis
+  CI](https://travis-ci.org/ChrisThoung/fsic) runs
+
+
 ## Quickstart
 
 To specify and solve Model *SIM* from Chapter 3 of Godley and Lavoie (2007):
 
 ```python
 import fsic
-
 
 script = '''
 # Keynesian/Kaleckian quantity adjustment equalises demand and supply
@@ -87,7 +97,6 @@ from the `fsictools` module:
 
 ```python
 import fsictools
-
 
 results = fsictools.to_dataframe(model)
 ```
