@@ -92,13 +92,13 @@ which each item of the:
   `model.span`
 
 If you've installed [`pandas`](https://pandas.pydata.org/), you can convert the
-contents of the model to a DataFrame for inspection, using `to_dataframe()`,
-from the `fsictools` module:
+contents of the model to a DataFrame for inspection, using
+`model_to_dataframe()`, from the `fsictools` module:
 
 ```python
 import fsictools
 
-results = fsictools.to_dataframe(model)
+results = fsictools.model_to_dataframe(model)
 ```
 
 For a more detailed example, see my
