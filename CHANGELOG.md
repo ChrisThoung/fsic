@@ -9,6 +9,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+### Removed
+
+- Removed built-in symbol re-ordering from `build_model*()` functions. The user
+  must now re-order the symbols themselves.
+
 
 ## [0.2.1.dev] - 2020-02-02
 

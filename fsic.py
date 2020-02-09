@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.2.1.dev'
+__version__ = '0.3.0.dev'
 
 
 import copy
@@ -642,14 +642,8 @@ class Model(BaseModel):
 {equations}\
 '''
 
-def build_model_definition(symbols: list, *, order: Union[FunctionType, None] = None):
-    """Return a model class definition string from the contents of `symbols`.
-
-    If passed, `order` must be a function that takes one argument: the initial
-    list of strings of equation statements for the model. The function must
-    return the final sequence of strings of equation statements for the
-    model. An example of a valid argument is `sorted()`.
-    """
+def build_model_definition(symbols: List):
+    """Return a model class definition string from the contents of `symbols`."""
     # Separate variable names according to variable type
     endogenous = [s.name for s in symbols if s.type == Type.ENDOGENOUS]
     exogenous  = [s.name for s in symbols if s.type == Type.EXOGENOUS]
@@ -662,9 +656,6 @@ def build_model_definition(symbols: list, *, order: Union[FunctionType, None] = 
 
     # Generate code block of equations
     expressions = [s.code for s in symbols if s.type == Type.ENDOGENOUS]
-    if order is not None:
-        expressions = order(expressions)
-
     equations = '\n'.join(['        {}'.format(e) for e in expressions])
 
     # Fill in class template
@@ -683,15 +674,9 @@ def build_model_definition(symbols: list, *, order: Union[FunctionType, None] = 
 
     return model_definition_string
 
-def build_model(symbols: list, *, order: Union[FunctionType, None] = None):
-    """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
-
-    If passed, `order` must be a function that takes one argument: the initial
-    list of strings of equation statements for the model. The function must
-    return the final sequence of strings of equation statements for the
-    model. An example of a valid argument is `sorted()`.
-    """
-    model_definition_string = build_model_definition(symbols, order=order)
+def build_model(symbols: List):
+    """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**"""
+    model_definition_string = build_model_definition(symbols)
     exec(model_definition_string)
     locals()['Model'].CODE = model_definition_string
     return locals()['Model']
