@@ -105,7 +105,7 @@ class Term(NamedTuple):
     """Container for information about a single term of an equation."""
     name: str
     type: Type
-    index: Optional[int]
+    index_: Optional[int]
 
     def __str__(self) -> str:
         """Standardised representation of the term."""
@@ -113,12 +113,12 @@ class Term(NamedTuple):
 
         # If not a function, add the index
         if self.type != Type.FUNCTION:
-            if self.index > 0:
-                index = '[t+{}]'.format(self.index)
-            elif self.index == 0:
+            if self.index_ > 0:
+                index = '[t+{}]'.format(self.index_)
+            elif self.index_ == 0:
                 index = '[t]'
             else:
-                index = '[t{}]'.format(self.index)
+                index = '[t{}]'.format(self.index_)
 
             expression += index
 
@@ -256,7 +256,7 @@ def parse_terms(expression: str):
 
         return Term(name=groupdict[type_key],
                     type=Type[type_key[1:]],
-                    index=index)
+                    index_=index)
 
     return [process_term_match(m)
             for m in term_re.finditer(expression)]
@@ -296,8 +296,8 @@ def parse_equation(equation: str):
     for term in terms:
         symbol = Symbol(name=term.name,
                         type=term.type,
-                        lags=term.index,
-                        leads=term.index,
+                        lags=term.index_,
+                        leads=term.index_,
                         equation=None,
                         code=None)
 

@@ -117,15 +117,15 @@ H = (H[-1] +
         # expression
         expression = 'C = exp({alpha_1} * log(YD) + {alpha_2} * log(H[-1]) + <epsilon>)'
         expected = [
-            fsic.Term(name='C', type=fsic.Type.VARIABLE, index=0),
-            fsic.Term(name='exp', type=fsic.Type.FUNCTION, index=None),
-            fsic.Term(name='alpha_1', type=fsic.Type.PARAMETER, index=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index=None),
-            fsic.Term(name='YD', type=fsic.Type.VARIABLE, index=0),
-            fsic.Term(name='alpha_2', type=fsic.Type.PARAMETER, index=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index=None),
-            fsic.Term(name='H', type=fsic.Type.VARIABLE, index=-1),
-            fsic.Term(name='epsilon', type=fsic.Type.ERROR, index=0),
+            fsic.Term(name='C', type=fsic.Type.VARIABLE, index_=0),
+            fsic.Term(name='exp', type=fsic.Type.FUNCTION, index_=None),
+            fsic.Term(name='alpha_1', type=fsic.Type.PARAMETER, index_=0),
+            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
+            fsic.Term(name='YD', type=fsic.Type.VARIABLE, index_=0),
+            fsic.Term(name='alpha_2', type=fsic.Type.PARAMETER, index_=0),
+            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
+            fsic.Term(name='H', type=fsic.Type.VARIABLE, index_=-1),
+            fsic.Term(name='epsilon', type=fsic.Type.ERROR, index_=0),
         ]
 
         self.assertEqual(fsic.parse_terms(expression), expected)
@@ -135,15 +135,15 @@ H = (H[-1] +
         # terms in an equation
         equation = 'C = exp({alpha_1} * log(YD) + {alpha_2} * log(H[-1]) + <epsilon>)'
         expected = [
-            fsic.Term(name='C', type=fsic.Type.ENDOGENOUS, index=0),
-            fsic.Term(name='exp', type=fsic.Type.FUNCTION, index=None),
-            fsic.Term(name='alpha_1', type=fsic.Type.PARAMETER, index=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index=None),
-            fsic.Term(name='YD', type=fsic.Type.EXOGENOUS, index=0),
-            fsic.Term(name='alpha_2', type=fsic.Type.PARAMETER, index=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index=None),
-            fsic.Term(name='H', type=fsic.Type.EXOGENOUS, index=-1),
-            fsic.Term(name='epsilon', type=fsic.Type.ERROR, index=0),
+            fsic.Term(name='C', type=fsic.Type.ENDOGENOUS, index_=0),
+            fsic.Term(name='exp', type=fsic.Type.FUNCTION, index_=None),
+            fsic.Term(name='alpha_1', type=fsic.Type.PARAMETER, index_=0),
+            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
+            fsic.Term(name='YD', type=fsic.Type.EXOGENOUS, index_=0),
+            fsic.Term(name='alpha_2', type=fsic.Type.PARAMETER, index_=0),
+            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
+            fsic.Term(name='H', type=fsic.Type.EXOGENOUS, index_=-1),
+            fsic.Term(name='epsilon', type=fsic.Type.ERROR, index_=0),
         ]
 
         self.assertEqual(fsic.parse_equation_terms(equation), expected)
