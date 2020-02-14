@@ -15,13 +15,13 @@ from typing import List
 from fsic import BaseModel, Symbol
 
 
-def symbols_to_dataframe(symbols: List[Symbol]) -> 'DataFrame':
+def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':
     """Convert the list of symbols to a `pandas` DataFrame. **Requires `pandas`**."""
     from pandas import DataFrame
 
     return DataFrame([s._asdict() for s in symbols])
 
-def model_to_dataframe(model: BaseModel) -> 'DataFrame':
+def model_to_dataframe(model: BaseModel) -> 'pandas.DataFrame':
     """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
     from pandas import DataFrame
 
