@@ -9,6 +9,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- New `symbols_to_sympy()` utility function (in `fsictools`) to examine a
+  system of equations using `SymPy`
+
 ### Removed
 
 - Removed built-in symbol re-ordering from `build_model*()` functions. The user
