@@ -11,6 +11,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- New `ParserError` exception to signal failures to process a model definition
+  string.
 - Optional syntax checking (default on) in model parser.
 - New `symbols_to_sympy()` utility function (in `fsictools`) to examine a
   system of equations using `SymPy`.

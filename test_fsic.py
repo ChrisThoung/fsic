@@ -496,6 +496,14 @@ Y = C + I + G = X - M
 Z = C + I + G = X - M
 ''')
 
+    def test_double_definition(self):
+        # Check test for endogenous variables that are set twice
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('''
+Y = C + I + G + X - M
+Y = GVA + TSP
+''')
+
 
 if __name__ == '__main__':
     unittest.main()

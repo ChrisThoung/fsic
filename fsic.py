@@ -161,7 +161,11 @@ class Symbol(NamedTuple):
             resolved = old
 
             if old is not None and new is not None:
-                assert old == new
+                if old != new:
+                    raise ParserError(
+                        "Endogenous variable '{}' defined twice:\n    {}\n    {}"
+                        .format(self.name, old, new))
+
             elif old is None and new is not None:
                 resolved = new
 
