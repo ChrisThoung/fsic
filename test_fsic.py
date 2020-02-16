@@ -208,6 +208,23 @@ H = H[-1] + YD - C
 
 class TestInit(unittest.TestCase):
 
+    def test_init_with_arrays(self):
+        model = SIM(range(5), G=np.arange(0, 10, 2), alpha_1=[0.6] * 5)
+        self.assertEqual(model.values.shape, (9, 5))
+        self.assertTrue(np.allclose(
+            model.values,
+            np.array([
+                [0.0] * 5,
+                [0.0] * 5,
+                [0.0] * 5,
+                [0.0] * 5,
+                [0.0] * 5,
+                [0.0, 2.0, 4.0, 6.0, 8.0],
+                [0.6] * 5,
+                [0.0] * 5,
+                [0.0] * 5,
+            ])))
+
     def test_init_dimension_error(self):
         with self.assertRaises(fsic.DimensionError):
             # C is invalid because it has the wrong shape

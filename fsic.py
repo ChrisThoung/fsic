@@ -427,17 +427,21 @@ class BaseModel:
         # name. `__getattr__()` and `__setattr__()` provide indirect access via
         # the non-underscored names
         for name in self.names:
-            try:
-                self.__setattr__('_' + name,
-                                 np.full(len(self.span),
-                                         initial_values.get(name, default_value),
-                                         dtype=self._dtype))
-            except ValueError:
+            value = initial_values.get(name, default_value)
+
+            if isinstance(value, Sequence):
+                value = np.array(value).flatten()
+            else:
+                value = np.full(len(self.span), value, dtype=self._dtype)
+
+            if value.shape[0] != len(self.span):
                 raise DimensionError("Invalid assignment for '{}': "
                                      "must be either a number or "
                                      "a sequence of identical length "
                                      "(expect {} elements)".format(
                                          name, len(self.span)))
+
+            self.__setattr__('_' + name, value)
 
     def __getattr__(self, name: str) -> Any:
         """Over-riding method to provide indirect access to internal model
