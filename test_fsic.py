@@ -530,5 +530,105 @@ class TestBuildErrors(unittest.TestCase):
             Model = fsic.build_model(symbols)
 
 
+class TestSolutionErrorHandling(unittest.TestCase):
+
+    Model = fsic.build_model(fsic.parse_model('''
+s = 1 - (C / Y)  # Divide-by-zero equation appears first
+Y = C + G
+C = {c0} + {c1} * Y'''))
+
+    def test_raise(self):
+        # Model should halt on first period
+        model = self.Model(range(10), G=20)
+
+        with self.assertRaises(fsic.SolutionError):
+            model.solve()
+
+        self.assertTrue(np.isnan(model.s[0]))
+        self.assertTrue(np.allclose(model.s[1:], 0))
+
+        self.assertTrue(np.all(model.status == np.array(['E'] + ['-'] * 9)))
+        self.assertTrue(np.all(model.iterations == np.array([1] + [-1] * 9)))
+
+    def test_raise_prior_nans(self):
+        # Model should halt if pre-existing NaNs detected
+        model = self.Model(range(10), s=np.nan)
+
+        with self.assertRaises(fsic.SolutionError):
+            model.solve()
+
+    def test_skip(self):
+        model = self.Model(range(10), G=20)
+
+        # Model should skip to next period each time
+        model.solve(errors='skip')
+        self.assertTrue(np.all(np.isnan(model.s)))
+        self.assertTrue(np.all(model.status == 'S'))
+        self.assertTrue(np.all(model.iterations == 1))
+
+        # Re-running with 'skip' should successfully solve, though
+        model.solve(errors='skip')
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 2))
+
+    def test_ignore_successfully(self):
+        # Model should keep solving (successfully in this case)
+        model = self.Model(range(10), G=20)
+        model.solve(errors='ignore')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+
+        # Three iterations to solve:
+        # 1. `s` evaluates to NaN: continue
+        # 2. NaNs persist from previous iteration: continue
+        # 3. Convergence check now possible (no NaNs): success
+        self.assertTrue(np.all(model.iterations == 3))
+
+    def test_ignore_unsuccessfully(self):
+        # Model should keep solving (unsuccessfully in this case)
+        model = self.Model(range(10))
+        model.solve(errors='ignore')
+
+        self.assertTrue(np.all(np.isnan(model.s)))
+        self.assertTrue(np.all(model.status == 'F'))
+        self.assertTrue(np.all(model.iterations == 100))
+
+    def test_ignore_prior_nans(self):
+        model = self.Model(range(10), s=np.nan, G=20)
+        model.solve(errors='ignore')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 3))
+
+    def test_replace_successfully(self):
+        # Model should replace NaNs and keep solving (successfully in this case)
+        model = self.Model(range(10), G=20)
+        model.solve(errors='replace')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 3))
+
+    def test_replace_unsuccessfully(self):
+        # Model should replace NaNs and keep solving (unsuccessfully in this case)
+        model = self.Model(range(10))
+        model.solve(errors='replace')
+
+        self.assertTrue(np.all(np.isnan(model.s)))
+        self.assertTrue(np.all(model.status == 'F'))
+        self.assertTrue(np.all(model.iterations == 100))
+
+    def test_replace_prior_nans(self):
+        model = self.Model(range(10), s=np.nan, G=20)
+        model.solve(errors='replace')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 3))
+
+
 if __name__ == '__main__':
     unittest.main()

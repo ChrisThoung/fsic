@@ -11,9 +11,12 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Add options to handle numerical errors (NaNs) in solution.
+- Optional syntax checking (default on) in model parser.
 - New `ParserError` exception to signal failures to process a model definition
   string.
-- Optional syntax checking (default on) in model parser.
+- New `BuildError` exception to signal failures to generate a model class
+  definition.
 - New `symbols_to_sympy()` utility function (in `fsictools`) to examine a
   system of equations using `SymPy`.
 

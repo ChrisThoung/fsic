@@ -14,6 +14,7 @@ import itertools
 from numbers import Number
 import re
 from typing import Any, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Tuple, Union
+import warnings
 
 import numpy as np
 
@@ -31,6 +32,9 @@ class DimensionError(FSICError):
     pass
 
 class ParserError(FSICError):
+    pass
+
+class SolutionError(FSICError):
     pass
 
 
@@ -568,7 +572,7 @@ class BaseModel:
             self.__getattribute__('_' + name) for name in self.names
         ])
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, **kwargs: Dict[str, Any]) -> None:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve the model. Use default periods if none provided.
 
         Parameters
@@ -583,6 +587,17 @@ class BaseModel:
             Maximum number of iterations to solution each period
         tol : float
             Tolerance for convergence
+        errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
+            User-specified treatment on encountering numerical solution errors
+            e.g. NaNs
+             - 'raise' (default): stop immediately and raise a `SolutionError`
+                                  [set current period solution status to 'E']
+             - 'skip': stop solving the current period and move to the next one
+                       [set current period solution status to 'S']
+             - 'ignore': continue solving, with no special treatment or action
+                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs with zeroes
+                         [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
         """
@@ -598,9 +613,9 @@ class BaseModel:
 
         # Solve
         for t in range(start_t, end_t + 1):
-            self.solve_t(t, max_iter=max_iter, tol=tol, **kwargs)
+            self.solve_t(t, max_iter=max_iter, tol=tol, errors=errors, **kwargs)
 
-    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, **kwargs: Dict[str, Any]) -> None:
+    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve a single period.
 
         Parameters
@@ -611,13 +626,24 @@ class BaseModel:
             Maximum number of iterations to solution each period
         tol : float
             Tolerance for convergence
+        errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
+            User-specified treatment on encountering numerical solution errors
+            e.g. NaNs
+             - 'raise' (default): stop immediately and raise a `SolutionError`
+                                  [set period solution status to 'E']
+             - 'skip': stop solving the current period
+                       [set period solution status to 'S']
+             - 'ignore': continue solving, with no special treatment or action
+                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs with zeroes
+                         [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
         """
         t = self.span.index(period)
-        self.solve_t(t, max_iter=max_iter, tol=tol, **kwargs)
+        self.solve_t(t, max_iter=max_iter, tol=tol, errors=errors, **kwargs)
 
-    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, **kwargs: Dict[str, Any]) -> None:
+    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -628,8 +654,33 @@ class BaseModel:
             Maximum number of iterations to solution each period
         tol : float
             Tolerance for convergence
+        errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
+            User-specified treatment on encountering numerical solution errors
+            e.g. NaNs
+             - 'raise' (default): stop immediately and raise a `SolutionError`
+                                  [set period solution status to 'E']
+             - 'skip': stop solving the current period
+                       [set period solution status to 'S']
+             - 'ignore': continue solving, with no special treatment or action
+                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs with zeroes
+                         [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
+
+        Notes
+        -----
+        As of version 0.3.0, FSIC provides (some) support (escape hatches) for
+        numerical errors in solution.
+
+        For example, there may be an equation that involves a division
+        operation but the equation that determines the divisor follows
+        later. If that divisor was initialised to zero, this leads to a
+        divide-by-zero operation that NumPy evaluates to a NaN. This becomes
+        problematic if the NaNs then propagate through the solution.
+
+        The `solve_t()` method now catches such operations (after a full pass
+        through / iteration over the system of equations).
         """
         def get_check_values() -> np.ndarray:
             """Return a 1D NumPy array of variable values for checking in the current period."""
@@ -638,13 +689,61 @@ class BaseModel:
             ])
 
         status = '-'
-
         current_values = get_check_values()
+
+        # Raise an exception if there are pre-existing NaNs and error checking
+        # is at its strictest ('raise')
+        if errors == 'raise' and np.any(np.isnan(current_values)):
+            raise SolutionError(
+                'Pre-existing NaNs found '
+                'in period with label: {} (index: {})'
+                .format(self.span[t], t))
 
         for iteration in range(1, max_iter + 1):
             previous_values = current_values.copy()
-            self._evaluate(t, **kwargs)
+
+            with warnings.catch_warnings(record=True):
+                warnings.simplefilter('always')
+                self._evaluate(t, **kwargs)
+
             current_values = get_check_values()
+
+            # It's possible that the current iteration generated no NaNs, but
+            # the previous one did: check and continue if needed
+            if np.any(np.isnan(previous_values)):
+                continue
+
+            if np.any(np.isnan(current_values)):
+
+                if errors == 'raise':
+                    self.status[t] = 'E'
+                    self.iterations[t] = iteration
+
+                    raise SolutionError(
+                        'Numerical solution error after {} iterations(s) '
+                        'in period with label: {} (index: {})'
+                        .format(iteration, self.span[t], t))
+
+                elif errors == 'skip':
+                    status = 'S'
+                    break
+
+                elif errors == 'ignore':
+                    if iteration == max_iter:
+                        status = 'F'
+                        break
+                    continue
+
+                elif errors == 'replace':
+                    if iteration == max_iter:
+                        status = 'F'
+                        break
+                    else:
+                        current_values[np.isnan(current_values)] = 0.0
+                        continue
+
+                else:
+                    raise ValueError('Invalid `errors` argument: {}'.format(errors))
 
             diff = current_values - previous_values
             diff_squared = diff ** 2
