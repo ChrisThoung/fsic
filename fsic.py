@@ -24,6 +24,9 @@ class FSICError(Exception):
     pass
 
 
+class BuildError(FSICError):
+    pass
+
 class DimensionError(FSICError):
     pass
 
@@ -715,8 +718,39 @@ def build_model_definition(symbols: List[Symbol]) -> str:
     return model_definition_string
 
 def build_model(symbols: List[Symbol]) -> Any:
-    """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**"""
+    """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
+
+    Notes
+    -----
+    After constructing the class definition (as a string), this function calls
+    `exec()` to define the class. In the event of a `SyntaxError`, the function
+    loops through the `Symbol`s with defined equations and tries to construct
+    and execute a class definition for each one, individually. The function
+    then raises a `BuildError`, printing any `Symbol`s that failed to
+    `exec`ute.
+    """
+    # Construct the class definition
     model_definition_string = build_model_definition(symbols)
-    exec(model_definition_string)
+
+    # Execute the class definition code
+    try:
+        exec(model_definition_string)
+    except SyntaxError:
+        failed_execs: List[str] = []
+
+        symbols_with_equations = list(filter(lambda x: x.equation is not None, symbols))
+        for s in symbols_with_equations:
+            try:
+                exec(build_model_definition([s]))
+            except SyntaxError:
+                failed_execs.append(str(s))
+
+        if failed_execs:
+            raise BuildError(
+                'Failed to `exec`ute the following `Symbol` object(s):\n' +
+                '\n'.join('    {}'.format(x) for x in failed_execs))
+
+    # Otherwise, if here, assign the original code to an attribute and return
+    # the class
     locals()['Model'].CODE = model_definition_string
     return locals()['Model']

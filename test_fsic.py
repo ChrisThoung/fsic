@@ -505,5 +505,13 @@ Y = GVA + TSP
 ''')
 
 
+class TestBuildErrors(unittest.TestCase):
+
+    def test_extra_equals(self):
+        symbols = fsic.parse_model('Y = C + I + G = X - M', check_syntax=False)
+        with self.assertRaises(fsic.BuildError):
+            Model = fsic.build_model(symbols)
+
+
 if __name__ == '__main__':
     unittest.main()
