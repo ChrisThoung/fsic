@@ -349,10 +349,10 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
 
     # Parse each statement (equation), optionally checking the syntax
     for i, statement in enumerate(split_equations_iter(model)):
-        symbols = parse_equation(statement)
+        equation_symbols = parse_equation(statement)
 
         if check_syntax:
-            equations = [s.equation for s in symbols if s.equation is not None]
+            equations = [s.equation for s in equation_symbols if s.equation is not None]
 
             for e in equations:
                 try:
@@ -363,7 +363,7 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
                     problem_statements.append((i, statement))
                     break
 
-        symbols_by_equation.append(symbols)
+        symbols_by_equation.append(equation_symbols)
 
     # Error if any problem statements found
     if problem_statements:
