@@ -483,5 +483,19 @@ class TestCopy(unittest.TestCase):
                                     duplicate_model.values))
 
 
+class TestParserErrors(unittest.TestCase):
+
+    def test_extra_equals_single_equation(self):
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('Y = C + I + G = X - M')
+
+    def test_extra_equals_multiple_equations(self):
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('''
+Y = C + I + G = X - M
+Z = C + I + G = X - M
+''')
+
+
 if __name__ == '__main__':
     unittest.main()

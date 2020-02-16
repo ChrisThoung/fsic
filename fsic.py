@@ -13,7 +13,7 @@ import enum
 import itertools
 from numbers import Number
 import re
-from typing import Any, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Union
+from typing import Any, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -23,7 +23,11 @@ import numpy as np
 class FSICError(Exception):
     pass
 
+
 class DimensionError(FSICError):
+    pass
+
+class ParserError(FSICError):
     pass
 
 
@@ -326,10 +330,39 @@ def parse_equation(equation: str) -> List[Symbol]:
 
     return list(symbols.values())
 
-def parse_model(model: str) -> List[Symbol]:
+def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
     """Return the symbols of `model` as a list of Symbol objects."""
     # Symbols: one list per model equation
-    symbols_by_equation = list(map(parse_equation, split_equations_iter(model)))
+    symbols_by_equation: List[List[Symbol]] = []
+
+    # Store any statements that fail the (optional) syntax check as 2-tuples of
+    #  - int: location of statement in `model`
+    #  - str: the statement itself
+    problem_statements: List[Tuple[int, str]] = []
+
+    # Parse each statement (equation), optionally checking the syntax
+    for i, statement in enumerate(split_equations_iter(model)):
+        symbols = parse_equation(statement)
+
+        if check_syntax:
+            equations = [s.equation for s in symbols if s.equation is not None]
+
+            for e in equations:
+                try:
+                    exec(e)
+                except NameError:  # Ignore name errors (undefined variables)
+                    pass
+                except SyntaxError:
+                    problem_statements.append((i, statement))
+                    break
+
+        symbols_by_equation.append(symbols)
+
+    # Error if any problem statements found
+    if problem_statements:
+        raise ParserError(
+            'Failed to parse the following statements:\n' +
+            '\n'.join('    {}: {}'.format(*s) for s in problem_statements))
 
     # Store combined symbols to a dictionary, successively combining in the
     # loop below

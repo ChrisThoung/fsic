@@ -11,8 +11,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Optional syntax checking (default on) in model parser.
 - New `symbols_to_sympy()` utility function (in `fsictools`) to examine a
-  system of equations using `SymPy`
+  system of equations using `SymPy`.
 
 ### Removed
 
@@ -27,13 +28,13 @@ Minor changes to improve usability.
 ### Added
 
 - Support in model objects (derived from `BaseModel`) for tab completion of
-  variable names when indexing e.g. `model['`
+  variable names when indexing e.g. `model['`.
 - New `fsictools` function, `symbols_to_dataframe()`, to inspect a model
-  definition more easily (requires [`pandas`](https://pandas.pydata.org/))
+  definition more easily (requires [`pandas`](https://pandas.pydata.org/)).
 
 ### Changed
 
-- Renamed `fsictools.to_dataframe()` to `fsictools.model_to_dataframe()`
+- Renamed `fsictools.to_dataframe()` to `fsictools.model_to_dataframe()`.
 
 
 ## [0.2.0.dev] - 2019-12-03
