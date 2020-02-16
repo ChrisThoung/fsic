@@ -7,7 +7,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.3.0.dev] - 2020-02-16
+
+Improvements to the robustness of the parser and model builder, as well as to
+handle numerical errors (NaNs) in solution.
 
 ### Added
 
