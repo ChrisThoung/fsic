@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.3.0.dev'
+__version__ = '0.3.1.dev'
 
 
 import copy
@@ -572,7 +572,7 @@ class BaseModel:
             self.__getattribute__('_' + name) for name in self.names
         ])
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve the model. Use default periods if none provided.
 
         Parameters
@@ -585,8 +585,13 @@ class BaseModel:
             period, taking into account any leads in the model's equations
         max_iter : int
             Maximum number of iterations to solution each period
-        tol : float
+        tol : int or float
             Tolerance for convergence
+        offset : int
+            If non-zero, copy an initial set of endogenous values from the
+            relative period described by `offset`. For example, `offset=-1`
+            initialises each period's solution with the values from the
+            previous period.
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
             e.g. NaNs
@@ -613,9 +618,9 @@ class BaseModel:
 
         # Solve
         for t in range(start_t, end_t + 1):
-            self.solve_t(t, max_iter=max_iter, tol=tol, errors=errors, **kwargs)
+            self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, errors=errors, **kwargs)
 
-    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve a single period.
 
         Parameters
@@ -624,8 +629,13 @@ class BaseModel:
             Named period to solve
         max_iter : int
             Maximum number of iterations to solution each period
-        tol : float
+        tol : int or float
             Tolerance for convergence
+        offset : int
+            If non-zero, copy an initial set of endogenous values from the
+            relative period described by `offset`. For example, `offset=-1`
+            initialises each period's solution with the values from the
+            previous period.
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
             e.g. NaNs
@@ -641,9 +651,9 @@ class BaseModel:
             Further keyword arguments to pass to the solution routines
         """
         t = self.span.index(period)
-        self.solve_t(t, max_iter=max_iter, tol=tol, errors=errors, **kwargs)
+        self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, errors=errors, **kwargs)
 
-    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -652,8 +662,12 @@ class BaseModel:
             Position in `span` of the period to solve
         max_iter : int
             Maximum number of iterations to solution each period
-        tol : float
+        tol : int or float
             Tolerance for convergence
+        offset : int
+            If non-zero, copy an initial set of endogenous values from the
+            period at position `t + offset`. For example, `offset=-1` copies
+            the values from the previous period.
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
             e.g. NaNs
@@ -687,6 +701,11 @@ class BaseModel:
             return np.array([
                 self.__dict__['_' + name][t] for name in self.CHECK
             ])
+
+        # Optionally copy initial values from another period
+        if offset:
+            for name in self.ENDOGENOUS:
+                self.__dict__['_' + name][t] = self.__dict__['_' + name][t + offset]
 
         status = '-'
         current_values = get_check_values()

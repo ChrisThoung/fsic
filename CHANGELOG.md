@@ -7,6 +7,15 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+
+- Add option to copy initial values for solution from another period with new
+  `offset` keyword argument to `BaseModel.solve_t()`. This argument is also
+  passed through by the other `solve_` methods.
+
+
 ## [0.3.0.dev] - 2020-02-16
 
 Improvements to the robustness of the parser and model builder, as well as to
