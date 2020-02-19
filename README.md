@@ -53,7 +53,7 @@ Y = C_s + G_s
 N_d = Y / W
 '''
 
-# Parse `string` to identify the constituent symbols (endogenous/exogenous
+# Parse `script` to identify the constituent symbols (endogenous/exogenous
 # variables, parameters and equations)
 symbols = fsic.parse_model(script)
 
