@@ -14,6 +14,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Add option to copy initial values for solution from another period with new
   `offset` keyword argument to `BaseModel.solve_t()`. This argument is also
   passed through by the other `solve_` methods.
+- New `symbols_to_graph()` utility function (in `fsictools`) to generate a
+  NetworkX directed graph from a list of symbols.
 
 
 ## [0.3.0.dev] - 2020-02-16
