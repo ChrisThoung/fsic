@@ -10,7 +10,7 @@ Tools for macroeconomic modelling in Python.
 
 * install the Python modules (`fsic` and `fsictools`): run either:  
   `$ python setup.py install`  
-  `$ pip install .`
+  or: `$ pip install .`
 * run the test suite: run `python test_fsics.py` or use a `unittest`-compatible
   test framework (e.g. `unittest`, `pytest`, `nose`/`nose2`; other test
   frameworks are available) - these are the same tests that [Travis
@@ -69,7 +69,7 @@ model.alpha_2 = 0.4  # Propensity to consume out of lagged wealth
 
 model.W = 1          # Wages
 
-model.G_d = 20       # Exogenous government expenditure
+model.G_d[1:] = 20   # Exogenous government expenditure beginning in the second period
 model.theta = 0.2    # Income tax rate
 
 # Solve the model
