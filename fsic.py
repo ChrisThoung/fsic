@@ -299,7 +299,10 @@ def parse_equation(equation: str) -> List[Symbol]:
     terms = parse_equation_terms(equation)
 
     # Construct standardised and code representations of the equation
-    template = re.sub(r'\s+', ' ', term_re.sub('{}', equation))
+    template = re.sub(r'\s+', ' ', term_re.sub('{}', equation))  # Remove repeated whitespace
+    template = re.sub(r'\(\s+', '(', template)  # Remove space after opening brackets
+    template = re.sub(r'\s+\)', ')', template)  # Remove space before closing brackets
+
     equation = template.format(*[str(t) for t in terms])
     code = template.format(*[t.code for t in terms])
 
