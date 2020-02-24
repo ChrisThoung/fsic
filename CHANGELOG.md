@@ -12,6 +12,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 ### Added
 
 - Initial set of unit tests for `fsictools` module.
+- New folder of example model implementations.
 
 ### Changed
 
