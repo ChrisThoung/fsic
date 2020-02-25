@@ -10,7 +10,7 @@ for dependencies additional to those of `fsic`.
 from fsic import __version__
 
 import re
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from fsic import BaseModel, Symbol
 import fsic
@@ -47,15 +47,34 @@ def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
 def symbols_to_sympy(symbols: List[Symbol]) -> Dict['sympy.Symbol', 'sympy.Eq']:
     """Convert the system of equations into a dictionary of `SymPy` objects. **Requires `SymPy`**."""
     import sympy
+    from sympy.core.numbers import ImaginaryUnit
+    from sympy.core.singleton import SingletonRegistry
+
+    def convert(expression: str) -> Any:
+        """Convert `expression` to a SymPy object."""
+        # Initial conversion
+        converted = sympy.sympify(expression)
+
+        # Special treatment for:
+        #  - 'I' -> ImaginaryUnit
+        #  - 'S' -> SingletonRegistry
+        # Need to force these to be SymPy Symbols
+        if isinstance(converted, (ImaginaryUnit, SingletonRegistry)):
+            converted = sympy.Symbol(expression)
+
+        return converted
+
 
     system = {}
 
     equations = [s.equation for s in symbols if s.equation is not None]
     for e in equations:
+        # Remove time index and append lag number if needed
         e = e.replace('[t]', '')
         e = re.sub(r'\[t[-]([0-9]+)\]', r'_\1', e)
 
-        lhs, rhs = map(sympy.sympify, e.split('=', maxsplit=1))
+        # Convert and store
+        lhs, rhs = map(convert, map(str.strip, e.split('=', maxsplit=1)))
         system[lhs] = sympy.Eq(lhs, rhs)
 
     return system

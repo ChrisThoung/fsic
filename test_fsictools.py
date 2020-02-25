@@ -94,15 +94,34 @@ if found_sympy:
 
     class TestSympyFunctions(unittest.TestCase):
 
-        SYMBOLS = fsic.parse_model('Y = C + G')
-
         def test_symbols_to_sympy(self):
-            result = fsictools.symbols_to_sympy(self.SYMBOLS)
+            result = fsictools.symbols_to_sympy(fsic.parse_model('Y = C + G'))
             expected = {
                 sympy.Symbol('Y'): sympy.Eq(sympy.Symbol('Y'), sympy.sympify('C + G')),
             }
 
             self.assertEqual(result, expected)
+
+        def test_symbols_to_sympy_singleton(self):
+            # Test (forced) conversion of 'S' to a SymPy Symbol (rather than a
+            # Singleton)
+            result = fsictools.symbols_to_sympy(fsic.parse_model('S = YD - C'))
+            expected = {
+                sympy.Symbol('S'): sympy.Eq(sympy.Symbol('S'), sympy.sympify('YD - C')),
+            }
+
+            self.assertEqual(result, expected)
+
+        def test_symbols_to_sympy_singleton_and_imaginary(self):
+            # Also test (forced) conversion of 'I' to a SymPy Symbol (rather
+            # than an imaginary number)
+            result = fsictools.symbols_to_sympy(fsic.parse_model('I = S'))
+            expected = {
+                sympy.Symbol('I'): sympy.Eq(sympy.Symbol('I'), sympy.Symbol('S')),
+            }
+
+            self.assertEqual(result, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
