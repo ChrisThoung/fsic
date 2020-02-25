@@ -14,6 +14,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Initial set of unit tests for `fsictools` module.
 - New folder of example model implementations.
 
+### Fixed
+
+- Added some (tentative) workarounds to `fsictools.symbols_to_sympy()` to
+  prevent conversion to imaginary numbers ('I') and singletons ('S').
+
 ### Changed
 
 - Code generator now removes trailing space after opening brackets; and leading
