@@ -17,6 +17,12 @@ Tools for macroeconomic modelling in Python.
   test framework (e.g. `unittest`, `pytest`, `nose`/`nose2`; other test
   frameworks are available) - these are the same tests that [Travis
   CI](https://travis-ci.org/ChrisThoung/fsic) runs
+    * note that there's a second set of tests, 'test_fsictools.py', for the
+      optional supporting `fsictools` module, which has further dependencies to
+      run in full: [pandas](https://pandas.pydata.org/),
+      [NetworkX](https://networkx.github.io/) and
+      [SymPy](https://www.sympy.org/en/index.html) (none of these are needed to
+      run a FSIC model)
 
 
 ## Quickstart
