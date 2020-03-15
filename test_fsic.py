@@ -589,7 +589,7 @@ C = {c0} + {c1} * Y'''))
     def test_ignore_unsuccessfully(self):
         # Model should keep solving (unsuccessfully in this case)
         model = self.Model(range(10))
-        model.solve(errors='ignore')
+        model.solve(failures='ignore', errors='ignore')
 
         self.assertTrue(np.all(np.isnan(model.s)))
         self.assertTrue(np.all(model.status == 'F'))
@@ -615,7 +615,7 @@ C = {c0} + {c1} * Y'''))
     def test_replace_unsuccessfully(self):
         # Model should replace NaNs and keep solving (unsuccessfully in this case)
         model = self.Model(range(10))
-        model.solve(errors='replace')
+        model.solve(failures='ignore', errors='replace')
 
         self.assertTrue(np.all(np.isnan(model.s)))
         self.assertTrue(np.all(model.status == 'F'))
@@ -628,6 +628,42 @@ C = {c0} + {c1} * Y'''))
         self.assertTrue(np.allclose(model.s, 1))
         self.assertTrue(np.all(model.status == '.'))
         self.assertTrue(np.all(model.iterations == 3))
+
+
+class TestNonConvergenceError(unittest.TestCase):
+
+    MODEL = '''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(MODEL)
+    SIM = fsic.build_model(SYMBOLS)
+
+    def test_nonconvergence_raise(self):
+        model = self.SIM(range(5),
+                         alpha_1=0.6, alpha_2=0.4,
+                         theta=0.2, G=20)
+
+        # First period (after initial lag) should solve
+        model.solve_t(1)
+
+        # Second period (with limited number of iterations) should fail to
+        # solve
+        with self.assertRaises(fsic.NonConvergenceError):
+            model.solve_t(2, max_iter=5)
+
+        self.assertTrue(np.all(model.status ==
+                               np.array(['-', '.', 'F', '-', '-'])))
+
+    def test_nonconvergence_ignore(self):
+        model = self.SIM(range(5),
+                         alpha_1=0.6, alpha_2=0.4,
+                         theta=0.2, G=20)
+        model.solve(max_iter=5, failures='ignore')
+        self.assertTrue(np.all(model.status[1:] == 'F'))
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.3.1.dev'
+__version__ = '0.4.0.dev'
 
 
 import copy
@@ -29,6 +29,9 @@ class BuildError(FSICError):
     pass
 
 class DimensionError(FSICError):
+    pass
+
+class NonConvergenceError(FSICError):
     pass
 
 class ParserError(FSICError):
@@ -240,7 +243,7 @@ def split_equations_iter(model: str) -> Iterator[str]:
         # If complete, combine and yield
         if unmatched_parentheses == 0:
             equation = '\n'.join(buffer)
-            if len(equation.strip()):
+            if equation.strip():
                 assert equation_re.search(equation)
                 yield equation
             buffer = []
@@ -575,7 +578,7 @@ class BaseModel:
             self.__getattribute__('_' + name) for name in self.names
         ])
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve the model. Use default periods if none provided.
 
         Parameters
@@ -595,6 +598,12 @@ class BaseModel:
             relative period described by `offset`. For example, `offset=-1`
             initialises each period's solution with the values from the
             previous period.
+        failures : str, one of {'raise', 'ignore'}
+            Action should the solution fail to converge in a period (by
+            reaching the maximum number of iterations, `max_iter`)
+             - 'raise' (default): stop immediately and raise a
+                                  `NonConvergenceError`
+             - 'ignore': continue to the next period
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
             e.g. NaNs
@@ -621,9 +630,9 @@ class BaseModel:
 
         # Solve
         for t in range(start_t, end_t + 1):
-            self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, errors=errors, **kwargs)
+            self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
 
-    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve a single period.
 
         Parameters
@@ -639,6 +648,12 @@ class BaseModel:
             relative period described by `offset`. For example, `offset=-1`
             initialises each period's solution with the values from the
             previous period.
+        failures : str, one of {'raise', 'ignore'}
+            Action should the solution fail to converge (by reaching the
+            maximum number of iterations, `max_iter`)
+             - 'raise' (default): stop immediately and raise a
+                                  `NonConvergenceError`
+             - 'ignore': do nothing
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
             e.g. NaNs
@@ -654,9 +669,9 @@ class BaseModel:
             Further keyword arguments to pass to the solution routines
         """
         t = self.span.index(period)
-        self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, errors=errors, **kwargs)
+        self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
 
-    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -671,6 +686,12 @@ class BaseModel:
             If non-zero, copy an initial set of endogenous values from the
             period at position `t + offset`. For example, `offset=-1` copies
             the values from the previous period.
+        failures : str, one of {'raise', 'ignore'}
+            Action should the solution fail to converge (by reaching the
+            maximum number of iterations, `max_iter`)
+             - 'raise' (default): stop immediately and raise a
+                                  `NonConvergenceError`
+             - 'ignore': do nothing
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
             e.g. NaNs
@@ -778,6 +799,12 @@ class BaseModel:
 
         self.status[t] = status
         self.iterations[t] = iteration
+
+        if status == 'F' and failures == 'raise':
+            raise NonConvergenceError(
+                'Solution failed to converge after {} iterations(s) '
+                'in period with label: {} (index: {})'
+                .format(iteration, self.span[t], t))
 
     def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
