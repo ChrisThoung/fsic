@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.4.0.dev'
+__version__ = '0.4.1.dev'
 
 
 import copy
@@ -846,12 +846,21 @@ def build_model_definition(symbols: List[Symbol]) -> str:
     errors     = [s.name for s in symbols if s.type == Type.ERROR]
 
     # Set longest lag and lead
-    lags = abs(min(s.lags for s in symbols if s.type != Type.FUNCTION))
-    leads = abs(max(s.leads for s in symbols if s.type != Type.FUNCTION))
+    non_function_symbols = [s for s in symbols if s.type != Type.FUNCTION]
+
+    if len(non_function_symbols):
+        lags =  abs(min(s.lags  for s in non_function_symbols))
+        leads = abs(max(s.leads for s in non_function_symbols))
+    else:
+        lags = leads = 0
 
     # Generate code block of equations
     expressions = [s.code for s in symbols if s.type == Type.ENDOGENOUS]
     equations = '\n'.join(['        {}'.format(e) for e in expressions])
+
+    # If there are no equations, insert `pass` instead
+    if not len(equations):
+        equations = '        pass'
 
     # Fill in class template
     model_definition_string = model_template.format(

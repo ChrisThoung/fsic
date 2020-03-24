@@ -383,6 +383,57 @@ class TestModelContainerMethods(unittest.TestCase):
             self.model.C = [0, 0]
 
 
+class TestBuild(unittest.TestCase):
+
+    def test_no_equations(self):
+        # Test that a set of symbols with no endogenous variables still
+        # successfully generates a class
+        expected = '''class Model(BaseModel):
+    ENDOGENOUS = []
+    EXOGENOUS = ['C', 'G']
+
+    PARAMETERS = []
+    ERRORS = []
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
+
+    LAGS = 0
+    LEADS = 0
+
+    def _evaluate(self, t):
+        pass'''
+
+        symbols = fsic.parse_model('Y = C + G')
+        # Delete the symbol for the endogenous variable
+        del symbols[0]
+
+        code = fsic.build_model_definition(symbols)
+        self.assertEqual(code, expected)
+
+    def test_no_symbols(self):
+        # Test that empty input generates an empty model template
+        expected = '''class Model(BaseModel):
+    ENDOGENOUS = []
+    EXOGENOUS = []
+
+    PARAMETERS = []
+    ERRORS = []
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
+
+    LAGS = 0
+    LEADS = 0
+
+    def _evaluate(self, t):
+        pass'''
+
+        symbols = fsic.parse_model('')
+        code = fsic.build_model_definition(symbols)
+        self.assertEqual(code, expected)
+
+
 round_1dp = functools.partial(round, ndigits=1)
 
 class TestBuildAndSolve(unittest.TestCase):

@@ -7,6 +7,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.4.1.dev] - 2020-03-24
+
+### Added
+
+- Added support for incomplete model specifications i.e. no equations
+  (endogenous variables); or no symbols at all.
+
+
 ## [0.4.0.dev] - 2020-03-15
 
 ### Added
