@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.4.1.dev'
+__version__ = '0.4.2.dev'
 
 
 import copy
@@ -370,16 +370,25 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
                 except NameError:  # Ignore name errors (undefined variables)
                     pass
                 except SyntaxError:
-                    problem_statements.append((i, statement))
+                    problem_statements.append((i, statement, e))
                     break
 
         symbols_by_equation.append(equation_symbols)
 
     # Error if any problem statements found
     if problem_statements:
+        # Construct report for each statement: number, original statement and
+        # attempted equation
+        lines = []
+        for s in problem_statements:
+            line = '    {}:  {}\n'.format(*s[:2])
+            line += ' ' * line.index(':')
+            line += '-> ' + s[-1]
+            lines.append(line)
+
         raise ParserError(
             'Failed to parse the following statements:\n' +
-            '\n'.join('    {}: {}'.format(*s) for s in problem_statements))
+            '\n'.join(lines))
 
     # Store combined symbols to a dictionary, successively combining in the
     # loop below
