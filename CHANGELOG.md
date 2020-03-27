@@ -9,6 +9,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Add support for conditional expressions.
+
 ### Changed
 
 - Updated error message for parser failures.

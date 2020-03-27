@@ -5,12 +5,13 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.4.2.dev'
+__version__ = '0.5.0.dev'
 
 
 import copy
 import enum
 import itertools
+import keyword
 from numbers import Number
 import re
 from typing import Any, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Tuple, Union
@@ -78,6 +79,10 @@ equation_re = re.compile(
 # and errors in angle brackets: <epsilon>
 
 term_re = re.compile(
+    # Match Python keywords but without attaching a name (to filter out later)
+    r'(?: \b (?: {} ) \b )|'.format('|'.join(keyword.kwlist)) +
+
+    # Valid terms for the parser
     r'''
         (?: (?P<_FUNCTION> [_A-Za-z][_A-Za-z0-9]* ) \s* (?= \( ) )|
 
@@ -280,7 +285,9 @@ def parse_terms(expression: str) -> List[Term]:
                     index_=index)
 
     return [process_term_match(m)
-            for m in term_re.finditer(expression)]
+            for m in term_re.finditer(expression)
+            # Python keywords are unnamed groups: Filter these out
+            if any(m.groups())]
 
 def parse_equation_terms(equation: str) -> List[Term]:
     """Return the terms of `equation` as a list of Term objects."""
@@ -302,7 +309,16 @@ def parse_equation(equation: str) -> List[Symbol]:
     terms = parse_equation_terms(equation)
 
     # Construct standardised and code representations of the equation
-    template = re.sub(r'\s+', ' ', term_re.sub('{}', equation))  # Remove repeated whitespace
+    template = equation
+    for match in reversed(list(term_re.finditer(equation))):
+        # Skip Python keywords, which yield unnamed groups
+        if not any(match.groups()):
+            continue
+
+        start, end = match.span()
+        template = '{}{}{}'.format(template[:start], '{}', template[end:])
+
+    template = re.sub(r'\s+',   ' ', template)  # Remove repeated whitespace
     template = re.sub(r'\(\s+', '(', template)  # Remove space after opening brackets
     template = re.sub(r'\s+\)', ')', template)  # Remove space before closing brackets
 

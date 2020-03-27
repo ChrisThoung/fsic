@@ -433,6 +433,27 @@ class TestBuild(unittest.TestCase):
         code = fsic.build_model_definition(symbols)
         self.assertEqual(code, expected)
 
+    def test_conditional_expression(self):
+        expected = '''class Model(BaseModel):
+    ENDOGENOUS = ['Y']
+    EXOGENOUS = ['X', 'Z']
+
+    PARAMETERS = []
+    ERRORS = []
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
+
+    LAGS = 0
+    LEADS = 0
+
+    def _evaluate(self, t):
+        self._Y[t] = self._X[t] if self._X[t] > self._Z[t] else self._Z[t]'''
+
+        symbols = fsic.parse_model('Y = X if X > Z else Z')
+        code = fsic.build_model(symbols).CODE
+        self.assertEqual(code, expected)
+
 
 round_1dp = functools.partial(round, ndigits=1)
 
