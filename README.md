@@ -75,10 +75,13 @@ model = SIM(range(1945, 2010 + 1))
 model.alpha_1 = 0.6  # Propensity to consume out of current disposable income
 model.alpha_2 = 0.4  # Propensity to consume out of lagged wealth
 
-model.W = 1          # Wages
+model['W'] = 1       # Wages (alternative variable access by name rather than attribute)
 
-model.G_d[1:] = 20   # Exogenous government expenditure beginning in the second period
-model.theta = 0.2    # Income tax rate
+# Exogenous government expenditure beginning in the second period
+model.G_d[1:] = 20  # Regular list/NumPy-like indexing by position
+
+# Income tax rate of 20% beginning in the second period
+model['theta', 1946:] = 0.2  # `pandas`-like indexing by label: variable and period
 
 # Solve the model
 # (`max_iter` increases the maximum number of iterations, to ensure
