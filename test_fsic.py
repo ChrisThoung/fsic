@@ -574,6 +574,29 @@ class TestCopy(unittest.TestCase):
 
 class TestSolve(unittest.TestCase):
 
+    def test_solve_t_negative(self):
+        # Check support for negative values of `t` in `solve_t()`
+        model = SIM(range(1945, 2010 + 1), alpha_1=0.5)
+
+        model.G[-1] = 20
+        model.solve_t(-1)
+
+        self.assertEqual(model.Y[-1].round(1), 40.0)
+        self.assertEqual(model.YD[-1].round(1), 40.0)
+        self.assertEqual(model.C[-1].round(1), 20.0)
+
+    def test_solve_t_negative_with_offset(self):
+        # Check support for negative values of `t` in `solve_t()`, with an
+        # offset
+        model = SIM(range(1945, 2010 + 1), alpha_1=0.5)
+
+        model.G[-1] = 20
+        model.solve_t(-1, offset=-1)
+
+        self.assertEqual(model.Y[-1].round(1), 40.0)
+        self.assertEqual(model.YD[-1].round(1), 40.0)
+        self.assertEqual(model.C[-1].round(1), 20.0)
+
     def test_offset_error_lag(self):
         # Check for an `IndexError` if `offset` points prior to the span of the
         # current model instance
