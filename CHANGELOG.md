@@ -7,6 +7,13 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+
+- Error trapping for invalid `offset` arguments to model solve methods.
+
+
 ## [0.5.0.dev] - 2020-03-29
 
 ### Added

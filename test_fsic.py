@@ -572,6 +572,29 @@ class TestCopy(unittest.TestCase):
                                     duplicate_model.values))
 
 
+class TestSolve(unittest.TestCase):
+
+    def test_offset_error_lag(self):
+        # Check for an `IndexError` if `offset` points prior to the span of the
+        # current model instance
+        model = SIM(range(1945, 2010 + 1))
+
+        with self.assertRaises(IndexError):
+            # With Model *SIM*, trying to solve the second period (remember
+            # there's a lag in the model) with an offset of -2 should fail
+            model.solve(offset=-2)
+
+    def test_offset_error_lead(self):
+        # Check for an `IndexError` if `offset` points beyond the span of the
+        # current model instance
+        model = SIM(range(1945, 2010 + 1))
+
+        with self.assertRaises(IndexError):
+            # With Model *SIM*, trying to solve the final period with an offset
+            # of +1 should fail
+            model.solve(offset=1)
+
+
 class TestParserErrors(unittest.TestCase):
 
     def test_extra_equals_single_equation(self):
