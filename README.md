@@ -22,7 +22,8 @@ Tools for macroeconomic modelling in Python.
       run in full: [pandas](https://pandas.pydata.org/),
       [NetworkX](https://networkx.github.io/) and
       [SymPy](https://www.sympy.org/en/index.html) (none of these are needed to
-      run a FSIC model)
+      run a model implemented in FSIC but they may be helpful to analyse the
+      model or its results)
 
 
 ## Quickstart
