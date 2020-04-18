@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.5.1.dev'
+__version__ = '0.5.2.dev'
 
 
 import copy
@@ -603,7 +603,7 @@ class BaseModel:
             self.__getattribute__('_' + name) for name in self.names
         ])
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
         Parameters
@@ -642,6 +642,17 @@ class BaseModel:
                          [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
+
+        Returns
+        -------
+        Three lists, each of length equal to the number of periods to be
+        solved:
+         - the names of the periods to be solved, as they appear in the model's
+           span
+         - integers: the index positions of the above periods in the model's
+           span
+         - bools, one per period: `True` if the period solved successfully;
+           `False` otherwise
         """
         # Default start and end periods
         if start is None:
@@ -653,11 +664,19 @@ class BaseModel:
         start_t = self.span.index(start)
         end_t = self.span.index(end)
 
-        # Solve
-        for t in range(start_t, end_t + 1):
-            self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
+        # Initialise lists of return values
+        indexes = list(range(start_t, end_t + 1))
+        labels = [self.span[i] for i in indexes]
+        solved = [False] * len(indexes)
 
-    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+        # Solve
+        for i, t in enumerate(indexes):
+            solved[i] = self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset,
+                                     failures=failures, errors=errors, **kwargs)
+
+        return labels, indexes, solved
+
+    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve a single period.
 
         Parameters
@@ -692,11 +711,15 @@ class BaseModel:
                          [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
+
+        Returns
+        -------
+        `True` if the model solved for the current period; `False` otherwise.
         """
         t = self.span.index(period)
-        self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
+        return self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
 
-    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> None:
+    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -730,6 +753,10 @@ class BaseModel:
                          [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
+
+        Returns
+        -------
+        `True` if the model solved for the current period; `False` otherwise.
 
         Notes
         -----
@@ -850,6 +877,11 @@ class BaseModel:
                 'Solution failed to converge after {} iterations(s) '
                 'in period with label: {} (index: {})'
                 .format(iteration, self.span[t], t))
+
+        if status == '.':
+            return True
+        else:
+            return False
 
     def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.

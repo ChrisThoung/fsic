@@ -617,6 +617,15 @@ class TestSolve(unittest.TestCase):
             # of +1 should fail
             model.solve(offset=1)
 
+    def test_solve_return_values(self):
+        # Check that the return values from `solve()` are as expected
+        model = SIM(['A', 'B', 'C'])
+        labels, indexes, solved = model.solve()
+
+        self.assertEqual(labels, ['B', 'C'])
+        self.assertEqual(indexes, [1, 2])
+        self.assertEqual(solved, [True, True])
+
 
 class TestParserErrors(unittest.TestCase):
 
