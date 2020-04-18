@@ -416,7 +416,7 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
     return list(symbols.values())
 
 
-# Model class generator -------------------------------------------------------
+# Base class for individual models --------------------------------------------
 
 class BaseModel:
     """Base class for economic models."""
@@ -895,6 +895,8 @@ class BaseModel:
         """
         raise NotImplementedError('Method must be over-ridden by a child class')
 
+
+# Model class generator -------------------------------------------------------
 
 model_template = '''\
 class Model(BaseModel):
