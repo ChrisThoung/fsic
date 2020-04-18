@@ -371,7 +371,7 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
     # Store any statements that fail the (optional) syntax check as 2-tuples of
     #  - int: location of statement in `model`
     #  - str: the statement itself
-    problem_statements: List[Tuple[int, str]] = []
+    problem_statements: List[Tuple[int, str, str]] = []
 
     # Parse each statement (equation), optionally checking the syntax
     for i, statement in enumerate(split_equations_iter(model)):
@@ -465,18 +465,18 @@ class BaseModel:
             value = initial_values.get(name, default_value)
 
             if isinstance(value, Sequence):
-                value = np.array(value).flatten()
+                value_as_array = np.array(value).flatten()
             else:
-                value = np.full(len(self.span), value, dtype=self._dtype)
+                value_as_array = np.full(len(self.span), value, dtype=self._dtype)
 
-            if value.shape[0] != len(self.span):
+            if value_as_array.shape[0] != len(self.span):
                 raise DimensionError("Invalid assignment for '{}': "
                                      "must be either a number or "
                                      "a sequence of identical length "
                                      "(expect {} elements)".format(
                                          name, len(self.span)))
 
-            self.__setattr__('_' + name, value)
+            self.__setattr__('_' + name, value_as_array)
 
     def __getattr__(self, name: str) -> Any:
         """Over-riding method to provide indirect access to internal model
