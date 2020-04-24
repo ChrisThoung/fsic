@@ -7,11 +7,16 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.5.2.dev] - 2020-04-24
 
 ### Added
 
 - Add return values to solve methods to indicate solution success or failure.
+
+### Changed
+
+- Refactored container behaviour from `BaseModel` into a separate class,
+  `VectorContainer`, in readiness for future model linker development.
 
 
 ## [0.5.1.dev] - 2020-04-04

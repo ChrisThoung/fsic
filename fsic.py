@@ -32,6 +32,9 @@ class BuildError(FSICError):
 class DimensionError(FSICError):
     pass
 
+class DuplicateNameError(FSICError):
+    pass
+
 class NonConvergenceError(FSICError):
     pass
 
@@ -416,9 +419,210 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
     return list(symbols.values())
 
 
+# Labelled container for vector data (1D NumPy arrays) ------------------------
+
+class VectorContainer:
+
+    def __init__(self, span: Sequence[Hashable]) -> None:
+        """Initialise model variables.
+
+        Parameter
+        ---------
+        span : iterable
+            Sequence of periods that define the timespan of the model
+        """
+        self.__dict__['span'] = span
+        self.__dict__['index'] = []
+
+    def add_variable(self, name: str, value: Union[Any, Sequence[Any]], *, dtype: Any = None) -> None:
+        """Initialise a new variable in the container, forcing a `dtype` if needed.
+
+        Parameters
+        ----------
+        name : str
+            The name of the new variable, which must not already exist in the
+            container (raise a `DuplicateNameError` if it already exists)
+        value : single value or sequence of values
+            Initial value(s) for the new variable. If a sequence, must yield a
+            length equal to that of `span`
+        dtype : variable type
+            Data type to impose on the variable. The default is to use the
+            type/dtype of `value`
+        """
+        if name in self.__dict__['index']:
+            raise DuplicateNameError(
+                "'{}' is already defined in the current object".format(name))
+
+        # Cast to a 1D array
+        if isinstance(value, Sequence) and not isinstance(value, str):
+            value_as_array = np.array(value).flatten()
+        else:
+            value_as_array = np.full(len(self.__dict__['span']), value)
+
+        # Impose `dtype` if needed
+        if dtype is not None:
+            value_as_array = value_as_array.astype(dtype)
+
+        # Check dimensions
+        if value_as_array.shape[0] != len(self.__dict__['span']):
+            raise DimensionError("Invalid assignment for '{}': "
+                                 "must be either a single value or "
+                                 "a sequence of identical length to `span`"
+                                 "(expected {} elements)".format(
+                                     name, len(self.__dict__['span'])))
+
+        self.__dict__['_' + name] = value_as_array
+        self.__dict__['index'].append(name)
+
+    def __getattr__(self, name: str) -> Any:
+        if name in self.__dict__['index']:
+            return self.__dict__['_' + name]
+        else:
+            return super().__getattribute__(name)
+
+    def __setattr__(self, name: str, value: Union[Any, Sequence[Any]]) -> None:
+        if name not in self.__dict__['index']:
+            super.__setattr__(self, name, value)
+            return
+
+        elif isinstance(value, Sequence) and not isinstance(value, str):
+            value_as_array = np.array(value,
+                                      dtype=self.__dict__['_' + name].dtype)
+
+            if value_as_array.shape[0] != len(self.__dict__['span']):
+                raise DimensionError("Invalid assignment for '{}': "
+                                     "must be either a single value or "
+                                     "a sequence of identical length to `span`"
+                                     "(expected {} elements)".format(
+                                         name, len(self.__dict__['span'])))
+
+            self.__dict__['_' + name] = value_as_array
+
+        else:
+            self.__dict__['_' + name][:] = value
+
+    def __getitem__(self, key: Union[str, Tuple[str, Union[Hashable, slice]]]) -> Any:
+        # `key` is a string (variable name): return the corresponding array
+        if isinstance(key, str):
+            if key not in self.__dict__['index']:
+                raise KeyError("'{}' not recognised as a variable name".format(key))
+            return self.__getattr__(key)
+
+        # `key` is a tuple (variable name plus index): return the selected
+        # elements of the corresponding array
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise IndexError(
+                    'Invalid index: must be of length one (variable name) '
+                    'or length two (variable name, span index)')
+
+            # Unpack the key
+            name: str
+            index: Union[Hashable, slice]
+            name, index = key
+
+            # Get the full array
+            if name not in self.__dict__['index']:
+                raise KeyError("'{}' not recognised as a variable name".format(name))
+            values = self.__getattr__(name)
+
+            # Extract and return the relevant subset
+            if isinstance(index, slice):
+                start, stop, step = index.start, index.stop, index.step
+
+                if start is None:
+                    start = self.__dict__['span'][0]
+                if stop is None:
+                    stop = self.__dict__['span'][-1]
+                if step is None:
+                    step = 1
+
+                start_location = self.__dict__['span'].index(start)
+                stop_location = self.__dict__['span'].index(stop) + 1
+
+                return values[start_location:stop_location:step]
+
+            else:
+                location = self.__dict__['span'].index(index)
+                return values[location]
+
+        raise TypeError('Invalid index type ({}): `{}`'.format(type(key), key))
+
+    def __setitem__(self, key: Union[str, Tuple[str, Union[Hashable, slice]]], value: Union[Any, Sequence[Any]]) -> None:
+        # `key` is a string (variable name): update the corresponding array in
+        # its entirety
+        if isinstance(key, str):
+            if key not in self.__dict__['index']:
+                raise KeyError("'{}' not recognised as a variable name".format(key))
+            self.__setattr__(key, value)
+            return
+
+        # `key` is a tuple (variable name plus index): update selected elements
+        # of the corresponding array
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise IndexError(
+                    'Invalid index: must be of length one (variable name) '
+                    'or length two (variable name, span index)')
+
+            # Unpack the key
+            name: str
+            index: Union[Hashable, slice]
+            name, index = key
+
+            # Modify the relevant subset
+            if isinstance(index, slice):
+                start, stop, step = index.start, index.stop, index.step
+
+                if start is None:
+                    start = self.__dict__['span'][0]
+                if stop is None:
+                    stop = self.__dict__['span'][-1]
+                if step is None:
+                    step = 1
+
+                start_location = self.__dict__['span'].index(start)
+                stop_location = self.__dict__['span'].index(stop) + 1
+
+                self.__dict__['_' + name][start_location:stop_location:step] = value
+                return
+
+            else:
+                location = self.__dict__['span'].index(index)
+                self.__dict__['_' + name][location] = value
+                return
+
+        raise TypeError('Invalid index type ({}): `{}`'.format(type(key), key))
+
+    def copy(self) -> 'VectorContainer':
+        """Return a copy of the current object."""
+        copied = self.__class__(span=copy.deepcopy(self.__dict__['span']))
+        copied.__dict__.update(
+            {k: copy.deepcopy(v)
+             for k, v in self.__dict__.items()})
+        return copied
+
+    __copy__ = copy
+    __deepcopy__ = copy
+
+    def __dir__(self) -> List[str]:
+        return sorted(
+            dir(type(self)) + self.__dict__['index'] + ['span', 'index'])
+
+    def _ipython_key_completions_(self) -> List[str]:
+        return self.__dict__['index']
+
+    @property
+    def values(self) -> np.ndarray:
+        """Container contents as a 2D (index x span) array."""
+        return np.array([
+            self.__getattribute__('_' + name) for name in self.__dict__['index']
+        ])
+
+
 # Base class for individual models --------------------------------------------
 
-class BaseModel:
+class BaseModel(VectorContainer):
     """Base class for economic models."""
 
     ENDOGENOUS: List[str] = []
@@ -449,156 +653,26 @@ class BaseModel:
         **initial_values : keyword arguments of variable names and values
             Values with which to initialise specific named model variables
         """
-        # Initialise model attributes
-        self.__dict__['span'] = span
+        # Set up data container
+        super().__init__(span)
+
+        # Add solution tracking variables
+        self.add_variable('status', '-')
+        self.add_variable('iterations', -1)
+
+        # Add model variables
         self.__dict__['names'] = self.NAMES
-
-        self.__dict__['_status'] = np.full(len(self.span), '-', dtype=str)
-        self.__dict__['_iterations'] = np.full(len(self.span), -1, dtype=int)
-
-        self.__dict__['_dtype'] = dtype
-
-        # Initialise model variables with a leading underscore in the
-        # name. `__getattr__()` and `__setattr__()` provide indirect access via
-        # the non-underscored names
-        for name in self.names:
-            value = initial_values.get(name, default_value)
-
-            if isinstance(value, Sequence):
-                value_as_array = np.array(value).flatten()
-            else:
-                value_as_array = np.full(len(self.span), value, dtype=self._dtype)
-
-            if value_as_array.shape[0] != len(self.span):
-                raise DimensionError("Invalid assignment for '{}': "
-                                     "must be either a number or "
-                                     "a sequence of identical length "
-                                     "(expect {} elements)".format(
-                                         name, len(self.span)))
-
-            self.__setattr__('_' + name, value_as_array)
-
-    def __getattr__(self, name: str) -> Any:
-        """Over-riding method to provide indirect access to internal model
-        variables as needed."""
-        if (name in self.__dict__['names'] or
-            name in ['status', 'iterations']):
-            return self.__dict__['_' + name]
-        else:
-            return super().__getattribute__(name)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        """Over-riding method to provide indirect access to internal model
-        variables as needed."""
-        if (name in self.__dict__['names'] or
-            name == 'iterations'):
-            if isinstance(value, Number):
-                self.__dict__['_' + name][:] = value
-            elif len(self.__dict__['_' + name]) == len(value):
-                self.__dict__['_' + name] = np.array(
-                    value,
-                    dtype=self.__dict__['_' + name].dtype)
-            else:
-                raise DimensionError("Invalid assignment for '{}': "
-                                     "must be either a number or "
-                                     "a sequence of identical length "
-                                     "(expect {} elements)".format(
-                                         name, len(self.span)))
-
-        elif name == 'status':
-            if isinstance(value, str):
-                self.__dict__['_' + name][:] = value
-            elif len(self.__dict__['_' + name]) == len(value):
-                self.__dict__['_' + name] = np.array(
-                    value,
-                    dtype=self.__dict__['_' + name].dtype)
-            else:
-                raise DimensionError("Invalid assignment for '{}': "
-                                     "must be either a string or "
-                                     "a sequence of identical length "
-                                     "(expect {} elements)".format(
-                                         name, len(self.span)))
-
-        else:
-            super.__setattr__(self, name, value)
-
-    def __getitem__(self, key: str) -> Any:
-        if isinstance(key, str):
-            if key in self.names:
-                return self.__getattr__(key)
-            else:
-                raise KeyError("'{}' not a model variable".format(key))
-        else:
-            assert len(key) == 2
-            name, index = key
-            values = self.__getattr__(name)
-
-            if isinstance(index, slice):
-                start, stop, step = index.start, index.stop, index.step
-
-                if start is None:
-                    start = self.span[0]
-                if stop is None:
-                    stop = self.span[-1]
-                if step is None:
-                    step = 1
-
-                start_location = self.span.index(start)
-                stop_location = self.span.index(stop) + 1
-
-                return values[start_location:stop_location:step]
-            else:
-                location = self.span.index(index)
-                return values[location]
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        if isinstance(key, str):
-            self.__setattr__(key, value)
-        else:
-            assert len(key) == 2
-            name, index = key
-
-            if isinstance(index, slice):
-                start, stop, step = index.start, index.stop, index.step
-
-                if start is None:
-                    start = self.span[0]
-                if stop is None:
-                    stop = self.span[-1]
-                if step is None:
-                    step = 1
-
-                start_location = self.span.index(start)
-                stop_location = self.span.index(stop) + 1
-
-                self.__dict__['_' + name][start_location:stop_location:step] = value
-            else:
-                location = self.span.index(index)
-                self.__dict__['_' + name][location] = value
-
-    def copy(self) -> 'BaseModel':
-        """Return a copy of the current (state of the) model instance."""
-        copied = self.__class__(span=copy.deepcopy(self.span))
-        copied.__dict__.update(
-            {k: copy.deepcopy(v)
-             for k, v in self.__dict__.items()})
-        return copied
-
-    __copy__ = copy
-    __deepcopy__ = copy
+        for name in self.__dict__['names']:
+            self.add_variable(name,
+                              initial_values.get(name, default_value),
+                              dtype=dtype)
 
     def __dir__(self) -> List[str]:
-        return sorted(
-            dir(type(self)) +
-            self.__dict__['names'] +
-            ['span', 'names', 'status', 'iterations'])
-
-    def _ipython_key_completions_(self) -> List[str]:
-        return self.__dict__['names']
+        return sorted(super().__dir__() + ['names'])
 
     @property
     def values(self) -> np.ndarray:
-        """Model variable values as a 2D (variables x time) array."""
+        """Model variable values as a 2D (names x span) array."""
         return np.array([
             self.__getattribute__('_' + name) for name in self.names
         ])
