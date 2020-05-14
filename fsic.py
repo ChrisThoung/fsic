@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.5.2.dev'
+__version__ = '0.6.0.dev'
 
 
 import copy
@@ -33,6 +33,9 @@ class DimensionError(FSICError):
     pass
 
 class DuplicateNameError(FSICError):
+    pass
+
+class InitialisationError(FSICError):
     pass
 
 class NonConvergenceError(FSICError):
@@ -619,6 +622,26 @@ class VectorContainer:
             self.__getattribute__('_' + name) for name in self.__dict__['index']
         ])
 
+    @values.setter
+    def values(self, new_values: np.ndarray) -> None:
+        """Replace all values (effectively, element-by-element), preserving the original data types in the container.
+
+        Notes
+        -----
+        The replacement array must be 2D and have identical dimensions to
+        `values`, and in the right order: (index x span).
+
+        The method coerces each row to the data type of the corresponding item
+        in the container.
+        """
+        if new_values.shape != self.values.shape:
+            raise DimensionError(
+                'Replacement array is of shape {} but expected shape is {}'
+                .format(new_values.shape, self.values.shape))
+
+        for name, series in zip(self.index, new_values):
+            self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
+
 
 # Base class for individual models --------------------------------------------
 
@@ -639,13 +662,15 @@ class BaseModel(VectorContainer):
 
     CODE: Optional[str] = None
 
-    def __init__(self, span: Sequence[Hashable], *, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+    def __init__(self, span: Sequence[Hashable], *, engine: str = 'python', dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise model variables.
 
         Parameters
         ----------
         span : iterable
             Sequence of periods that define the timespan of the model
+        engine : str
+            Signal of the (expected) underlying solution method/implementation
         dtype : variable type
             Data type to impose on model variables (in NumPy arrays)
         default_value : number
@@ -653,6 +678,8 @@ class BaseModel(VectorContainer):
         **initial_values : keyword arguments of variable names and values
             Values with which to initialise specific named model variables
         """
+        self.__dict__['engine'] = engine
+
         # Set up data container
         super().__init__(span)
 
@@ -676,6 +703,26 @@ class BaseModel(VectorContainer):
         return np.array([
             self.__getattribute__('_' + name) for name in self.names
         ])
+
+    @values.setter
+    def values(self, new_values: np.ndarray) -> None:
+        """Replace all values (effectively, element-by-element), preserving the original data types in the container.
+
+        Notes
+        -----
+        The replacement array must be 2D and have identical dimensions to
+        `values`, and in the right order: (names x span).
+
+        The method coerces each row to the data type of the corresponding item
+        in the container.
+        """
+        if new_values.shape != self.values.shape:
+            raise DimensionError(
+                'Replacement array is of shape {} but expected shape is {}'
+                .format(new_values.shape, self.values.shape))
+
+        for name, series in zip(self.names, new_values):
+            self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
 
     def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.

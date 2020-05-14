@@ -7,6 +7,26 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+
+- Add new module, 'fsic_fortran.py', to generate and link in compilable Fortran
+  code, to speed up model solution. Includes a function to generate Fortran code from a
+  set of model symbols (as you normally would for a Python-based model) and a
+  new subclass to handle the compiled routines.
+- Add accompanying test suite for `fsic_fortran` module,
+  'test_fsic_fortran.py'.
+- Add setter for `values` property in `VectorContainer` and `BaseModel`
+  classes, to completely overwrite their contents.
+- Add new exception, `InitialisationError` to catch implementation problems at
+  model instantiation (as distinct from problems with the initial model
+  inputs). Only added to the new `FortranEngine` class for now (to check for a
+  linked module).
+- Add new model attribute ,`engine`, which is assigned at instantiation, to
+  signal the *expected* solution method/implementation.
+
+
 ## [0.5.2.dev] - 2020-04-24
 
 ### Added
