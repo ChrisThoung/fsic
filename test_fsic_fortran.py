@@ -237,3 +237,7 @@ class TestBuildAndSolve(unittest.TestCase):
         # Comparison
         self.assertEqual(self.model_python.values.shape, self.model_fortran.values.shape)
         self.assertTrue(np.allclose(self.model_python.values, self.model_fortran.values))
+
+
+if __name__ == '__main__':
+    unittest.main()
