@@ -7,7 +7,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.6.1.dev] - 2020-05-16
+
+Fixes to more closely mimic the behaviour of the original Python code. Ideally,
+the two codebases would behave identically with no need for the user to know
+which engine is running under the bonnet.
 
 ### Fixed
 
@@ -20,6 +24,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 
 ## [0.6.0.dev] - 2020-05-14
+
+Add support to generate and link in compilable Fortran code. API (especially)
+subject to change.
 
 ### Added
 
