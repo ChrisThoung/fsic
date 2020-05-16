@@ -14,6 +14,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Fix iteration counter in Fortran code. When a loop completes in Fortran, the
   final value of the iteration counter is 1 higher than the limit on the
   loop. Subtract 1 to correct for this.
+- Further work to improve consistency of behaviour between the Python and
+  Fortran implementations including: treatment of `errors` argument in the
+  solve methods.
 
 
 ## [0.6.0.dev] - 2020-05-14

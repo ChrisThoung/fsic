@@ -116,7 +116,14 @@ class FortranEngine:
                 self.__dict__['_' + name][t] for name in self.CHECK
             ])
 
-        if errors not in ('raise', 'skip', 'ignore', 'replace'):
+        error_options = {
+            'raise':   0,
+            'skip':    1,
+            'ignore':  2,
+            'replace': 3,
+        }
+
+        if errors not in error_options:
             raise ValueError('Invalid `errors` argument: {}'.format(errors))
 
         # Optionally copy initial values from another period
@@ -158,7 +165,12 @@ class FortranEngine:
         # Solve: Add 1 to `t` to go from zero-based (Python) to one-based
         #        (Fortran) indexing
         solved_values, converged, iteration, error_code = (
-            self.ENGINE.solve_t(self.values.astype(float), t + 1, max_iter, tol))
+            self.ENGINE.solve_t(self.values.astype(float),
+                                t + 1,
+                                max_iter,
+                                tol,
+                                [self.names.index(x) for x in self.CHECK],
+                                error_options[errors]))
 
         converged = bool(converged)
 
@@ -315,7 +327,9 @@ subroutine evaluate(initial_values, t, solved_values, error_code, nrows, ncols)
 end subroutine evaluate
 
 
-subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, iteration, error_code, nrows, ncols)
+subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, error_control,  &
+                &  solved_values, converged, iteration, error_code,                         &
+                &  nrows, ncols, nvars)
   use structure
   use error_codes
   implicit none
@@ -324,26 +338,43 @@ subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, i
   ! `ncols` is the number of periods
   integer, intent(in) :: nrows, ncols
 
+  ! `nvars` is the number of variables to check for convergence (indexes set in
+  ! `convergence_variables`)
+  integer, intent(in) :: nvars
+
   real(8), dimension(nrows, ncols), intent(in) :: initial_values
   integer, intent(in) :: t, max_iter
   real(8), intent(in) :: tol
+  integer, dimension(nvars), intent(in) :: convergence_variables
+  integer, intent(in) :: error_control
 
   real(8), dimension(nrows, ncols), intent(out) :: solved_values
   logical, intent(out) :: converged
   integer, intent(out) :: iteration, error_code
 
-  real(8), dimension(nrows, ncols) :: previous_values, diff_squared
+  real(8), dimension(nrows, ncols) :: previous_values
+  real(8), dimension(nvars) :: current_check, previous_check, diff_squared
 
   ! Copy the initial values before solution
   ! (copy all values to avoid having to know which elements will change)
   solved_values = initial_values
   converged = .false.
 
+  ! Array of variable values to check for convergence
+  current_check = solved_values(convergence_variables, t)
+
   ! Solve
   do iteration = 1, max_iter
 
+     ! Save the values of the convergence variables
+     previous_check = current_check
+
+     ! Evaluate the system of equations
      previous_values = solved_values
      call evaluate(previous_values, t, solved_values, error_code, nrows, ncols)
+
+     ! Get the new values of the convergence variables
+     current_check = solved_values(convergence_variables, t)
 
      ! Check error code and return if a problem is found
      ! (indicated by a non-zero error code)
@@ -352,7 +383,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, i
      end if
 
      ! Test for convergence
-     diff_squared = (solved_values - previous_values) ** 2
+     diff_squared = (current_check - previous_check) ** 2
 
      if(all(diff_squared < tol)) then
         converged = .true.

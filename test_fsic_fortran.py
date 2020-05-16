@@ -147,6 +147,35 @@ class TestBuildAndSolve(unittest.TestCase):
         self.model_fortran.solve(max_iter=2, failures='ignore')
         self.assertTrue(np.all(self.model_fortran.iterations[1:] == 2))
 
+    def test_solve_t_errors_ignore(self):
+        # Check that the `errors='ignore'` solve option ignores NaNs properly
+
+        # Python
+        self.model_python.G = 20
+        self.model_python.theta = 0.2
+        self.model_python.C[2] = np.NaN
+
+        # Solution should halt because of the pre-existing NaN
+        with self.assertRaises(fsic.SolutionError):
+            self.model_python.solve()
+
+        self.model_python.solve(errors='ignore')
+
+        # Fortran
+        self.model_fortran.G = 20
+        self.model_fortran.theta = 0.2
+        self.model_fortran.C[2] = np.NaN
+
+        # Solution should halt because of the pre-existing NaN
+        with self.assertRaises(fsic.SolutionError):
+            self.model_fortran.solve()
+
+        self.model_fortran.solve(errors='ignore')
+
+        # Comparison
+        self.assertEqual(self.model_python.values.shape, self.model_fortran.values.shape)
+        self.assertTrue(np.allclose(self.model_python.values, self.model_fortran.values))
+
     def test_solve(self):
         # Check Python- and Fortran-based solve functions generate the same
         # results
