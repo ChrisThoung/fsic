@@ -157,7 +157,7 @@ class FortranEngine:
 
         # Solve: Add 1 to `t` to go from zero-based (Python) to one-based
         #        (Fortran) indexing
-        solved_values, converged, iterations, error_code = (
+        solved_values, converged, iteration, error_code = (
             self.ENGINE.solve_t(self.values.astype(float), t + 1, max_iter, tol))
 
         converged = bool(converged)
@@ -177,13 +177,13 @@ class FortranEngine:
                 'generating uncaught error code {}'.format(self.span[t], t, error_code))
 
         self.status[t] = status
-        self.iterations[t] = iterations
+        self.iterations[t] = iteration
 
         if status == 'F' and failures == 'raise':
             raise NonConvergenceError(
                 'Solution failed to converge after {} iterations(s) '
                 'in period with label: {} (index: {})'
-                .format(iterations, self.span[t], t))
+                .format(iteration, self.span[t], t))
 
         if status == '.':
             return True
