@@ -7,6 +7,15 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Fixed
+
+- Fix iteration counter in Fortran code. When a loop completes in Fortran, the
+  final value of the iteration counter is 1 higher than the limit on the
+  loop. Subtract 1 to correct for this.
+
+
 ## [0.6.0.dev] - 2020-05-14
 
 ### Added

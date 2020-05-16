@@ -126,6 +126,27 @@ class TestBuildAndSolve(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.model_fortran._evaluate(-100)
 
+    def test_solve_t_max_iter(self):
+        # Check that the Fortran code returns the correct number of iterations
+        # if it reaches `max_iter`
+        # (In Fortran, a loop that completes seems to leave the counter 1
+        # higher than the loop limit. This isn't the case if the loop exits
+        # early.)
+
+        # Python
+        self.model_python.G = 20
+        self.model_python.theta = 0.2
+
+        self.model_python.solve(max_iter=2, failures='ignore')
+        self.assertTrue(np.all(self.model_python.iterations[1:] == 2))
+
+        # Fortran
+        self.model_fortran.G = 20
+        self.model_fortran.theta = 0.2
+
+        self.model_fortran.solve(max_iter=2, failures='ignore')
+        self.assertTrue(np.all(self.model_fortran.iterations[1:] == 2))
+
     def test_solve(self):
         # Check Python- and Fortran-based solve functions generate the same
         # results

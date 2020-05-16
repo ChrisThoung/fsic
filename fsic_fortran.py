@@ -361,6 +361,10 @@ subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, i
 
   end do
 
+  if(.not. converged) then
+     iteration = iteration - 1
+  end if
+
 end subroutine solve_t
 '''
 
