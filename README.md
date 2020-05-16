@@ -8,7 +8,8 @@ Tools for macroeconomic modelling in Python.
 
 ## How to...
 
-* install the Python modules (`fsic` and `fsictools`): run either:  
+* install the Python modules (`fsic`, `fsic_fortran` and `fsictools`): run
+  either:  
   `$ python setup.py install`  
   or: `$ pip install .`
 * see more examples of how to use FSIC: view the contents of the 'examples'
@@ -17,9 +18,12 @@ Tools for macroeconomic modelling in Python.
   test framework (e.g. `unittest`, `pytest`, `nose`/`nose2`; other test
   frameworks are available) - these are the same tests that [Travis
   CI](https://travis-ci.org/ChrisThoung/fsic) runs
-    * note that there's a second set of tests, 'test_fsictools.py', for the
-      optional supporting `fsictools` module, which has further dependencies to
-      run in full: [pandas](https://pandas.pydata.org/),
+    * note that there are separate test suites for the non-core modules:
+      `fsic_fortran` and `fsictools`
+    * 'test_fsic_fortran.py', for the supporting `fsic_fortran` module, needs a
+      Fortran compiler accessible to NumPy via F2PY
+    * 'test_fsictools.py', for the supporting `fsictools` module, has further
+      dependencies to run in full: [pandas](https://pandas.pydata.org/),
       [NetworkX](https://networkx.github.io/) and
       [SymPy](https://www.sympy.org/en/index.html) (none of these are needed to
       run a model implemented in FSIC but they may be helpful to analyse the
