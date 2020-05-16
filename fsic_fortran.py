@@ -315,7 +315,7 @@ subroutine evaluate(initial_values, t, solved_values, error_code, nrows, ncols)
 end subroutine evaluate
 
 
-subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, iterations, error_code, nrows, ncols)
+subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, iteration, error_code, nrows, ncols)
   use structure
   use error_codes
   implicit none
@@ -330,7 +330,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, i
 
   real(8), dimension(nrows, ncols), intent(out) :: solved_values
   logical, intent(out) :: converged
-  integer, intent(out) :: iterations, error_code
+  integer, intent(out) :: iteration, error_code
 
   real(8), dimension(nrows, ncols) :: previous_values, diff_squared
 
@@ -340,7 +340,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, solved_values, converged, i
   converged = .false.
 
   ! Solve
-  do iterations = 1, max_iter
+  do iteration = 1, max_iter
 
      previous_values = solved_values
      call evaluate(previous_values, t, solved_values, error_code, nrows, ncols)
