@@ -305,13 +305,15 @@ H = H[-1] + YD - C
 
 class TestModelContainerMethods(unittest.TestCase):
 
+    SCRIPT = 'C = {alpha_1} * YD + {alpha_2} * H[-1]'
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    MODEL = fsic.build_model(SYMBOLS)
+
     def setUp(self):
         # Initialise a new model object for each test
-        Model = fsic.build_model(
-            fsic.parse_model('C = {alpha_1} * YD + {alpha_2} * H[-1]'))
-        self.model = Model(['{}Q{}'.format(y, q)
-                            for y in range(1990, 1995 + 1)
-                            for q in range(1, 4 + 1)])
+        self.model = self.MODEL(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
         self.model.YD = np.arange(len(self.model.span))
 
     def test_getitem_by_name(self):
@@ -689,14 +691,16 @@ class TestBuildErrors(unittest.TestCase):
 
 class TestSolutionErrorHandling(unittest.TestCase):
 
-    Model = fsic.build_model(fsic.parse_model('''
+    SCRIPT = '''
 s = 1 - (C / Y)  # Divide-by-zero equation appears first
 Y = C + G
-C = {c0} + {c1} * Y'''))
+C = {c0} + {c1} * Y'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    MODEL = fsic.build_model(SYMBOLS)
 
     def test_raise(self):
         # Model should halt on first period
-        model = self.Model(range(10), G=20)
+        model = self.MODEL(range(10), G=20)
 
         with self.assertRaises(fsic.SolutionError):
             model.solve()
@@ -709,13 +713,13 @@ C = {c0} + {c1} * Y'''))
 
     def test_raise_prior_nans(self):
         # Model should halt if pre-existing NaNs detected
-        model = self.Model(range(10), s=np.nan)
+        model = self.MODEL(range(10), s=np.nan)
 
         with self.assertRaises(fsic.SolutionError):
             model.solve()
 
     def test_skip(self):
-        model = self.Model(range(10), G=20)
+        model = self.MODEL(range(10), G=20)
 
         # Model should skip to next period each time
         model.solve(errors='skip')
@@ -731,7 +735,7 @@ C = {c0} + {c1} * Y'''))
 
     def test_ignore_successfully(self):
         # Model should keep solving (successfully in this case)
-        model = self.Model(range(10), G=20)
+        model = self.MODEL(range(10), G=20)
         model.solve(errors='ignore')
 
         self.assertTrue(np.allclose(model.s, 1))
@@ -745,7 +749,7 @@ C = {c0} + {c1} * Y'''))
 
     def test_ignore_unsuccessfully(self):
         # Model should keep solving (unsuccessfully in this case)
-        model = self.Model(range(10))
+        model = self.MODEL(range(10))
         model.solve(failures='ignore', errors='ignore')
 
         self.assertTrue(np.all(np.isnan(model.s)))
@@ -753,7 +757,7 @@ C = {c0} + {c1} * Y'''))
         self.assertTrue(np.all(model.iterations == 100))
 
     def test_ignore_prior_nans(self):
-        model = self.Model(range(10), s=np.nan, G=20)
+        model = self.MODEL(range(10), s=np.nan, G=20)
         model.solve(errors='ignore')
 
         self.assertTrue(np.allclose(model.s, 1))
@@ -762,7 +766,7 @@ C = {c0} + {c1} * Y'''))
 
     def test_replace_successfully(self):
         # Model should replace NaNs and keep solving (successfully in this case)
-        model = self.Model(range(10), G=20)
+        model = self.MODEL(range(10), G=20)
         model.solve(errors='replace')
 
         self.assertTrue(np.allclose(model.s, 1))
@@ -771,7 +775,7 @@ C = {c0} + {c1} * Y'''))
 
     def test_replace_unsuccessfully(self):
         # Model should replace NaNs and keep solving (unsuccessfully in this case)
-        model = self.Model(range(10))
+        model = self.MODEL(range(10))
         model.solve(failures='ignore', errors='replace')
 
         self.assertTrue(np.all(np.isnan(model.s)))
@@ -779,7 +783,7 @@ C = {c0} + {c1} * Y'''))
         self.assertTrue(np.all(model.iterations == 100))
 
     def test_replace_prior_nans(self):
-        model = self.Model(range(10), s=np.nan, G=20)
+        model = self.MODEL(range(10), s=np.nan, G=20)
         model.solve(errors='replace')
 
         self.assertTrue(np.allclose(model.s, 1))
