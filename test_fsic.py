@@ -29,16 +29,6 @@ import numpy as np
 import fsic
 
 
-SIM = fsic.build_model(fsic.parse_model(
-'''
-C = {alpha_1} * YD + {alpha_2} * H[-1]
-YD = Y - T
-Y = C + G
-T = {theta} * Y
-H = H[-1] + YD - C
-'''))
-
-
 class TestRegexes(unittest.TestCase):
 
     def test_equation_re(self):
@@ -208,8 +198,18 @@ H = H[-1] + YD - C
 
 class TestInit(unittest.TestCase):
 
+    SCRIPT = '''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    MODEL = fsic.build_model(SYMBOLS)
+
     def test_init_with_arrays(self):
-        model = SIM(range(5), G=np.arange(0, 10, 2), alpha_1=[0.6] * 5)
+        model = self.MODEL(range(5), G=np.arange(0, 10, 2), alpha_1=[0.6] * 5)
         self.assertEqual(model.values.shape, (9, 5))
         self.assertTrue(np.allclose(
             model.values,
@@ -228,13 +228,23 @@ class TestInit(unittest.TestCase):
     def test_init_dimension_error(self):
         with self.assertRaises(fsic.DimensionError):
             # C is invalid because it has the wrong shape
-            SIM(range(10), C=[0, 0])
+            self.MODEL(range(10), C=[0, 0])
 
 
 class TestInterface(unittest.TestCase):
 
+    SCRIPT = '''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    MODEL = fsic.build_model(SYMBOLS)
+
     def setUp(self):
-        self.model = SIM(range(10))
+        self.model = self.MODEL(range(10))
 
     def test_dir(self):
         # Check that `dir(model)` includes the model's variable names
@@ -547,10 +557,20 @@ Y = 0.72 * Q
 
 class TestCopy(unittest.TestCase):
 
+    SCRIPT = '''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    MODEL = fsic.build_model(SYMBOLS)
+
     def setUp(self):
-        self.model = SIM(range(1945, 2010 + 1),
-                         alpha_1=0.6, alpha_2=0.4,
-                         theta=0.2)
+        self.model = self.MODEL(range(1945, 2010 + 1),
+                                alpha_1=0.6, alpha_2=0.4,
+                                theta=0.2)
 
     def test_copy(self):
         self.model.G = 20
@@ -574,9 +594,19 @@ class TestCopy(unittest.TestCase):
 
 class TestSolve(unittest.TestCase):
 
+    SCRIPT = '''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    MODEL = fsic.build_model(SYMBOLS)
+
     def test_solve_t_negative(self):
         # Check support for negative values of `t` in `solve_t()`
-        model = SIM(range(1945, 2010 + 1), alpha_1=0.5)
+        model = self.MODEL(range(1945, 2010 + 1), alpha_1=0.5)
 
         model.G[-1] = 20
         model.solve_t(-1)
@@ -588,7 +618,7 @@ class TestSolve(unittest.TestCase):
     def test_solve_t_negative_with_offset(self):
         # Check support for negative values of `t` in `solve_t()`, with an
         # offset
-        model = SIM(range(1945, 2010 + 1), alpha_1=0.5)
+        model = self.MODEL(range(1945, 2010 + 1), alpha_1=0.5)
 
         model.G[-1] = 20
         model.solve_t(-1, offset=-1)
@@ -600,7 +630,7 @@ class TestSolve(unittest.TestCase):
     def test_offset_error_lag(self):
         # Check for an `IndexError` if `offset` points prior to the span of the
         # current model instance
-        model = SIM(range(1945, 2010 + 1))
+        model = self.MODEL(range(1945, 2010 + 1))
 
         with self.assertRaises(IndexError):
             # With Model *SIM*, trying to solve the second period (remember
@@ -610,7 +640,7 @@ class TestSolve(unittest.TestCase):
     def test_offset_error_lead(self):
         # Check for an `IndexError` if `offset` points beyond the span of the
         # current model instance
-        model = SIM(range(1945, 2010 + 1))
+        model = self.MODEL(range(1945, 2010 + 1))
 
         with self.assertRaises(IndexError):
             # With Model *SIM*, trying to solve the final period with an offset
@@ -619,7 +649,7 @@ class TestSolve(unittest.TestCase):
 
     def test_solve_return_values(self):
         # Check that the return values from `solve()` are as expected
-        model = SIM(['A', 'B', 'C'])
+        model = self.MODEL(['A', 'B', 'C'])
         labels, indexes, solved = model.solve()
 
         self.assertEqual(labels, ['B', 'C'])
