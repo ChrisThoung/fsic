@@ -9,9 +9,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [0.6.1.dev] - 2020-05-16
 
-Fixes to more closely mimic the behaviour of the original Python code. Ideally,
-the two codebases would behave identically with no need for the user to know
-which engine is running under the bonnet.
+Fixes to the Fortran functions to more closely mimic the behaviour of the
+original Python code. Ideally, the two codebases would behave identically with
+no need for the user to know which engine is running under the bonnet.
 
 ### Fixed
 
