@@ -186,7 +186,8 @@ class FortranEngine:
         else:
             raise FortranEngineError(
                 'Failed to solve model in period with label {} (index: {}), '
-                'generating uncaught error code {}'.format(self.span[t], t, error_code))
+                'with uncaught error code {} after {} iteration(s)'
+                .format(self.span[t], t, error_code, iteration))
 
         self.status[t] = status
         self.iterations[t] = iteration
@@ -236,7 +237,7 @@ class FortranEngine:
             else:
                 raise SolutionError(
                     'Failed to evaluate the system of equations at index `t` = {}, '
-                    'generating unidentified error code: {}'.format(t, error_code))
+                    'with unidentified error code {}'.format(t, error_code))
 
         # If here, store the values back to this Python instance
         self.values = solved_values
