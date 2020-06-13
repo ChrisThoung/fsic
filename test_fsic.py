@@ -692,13 +692,15 @@ class TestBuildErrors(unittest.TestCase):
 class TestSolutionErrorHandling(unittest.TestCase):
 
     SCRIPT = '''
-s = 1 - (C / Y)  # Divide-by-zero equation appears first
+s = 1 - (C / Y)  # Divide-by-zero equation (generating a NaN) appears first
 Y = C + G
-C = {c0} + {c1} * Y'''
+C = {c0} + {c1} * Y
+g = log(G)  # Use to test for infinity with log(0)
+'''
     SYMBOLS = fsic.parse_model(SCRIPT)
     MODEL = fsic.build_model(SYMBOLS)
 
-    def test_raise(self):
+    def test_raise_nans(self):
         # Model should halt on first period
         model = self.MODEL(range(10), G=20)
 
@@ -789,6 +791,41 @@ C = {c0} + {c1} * Y'''
         self.assertTrue(np.allclose(model.s, 1))
         self.assertTrue(np.all(model.status == '.'))
         self.assertTrue(np.all(model.iterations == 3))
+
+    def test_raise_infinities(self):
+        # Model should halt on first period because of log(0)
+        model = self.MODEL(range(10), c0=10, C=10, Y=10)
+
+        with self.assertRaises(fsic.SolutionError):
+            model.solve()
+
+        self.assertTrue(np.isinf(model.g[0]))
+        self.assertTrue(np.allclose(model.g[1:], 0))
+
+        self.assertTrue(np.allclose(model.s, 0))
+        self.assertTrue(np.allclose(model.C, 10))
+        self.assertTrue(np.allclose(model.Y, 10))
+        self.assertTrue(np.allclose(model.G, 0))
+        self.assertTrue(np.allclose(model.c0, 10))
+        self.assertTrue(np.allclose(model.c1, 0))
+
+        self.assertTrue(np.all(model.status == np.array(['E'] + ['-'] * 9)))
+        self.assertTrue(np.all(model.iterations == np.array([1] + [-1] * 9)))
+
+    def test_replace_infinities(self):
+        model = self.MODEL(range(10), c0=10, C=10, Y=10)
+        model.solve(errors='replace', failures='ignore')
+
+        self.assertTrue(np.all(np.isinf(model.g)))
+
+        self.assertTrue(np.allclose(model.s, 0))
+        self.assertTrue(np.allclose(model.C, 10))
+        self.assertTrue(np.allclose(model.Y, 10))
+        self.assertTrue(np.allclose(model.G, 0))
+        self.assertTrue(np.allclose(model.c0, 10))
+        self.assertTrue(np.allclose(model.c1, 0))
+
+        self.assertTrue(np.all(model.status == 'F'))
 
 
 class TestNonConvergenceError(unittest.TestCase):

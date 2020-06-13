@@ -7,6 +7,13 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+
+- Extend handling of NaNs to also cover infinities e.g. from log(0) operations.
+
+
 ## [0.6.1.dev] - 2020-05-16
 
 Fixes to the Fortran functions to more closely mimic the behaviour of the

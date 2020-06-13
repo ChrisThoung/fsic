@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.6.1.dev'
+__version__ = '0.6.2.dev'
 
 
 import copy
@@ -752,15 +752,16 @@ class BaseModel(VectorContainer):
              - 'ignore': continue to the next period
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
-            e.g. NaNs
+            e.g. NaNs and infinities
              - 'raise' (default): stop immediately and raise a `SolutionError`
                                   [set current period solution status to 'E']
              - 'skip': stop solving the current period and move to the next one
                        [set current period solution status to 'S']
              - 'ignore': continue solving, with no special treatment or action
                          [period solution statuses as usual i.e. '.' or 'F']
-             - 'replace': each iteration, replace NaNs with zeroes
-                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
 
@@ -821,15 +822,16 @@ class BaseModel(VectorContainer):
              - 'ignore': do nothing
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
-            e.g. NaNs
+            e.g. NaNs and infinities
              - 'raise' (default): stop immediately and raise a `SolutionError`
                                   [set period solution status to 'E']
              - 'skip': stop solving the current period
                        [set period solution status to 'S']
              - 'ignore': continue solving, with no special treatment or action
                          [period solution statuses as usual i.e. '.' or 'F']
-             - 'replace': each iteration, replace NaNs with zeroes
-                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
 
@@ -863,15 +865,16 @@ class BaseModel(VectorContainer):
              - 'ignore': do nothing
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
-            e.g. NaNs
+            e.g. NaNs and infinities
              - 'raise' (default): stop immediately and raise a `SolutionError`
                                   [set period solution status to 'E']
              - 'skip': stop solving the current period
                        [set period solution status to 'S']
              - 'ignore': continue solving, with no special treatment or action
                          [period solution statuses as usual i.e. '.' or 'F']
-             - 'replace': each iteration, replace NaNs with zeroes
-                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
 
@@ -888,7 +891,8 @@ class BaseModel(VectorContainer):
         operation but the equation that determines the divisor follows
         later. If that divisor was initialised to zero, this leads to a
         divide-by-zero operation that NumPy evaluates to a NaN. This becomes
-        problematic if the NaNs then propagate through the solution.
+        problematic if the NaNs then propagate through the solution. Similar
+        problems come about with infinities e.g. from log(0).
 
         The `solve_t()` method now catches such operations (after a full pass
         through / iteration over the system of equations).
@@ -927,11 +931,11 @@ class BaseModel(VectorContainer):
         status = '-'
         current_values = get_check_values()
 
-        # Raise an exception if there are pre-existing NaNs and error checking
-        # is at its strictest ('raise')
-        if errors == 'raise' and np.any(np.isnan(current_values)):
+        # Raise an exception if there are pre-existing NaNs or infinities, and
+        # error checking is at its strictest ('raise')
+        if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
-                'Pre-existing NaNs found '
+                'Pre-existing NaNs or infinities found '
                 'in period with label: {} (index: {})'
                 .format(self.span[t], t))
 
@@ -944,12 +948,13 @@ class BaseModel(VectorContainer):
 
             current_values = get_check_values()
 
-            # It's possible that the current iteration generated no NaNs, but
-            # the previous one did: check and continue if needed
-            if np.any(np.isnan(previous_values)):
+            # It's possible that the current iteration generated no NaNs or
+            # infinities, but the previous one did: check and continue if
+            # needed
+            if np.any(~np.isfinite(previous_values)):
                 continue
 
-            if np.any(np.isnan(current_values)):
+            if np.any(~np.isfinite(current_values)):
 
                 if errors == 'raise':
                     self.status[t] = 'E'
@@ -975,7 +980,7 @@ class BaseModel(VectorContainer):
                         status = 'F'
                         break
                     else:
-                        current_values[np.isnan(current_values)] = 0.0
+                        current_values[~np.isfinite(current_values)] = 0.0
                         continue
 
                 else:
