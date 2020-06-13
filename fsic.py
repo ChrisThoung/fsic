@@ -724,6 +724,32 @@ class BaseModel(VectorContainer):
         for name, series in zip(self.names, new_values):
             self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
 
+    def iter_periods(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None) -> Iterator[Tuple[int, Hashable]]:
+        """Return pairs of period indexes and labels.
+
+        Parameters
+        ----------
+        start : element in the model's `span`
+            First period to return. If not given, defaults to the first
+            solvable period, taking into account any lags in the model's
+            equations
+        end : element in the model's `span`
+            Last period to return. If not given, defaults to the last solvable
+            period, taking into account any leads in the model's equations
+        """
+        # Default start and end periods
+        if start is None:
+            start = self.span[self.LAGS]
+        if end is None:
+            end = self.span[-1 - self.LEADS]
+
+        # Convert to an integer range
+        indexes = range(self.span.index(start),
+                        self.span.index(end) + 1)
+
+        for t in indexes:
+            yield t, self.span[t]
+
     def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
@@ -776,22 +802,9 @@ class BaseModel(VectorContainer):
          - bools, one per period: `True` if the period solved successfully;
            `False` otherwise
         """
-        # Default start and end periods
-        if start is None:
-            start = self.span[self.LAGS]
-        if end is None:
-            end = self.span[-1 - self.LEADS]
-
-        # Convert to integer positions
-        start_t = self.span.index(start)
-        end_t = self.span.index(end)
-
-        # Initialise lists of return values
-        indexes = list(range(start_t, end_t + 1))
-        labels = [self.span[i] for i in indexes]
+        indexes, labels = map(list, zip(*self.iter_periods(start=start, end=end)))
         solved = [False] * len(indexes)
 
-        # Solve
         for i, t in enumerate(indexes):
             solved[i] = self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset,
                                      failures=failures, errors=errors, **kwargs)
