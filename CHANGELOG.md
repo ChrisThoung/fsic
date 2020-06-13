@@ -12,6 +12,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 ### Added
 
 - Extend handling of NaNs to also cover infinities e.g. from log(0) operations.
+- Add separate method, `iter_periods()` to loop through model solution periods.
 
 
 ## [0.6.1.dev] - 2020-05-16
