@@ -409,7 +409,7 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
             lines.append(line)
 
         raise ParserError(
-            'Failed to parse the following statements:\n' +
+            'Failed to parse the following {} statement(s):\n'.format(len(lines)) +
             '\n'.join(lines))
 
     # Store combined symbols to a dictionary, successively combining in the
