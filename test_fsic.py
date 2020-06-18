@@ -201,6 +201,30 @@ H = H[-1] + YD - C
         with self.assertRaises(fsic.ParserError):
             fsic.parse_model('A + B + C')
 
+    def test_accidental_int_call(self):
+        # Check that a missing operator between an integer and a variable is
+        # caught properly
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('3(A)')
+
+    def test_accidental_float_call(self):
+        # Check that a missing operator between a float and a variable is
+        # caught properly
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('3.0(A)')
+
+    def test_missing_operator_int(self):
+        # Check that a missing operator between an integer and a variable is
+        # caught properly
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('3A')
+
+    def test_missing_operator_float(self):
+        # Check that a missing operator between a float and a variable is
+        # caught properly
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('3.0A')
+
 
 class TestInit(unittest.TestCase):
 
