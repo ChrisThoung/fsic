@@ -195,6 +195,12 @@ H = H[-1] + YD - C
 
         self.assertEqual(fsic.parse_model(model), expected)
 
+    def test_parser_no_lhs(self):
+        # Check that invalid equations (missing a left-hand side expression)
+        # lead to a `ParserError`
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('A + B + C')
+
 
 class TestInit(unittest.TestCase):
 

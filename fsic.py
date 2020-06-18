@@ -253,10 +253,20 @@ def split_equations_iter(model: str) -> Iterator[str]:
 
         # If complete, combine and yield
         if unmatched_parentheses == 0:
+            # Combine into a single string
             equation = '\n'.join(buffer)
-            if equation.strip():
-                assert equation_re.search(equation)
+
+            if equation.strip():  # Skip pure whitespace
+                # Check that the string is a valid equation by testing against
+                # the regular expression
+                match = equation_re.search(equation)
+
+                if not match:
+                    raise ParserError('Failed to parse equation: {}'.format(equation))
+
                 yield equation
+
+            # Reset the buffer to collect another equation
             buffer = []
 
 def split_equations(model: str) -> List[str]:
