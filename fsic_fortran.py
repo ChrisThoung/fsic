@@ -156,7 +156,7 @@ class FortranEngine:
 
         # Raise an exception if there are pre-existing NaNs and error checking
         # is at its strictest ('raise')
-        if errors == 'raise' and np.any(np.isnan(current_values)):
+        if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
                 'Pre-existing NaNs found '
                 'in period with label: {} (index: {})'
