@@ -710,6 +710,12 @@ Y = C + I + G + X - M
 Y = GVA + TSP
 ''')
 
+    def test_accidental_float_call(self):
+        # Check that something like 'A = 0.5(B)' (missing * operator) raises a
+        # `ParserError`
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('A = 0.5(B)')
+
 
 class TestBuildErrors(unittest.TestCase):
 

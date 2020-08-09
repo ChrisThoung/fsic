@@ -386,7 +386,8 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
 
     # Store any statements that fail the (optional) syntax check as 2-tuples of
     #  - int: location of statement in `model`
-    #  - str: the statement itself
+    #  - str: the original statement
+    #  - str: the (attempted) translation of the statement
     problem_statements: List[Tuple[int, str, str]] = []
 
     # Parse each statement (equation), optionally checking the syntax
@@ -397,13 +398,31 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
             equations = [s.equation for s in equation_symbols if s.equation is not None]
 
             for e in equations:
-                try:
-                    exec(e)
-                except NameError:  # Ignore name errors (undefined variables)
-                    pass
-                except SyntaxError:
-                    problem_statements.append((i, statement, e))
-                    break
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter('always')
+
+                    # Check for exceptions when trying to run the current equation
+                    try:
+                        exec(e)
+                    except NameError:  # Ignore name errors (undefined variables)
+                        pass
+                    except SyntaxError:
+                        problem_statements.append((i, statement, e))
+                        break
+
+                    # Check for warnings and treat them as errors
+                    if len(w) == 0:
+                        pass
+                    elif len(w) == 1:
+                        if issubclass(w[0].category, SyntaxWarning):
+                            problem_statements.append((i, statement, e))
+                            break
+                        else:
+                            raise ParserError(
+                                'Unexpected warning (error) when parsing: {}\n    {}'.format(statement, w[0]))
+                    else:
+                        raise ParserError(
+                            'Unexpected number of warnings (errors) when parsing: {}'.format(statement))
 
         symbols_by_equation.append(equation_symbols)
 
