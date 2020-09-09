@@ -13,6 +13,12 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Further checks and messages for errors in equations.
 
+### Changed
+
+- Parser test to trap accidental treatment of floats as callable
+  (e.g. 'A = 0.5(B)') now only runs for Python 3.8 and above. (Doesn't look
+  trivial to handle in earlier versions of Python.)
+
 
 ## [0.6.2.dev] - 2020-06-27
 

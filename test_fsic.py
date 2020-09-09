@@ -23,6 +23,7 @@ programs:
 
 import functools
 import unittest
+import sys
 
 import numpy as np
 
@@ -710,6 +711,8 @@ Y = C + I + G + X - M
 Y = GVA + TSP
 ''')
 
+    @unittest.skipIf(sys.version_info[:2] < (3, 8),
+                     'Parser test for accidental treatment of floats as callable not supported prior to Python version 3.8')
     def test_accidental_float_call(self):
         # Check that something like 'A = 0.5(B)' (missing * operator) raises a
         # `ParserError`
