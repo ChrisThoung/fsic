@@ -19,6 +19,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   (e.g. 'A = 0.5(B)') now only runs for Python 3.8 and above. (Doesn't look
   trivial to handle in earlier versions of Python.)
 
+### Fixed
+
+- Corrected parser handling of functions to:
+   - properly account for functions in namespaces, leaving them unchanged
+     e.g. to prevent `np.mean` -> `np[t].mean`
+   - only replace function names on an exact basis
+     e.g. to prevent `np.log` -> `np.np.log`
+
 
 ## [0.6.2.dev] - 2020-06-27
 

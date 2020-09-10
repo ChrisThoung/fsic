@@ -162,6 +162,38 @@ H = (H[-1] +
 
         self.assertEqual(fsic.parse_equation(equation), expected)
 
+    def test_parse_equation_function_replacement(self):
+        # Check that function replacement only applies to functions explicitly
+        # defined in `fsic.replacement_function_names`. For example:
+        #  - log -> np.log     (replaced)
+        #  - np.log -> np.log  (unchanged)
+        equation = 'C = log(A) + np.log(B)'
+        expected = [
+            fsic.Symbol(name='C', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+                        equation='C[t] = log(A[t]) + np.log(B[t])',
+                        code='self._C[t] = np.log(self._A[t]) + np.log(self._B[t])'),
+            fsic.Symbol(name='log', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.Symbol(name='A', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.Symbol(name='np.log', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.Symbol(name='B', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+        ]
+
+        self.assertEqual(fsic.parse_equation(equation), expected)
+
+    def test_parse_equation_namespace_functions(self):
+        # Check that functions in namespaces (below, `mean` in `np` [NumPy])
+        # are left unchanged
+        equation = 'Y = np.mean(X)'
+        expected = [
+            fsic.Symbol(name='Y', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+                        equation='Y[t] = np.mean(X[t])',
+                        code='self._Y[t] = np.mean(self._X[t])'),
+            fsic.Symbol(name='np.mean', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.Symbol(name='X', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+        ]
+
+        self.assertEqual(fsic.parse_equation(equation), expected)
+
     def test_parse_model(self):
         # Test that `parse_model()` correctly identifies the symbols that make
         # up a system of equations

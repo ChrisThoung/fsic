@@ -90,7 +90,7 @@ term_re = re.compile(
 
     # Valid terms for the parser
     r'''
-        (?: (?P<_FUNCTION> [_A-Za-z][_A-Za-z0-9]* ) \s* (?= \( ) )|
+        (?: (?P<_FUNCTION> [_A-Za-z][_A-Za-z0-9.]*[_A-Za-z0-9]* ) \s* (?= \( ) )|
 
         (?:
             (?: \{ \s* (?P<_PARAMETER> [_A-Za-z][_A-Za-z0-9]* ) \s* \} )|
@@ -158,8 +158,7 @@ class Term(NamedTuple):
         # If a function, update the name; otherwise amend to be an object
         # attribute
         if self.type == Type.FUNCTION:
-            for k, v in replacement_function_names.items():
-                code = code.replace(k, v)
+            code = replacement_function_names.get(code, code)
         else:
             code = 'self._' + code
 
