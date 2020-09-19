@@ -12,7 +12,6 @@ import copy
 import enum
 import itertools
 import keyword
-from numbers import Number
 import re
 from typing import Any, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Tuple, Union
 import warnings
@@ -1045,10 +1044,7 @@ class BaseModel(VectorContainer):
                 'in period with label: {} (index: {})'
                 .format(iteration, self.span[t], t))
 
-        if status == '.':
-            return True
-        else:
-            return False
+        return status == '.'
 
     def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
@@ -1094,7 +1090,7 @@ def build_model_definition(symbols: List[Symbol]) -> str:
     # Set longest lag and lead
     non_function_symbols = [s for s in symbols if s.type != Type.FUNCTION]
 
-    if len(non_function_symbols):
+    if len(non_function_symbols) > 0:
         lags =  abs(min(s.lags  for s in non_function_symbols))
         leads = abs(max(s.leads for s in non_function_symbols))
     else:
@@ -1105,7 +1101,7 @@ def build_model_definition(symbols: List[Symbol]) -> str:
     equations = '\n'.join(['        {}'.format(e) for e in expressions])
 
     # If there are no equations, insert `pass` instead
-    if not len(equations):
+    if len(equations) == 0:
         equations = '        pass'
 
     # Fill in class template
