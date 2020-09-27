@@ -80,15 +80,16 @@ class FortranEngine:
              - 'ignore': do nothing
         errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
             User-specified treatment on encountering numerical solution errors
-            e.g. NaNs
+            e.g. NaNs and infinities
              - 'raise' (default): stop immediately and raise a `SolutionError`
                                   [set period solution status to 'E']
              - 'skip': stop solving the current period
                        [set period solution status to 'S']
              - 'ignore': continue solving, with no special treatment or action
                          [period solution statuses as usual i.e. '.' or 'F']
-             - 'replace': each iteration, replace NaNs with zeroes
-                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
             Further keyword arguments to pass to the solution routines
 
@@ -105,7 +106,8 @@ class FortranEngine:
         operation but the equation that determines the divisor follows
         later. If that divisor was initialised to zero, this leads to a
         divide-by-zero operation that NumPy evaluates to a NaN. This becomes
-        problematic if the NaNs then propagate through the solution.
+        problematic if the NaNs then propagate through the solution. Similar
+        problems come about with infinities e.g. from log(0).
 
         The `solve_t()` method now catches such operations (after a full pass
         through / iteration over the system of equations).
@@ -154,11 +156,11 @@ class FortranEngine:
         status = '-'
         current_values = get_check_values()
 
-        # Raise an exception if there are pre-existing NaNs and error checking
-        # is at its strictest ('raise')
+        # Raise an exception if there are pre-existing NaNs or infinities, and
+        # error checking is at its strictest ('raise')
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
-                'Pre-existing NaNs found '
+                'Pre-existing NaNs or infinities found '
                 'in period with label: {} (index: {})'
                 .format(self.span[t], t))
 
