@@ -200,10 +200,7 @@ class FortranEngine:
                 'in period with label: {} (index: {})'
                 .format(iteration, self.span[t], t))
 
-        if status == '.':
-            return True
-        else:
-            return False
+        return status == '.'
 
     def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
