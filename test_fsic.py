@@ -464,19 +464,19 @@ class TestBuild(unittest.TestCase):
         # Test that a set of symbols with no endogenous variables still
         # successfully generates a class
         expected = '''class Model(BaseModel):
-    ENDOGENOUS = []
-    EXOGENOUS = ['C', 'G']
+    ENDOGENOUS: List[str] = []
+    EXOGENOUS: List[str] = ['C', 'G']
 
-    PARAMETERS = []
-    ERRORS = []
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
 
-    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
-    CHECK = ENDOGENOUS
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
 
-    LAGS = 0
-    LEADS = 0
+    LAGS: int = 0
+    LEADS: int = 0
 
-    def _evaluate(self, t):
+    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         pass'''
 
         symbols = fsic.parse_model('Y = C + G')
@@ -489,19 +489,19 @@ class TestBuild(unittest.TestCase):
     def test_no_symbols(self):
         # Test that empty input generates an empty model template
         expected = '''class Model(BaseModel):
-    ENDOGENOUS = []
-    EXOGENOUS = []
+    ENDOGENOUS: List[str] = []
+    EXOGENOUS: List[str] = []
 
-    PARAMETERS = []
-    ERRORS = []
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
 
-    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
-    CHECK = ENDOGENOUS
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
 
-    LAGS = 0
-    LEADS = 0
+    LAGS: int = 0
+    LEADS: int = 0
 
-    def _evaluate(self, t):
+    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         pass'''
 
         symbols = fsic.parse_model('')
@@ -510,19 +510,19 @@ class TestBuild(unittest.TestCase):
 
     def test_conditional_expression(self):
         expected = '''class Model(BaseModel):
-    ENDOGENOUS = ['Y']
-    EXOGENOUS = ['X', 'Z']
+    ENDOGENOUS: List[str] = ['Y']
+    EXOGENOUS: List[str] = ['X', 'Z']
 
-    PARAMETERS = []
-    ERRORS = []
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
 
-    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
-    CHECK = ENDOGENOUS
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
 
-    LAGS = 0
-    LEADS = 0
+    LAGS: int = 0
+    LEADS: int = 0
 
-    def _evaluate(self, t):
+    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         self._Y[t] = self._X[t] if self._X[t] > self._Z[t] else self._Z[t]'''
 
         symbols = fsic.parse_model('Y = X if X > Z else Z')

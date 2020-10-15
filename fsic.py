@@ -1063,19 +1063,19 @@ class BaseModel(VectorContainer):
 
 model_template = '''\
 class Model(BaseModel):
-    ENDOGENOUS = {endogenous}
-    EXOGENOUS = {exogenous}
+    ENDOGENOUS: List[str] = {endogenous}
+    EXOGENOUS: List[str] = {exogenous}
 
-    PARAMETERS = {parameters}
-    ERRORS = {errors}
+    PARAMETERS: List[str] = {parameters}
+    ERRORS: List[str] = {errors}
 
-    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
-    CHECK = ENDOGENOUS
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
 
-    LAGS = {lags}
-    LEADS = {leads}
+    LAGS: int = {lags}
+    LEADS: int = {leads}
 
-    def _evaluate(self, t):
+    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
 {equations}\
 '''
 
