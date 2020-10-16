@@ -269,10 +269,12 @@ T = {theta} * Y
 H = H[-1] + YD - C
 '''
     SYMBOLS = fsic.parse_model(SCRIPT)
-    MODEL = fsic.build_model(SYMBOLS)
+
+    def setUp(self):
+        self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_init_with_arrays(self):
-        model = self.MODEL(range(5), G=np.arange(0, 10, 2), alpha_1=[0.6] * 5)
+        model = self.Model(range(5), G=np.arange(0, 10, 2), alpha_1=[0.6] * 5)
         self.assertEqual(model.values.shape, (9, 5))
         self.assertTrue(np.allclose(
             model.values,
@@ -291,7 +293,7 @@ H = H[-1] + YD - C
     def test_init_dimension_error(self):
         with self.assertRaises(fsic.DimensionError):
             # C is invalid because it has the wrong shape
-            self.MODEL(range(10), C=[0, 0])
+            self.Model(range(10), C=[0, 0])
 
 
 class TestInterface(unittest.TestCase):
@@ -304,158 +306,222 @@ T = {theta} * Y
 H = H[-1] + YD - C
 '''
     SYMBOLS = fsic.parse_model(SCRIPT)
-    MODEL = fsic.build_model(SYMBOLS)
 
     def setUp(self):
-        self.model = self.MODEL(range(10))
+        self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_dir(self):
         # Check that `dir(model)` includes the model's variable names
-        for name in self.model.names + ['span', 'names', 'status', 'iterations']:
-            self.assertIn(name, dir(self.model))
+        model = self.Model(range(10))
+
+        for name in model.names + ['span', 'names', 'status', 'iterations']:
+            self.assertIn(name, dir(model))
 
     def test_modify_iterations(self):
         # Check that the `iterations` attribute stays as a NumPy array
+        model = self.Model(range(10))
+
         iterations = np.full(10, -1, dtype=int)
 
-        self.assertEqual(self.model.iterations.shape, iterations.shape)
-        self.assertTrue(np.all(self.model.iterations == iterations))
+        self.assertEqual(model.iterations.shape, iterations.shape)
+        self.assertTrue(np.all(model.iterations == iterations))
 
         # Set all values to 1
-        self.model.iterations = 1
+        model.iterations = 1
         iterations[:] = 1
 
-        self.assertEqual(self.model.iterations.shape, iterations.shape)
-        self.assertTrue(np.all(self.model.iterations == iterations))
+        self.assertEqual(model.iterations.shape, iterations.shape)
+        self.assertTrue(np.all(model.iterations == iterations))
 
         # Assign a sequence
-        self.model.iterations = range(0, 20, 2)
+        model.iterations = range(0, 20, 2)
         iterations = np.arange(0, 20, 2)
 
-        self.assertEqual(self.model.iterations.shape, iterations.shape)
-        self.assertTrue(np.all(self.model.iterations == iterations))
+        self.assertEqual(model.iterations.shape, iterations.shape)
+        self.assertTrue(np.all(model.iterations == iterations))
 
     def test_modify_iterations_errors(self):
         # Check that `iterations` assignment errors are as expected
+        model = self.Model(range(10))
+
         with self.assertRaises(fsic.DimensionError):
-            self.model.iterations = [0, 1]  # Incompatible dimensions
+            model.iterations = [0, 1]  # Incompatible dimensions
 
     def test_modify_status(self):
         # Check that the `status` attribute stays as a NumPy array
+        model = self.Model(range(10))
+
         status = np.full(10, '-')
 
-        self.assertEqual(self.model.status.shape, status.shape)
-        self.assertTrue(np.all(self.model.status == status))
+        self.assertEqual(model.status.shape, status.shape)
+        self.assertTrue(np.all(model.status == status))
 
         # Set all values to '.'
-        self.model.status = '.'
+        model.status = '.'
         status[:] = '.'
 
-        self.assertEqual(self.model.status.shape, status.shape)
-        self.assertTrue(np.all(self.model.status == status))
+        self.assertEqual(model.status.shape, status.shape)
+        self.assertTrue(np.all(model.status == status))
 
         # Assign a sequence
-        self.model.status = ['-', '.'] * 5
+        model.status = ['-', '.'] * 5
         status = np.array(['-', '.'] * 5)
 
-        self.assertEqual(self.model.status.shape, status.shape)
-        self.assertTrue(np.all(self.model.status == status))
+        self.assertEqual(model.status.shape, status.shape)
+        self.assertTrue(np.all(model.status == status))
 
     def test_modify_status_errors(self):
         # Check that `status` assignment errors are as expected
+        model = self.Model(range(10))
+
         with self.assertRaises(fsic.DimensionError):
-            self.model.status = ['-', '.']  # Incompatible dimensions
+            model.status = ['-', '.']  # Incompatible dimensions
 
 class TestModelContainerMethods(unittest.TestCase):
 
     SCRIPT = 'C = {alpha_1} * YD + {alpha_2} * H[-1]'
     SYMBOLS = fsic.parse_model(SCRIPT)
-    MODEL = fsic.build_model(SYMBOLS)
 
     def setUp(self):
-        # Initialise a new model object for each test
-        self.model = self.MODEL(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
-        self.model.YD = np.arange(len(self.model.span))
+        self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_getitem_by_name(self):
         # Test variable access by name
-        self.assertTrue(np.allclose(self.model['YD'],
-                                    np.arange(len(self.model.span))))
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
+        self.assertTrue(np.allclose(model['YD'],
+                                    np.arange(len(model.span))))
 
     def test_getitem_by_name_error(self):
         # Test that variable access raises a KeyError if the name isn't a model
         # variable
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
         with self.assertRaises(KeyError):
-            self.model['ABC']
+            model['ABC']
 
     def test_getitem_by_name_and_index(self):
         # Test simultaneous variable and single period access
-        self.assertEqual(self.model['YD', '1991Q1'], 4.0)
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
+        self.assertEqual(model['YD', '1991Q1'], 4.0)
 
     def test_getitem_by_name_and_slice_to(self):
         # Test simultaneous variable and slice access
-        self.assertTrue(np.allclose(self.model['YD', :'1990Q4'],
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
+        self.assertTrue(np.allclose(model['YD', :'1990Q4'],
                                     np.arange(3 + 1)))
 
     def test_getitem_by_name_and_slice_from(self):
         # Test simultaneous variable and slice access
-        self.assertTrue(np.allclose(self.model['YD', '1995Q1':],
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
+        self.assertTrue(np.allclose(model['YD', '1995Q1':],
                                     np.arange(20, 23 + 1)))
 
     def test_getitem_by_name_and_slice_step(self):
         # Test simultaneous variable and slice access
-        self.assertTrue(np.allclose(self.model['YD', ::4],
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
+        self.assertTrue(np.allclose(model['YD', ::4],
                                     np.arange(0, 23 + 1, 4)))
 
     def test_setitem_by_name_with_number(self):
         # Test variable assignment by name, setting all elements to a single
         # value
-        self.model['YD'] = 10
-        self.assertTrue(np.allclose(self.model['YD'],
-                                    np.full(len(self.model.span), 10, dtype=float)))
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
+        model['YD'] = 10
+        self.assertTrue(np.allclose(model['YD'],
+                                    np.full(len(model.span), 10, dtype=float)))
 
     def test_setitem_by_name_with_array(self):
         # Test variable assignment by name, replacing with a new array
-        self.model['YD'] = np.arange(0, len(self.model.span) * 2, 2)
-        self.assertTrue(np.allclose(self.model['YD'],
-                                    np.arange(0, len(self.model.span) * 2, 2)))
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
+        model['YD'] = np.arange(0, len(model.span) * 2, 2)
+        self.assertTrue(np.allclose(model['YD'],
+                                    np.arange(0, len(model.span) * 2, 2)))
 
     def test_setitem_by_name_and_index(self):
         # Test variable assignment by name and single period
-        self.model['YD', '1990Q1'] = 100
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
 
-        expected = np.arange(len(self.model.span))
+        model['YD', '1990Q1'] = 100
+
+        expected = np.arange(len(model.span))
         expected[0] = 100
 
-        self.assertTrue(np.allclose(self.model['YD'],
+        self.assertTrue(np.allclose(model['YD'],
                                     expected))
 
     def test_setitem_by_name_and_slice_to(self):
         # Test variable assignment by name and slice
-        self.model['YD', :'1990Q4'] = 100
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
 
-        expected = np.arange(len(self.model.span))
+        model['YD', :'1990Q4'] = 100
+
+        expected = np.arange(len(model.span))
         expected[:4] = 100
 
-        self.assertTrue(np.allclose(self.model['YD'],
+        self.assertTrue(np.allclose(model['YD'],
                                     expected))
 
     def test_setitem_by_name_and_slice_from(self):
         # Test variable assignment by name and slice
-        self.model['YD', '1995Q1':] = 100
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
 
-        expected = np.arange(len(self.model.span))
+        model['YD', '1995Q1':] = 100
+
+        expected = np.arange(len(model.span))
         expected[-4:] = 100
 
-        self.assertTrue(np.allclose(self.model['YD'],
+        self.assertTrue(np.allclose(model['YD'],
                                     expected))
 
     def test_setitem_dimension_error(self):
         # Test check for misaligned dimensions at assignment
+        model = self.Model(['{}Q{}'.format(y, q)
+                                 for y in range(1990, 1995 + 1)
+                                 for q in range(1, 4 + 1)])
+        model.YD = np.arange(len(model.span))
+
         with self.assertRaises(fsic.DimensionError):
-            self.model.C = [0, 0]
+            model.C = [0, 0]
 
 
 class TestBuild(unittest.TestCase):
@@ -630,30 +696,30 @@ T = {theta} * Y
 H = H[-1] + YD - C
 '''
     SYMBOLS = fsic.parse_model(SCRIPT)
-    MODEL = fsic.build_model(SYMBOLS)
 
     def setUp(self):
-        self.model = self.MODEL(range(1945, 2010 + 1),
-                                alpha_1=0.6, alpha_2=0.4,
-                                theta=0.2)
+        self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_copy(self):
-        self.model.G = 20
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4,
+                           theta=0.2)
+        model.G = 20
 
-        duplicate_model = self.model.copy()
+        duplicate_model = model.copy()
 
         # Values should be identical at this point
-        self.assertTrue(np.allclose(self.model.values,
+        self.assertTrue(np.allclose(model.values,
                                     duplicate_model.values))
 
         # The solved model should have different values to the duplicate
-        self.model.solve()
-        self.assertFalse(np.allclose(self.model.values,
+        model.solve()
+        self.assertFalse(np.allclose(model.values,
                                      duplicate_model.values))
 
         # The solved duplicate should match the original again
         duplicate_model.solve()
-        self.assertTrue(np.allclose(self.model.values,
+        self.assertTrue(np.allclose(model.values,
                                     duplicate_model.values))
 
 
@@ -667,11 +733,13 @@ T = {theta} * Y
 H = H[-1] + YD - C
 '''
     SYMBOLS = fsic.parse_model(SCRIPT)
-    MODEL = fsic.build_model(SYMBOLS)
+
+    def setUp(self):
+        self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_solve_t_negative(self):
         # Check support for negative values of `t` in `solve_t()`
-        model = self.MODEL(range(1945, 2010 + 1), alpha_1=0.5)
+        model = self.Model(range(1945, 2010 + 1), alpha_1=0.5)
 
         model.G[-1] = 20
         model.solve_t(-1)
@@ -683,7 +751,7 @@ H = H[-1] + YD - C
     def test_solve_t_negative_with_offset(self):
         # Check support for negative values of `t` in `solve_t()`, with an
         # offset
-        model = self.MODEL(range(1945, 2010 + 1), alpha_1=0.5)
+        model = self.Model(range(1945, 2010 + 1), alpha_1=0.5)
 
         model.G[-1] = 20
         model.solve_t(-1, offset=-1)
@@ -695,7 +763,7 @@ H = H[-1] + YD - C
     def test_offset_error_lag(self):
         # Check for an `IndexError` if `offset` points prior to the span of the
         # current model instance
-        model = self.MODEL(range(1945, 2010 + 1))
+        model = self.Model(range(1945, 2010 + 1))
 
         with self.assertRaises(IndexError):
             # With Model *SIM*, trying to solve the second period (remember
@@ -705,7 +773,7 @@ H = H[-1] + YD - C
     def test_offset_error_lead(self):
         # Check for an `IndexError` if `offset` points beyond the span of the
         # current model instance
-        model = self.MODEL(range(1945, 2010 + 1))
+        model = self.Model(range(1945, 2010 + 1))
 
         with self.assertRaises(IndexError):
             # With Model *SIM*, trying to solve the final period with an offset
@@ -714,7 +782,7 @@ H = H[-1] + YD - C
 
     def test_solve_return_values(self):
         # Check that the return values from `solve()` are as expected
-        model = self.MODEL(['A', 'B', 'C'])
+        model = self.Model(['A', 'B', 'C'])
         labels, indexes, solved = model.solve()
 
         self.assertEqual(labels, ['B', 'C'])
@@ -769,11 +837,13 @@ C = {c0} + {c1} * Y
 g = log(G)  # Use to test for infinity with log(0)
 '''
     SYMBOLS = fsic.parse_model(SCRIPT)
-    MODEL = fsic.build_model(SYMBOLS)
+
+    def setUp(self):
+        self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_raise_nans(self):
         # Model should halt on first period
-        model = self.MODEL(range(10), G=20)
+        model = self.Model(range(10), G=20)
 
         with self.assertRaises(fsic.SolutionError):
             model.solve()
@@ -786,13 +856,13 @@ g = log(G)  # Use to test for infinity with log(0)
 
     def test_raise_prior_nans(self):
         # Model should halt if pre-existing NaNs detected
-        model = self.MODEL(range(10), s=np.nan)
+        model = self.Model(range(10), s=np.nan)
 
         with self.assertRaises(fsic.SolutionError):
             model.solve()
 
     def test_skip(self):
-        model = self.MODEL(range(10), G=20)
+        model = self.Model(range(10), G=20)
 
         # Model should skip to next period each time
         model.solve(errors='skip')
@@ -808,7 +878,7 @@ g = log(G)  # Use to test for infinity with log(0)
 
     def test_ignore_successfully(self):
         # Model should keep solving (successfully in this case)
-        model = self.MODEL(range(10), G=20)
+        model = self.Model(range(10), G=20)
         model.solve(errors='ignore')
 
         self.assertTrue(np.allclose(model.s, 1))
@@ -822,7 +892,7 @@ g = log(G)  # Use to test for infinity with log(0)
 
     def test_ignore_unsuccessfully(self):
         # Model should keep solving (unsuccessfully in this case)
-        model = self.MODEL(range(10))
+        model = self.Model(range(10))
         model.solve(failures='ignore', errors='ignore')
 
         self.assertTrue(np.all(np.isnan(model.s)))
@@ -830,7 +900,7 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.iterations == 100))
 
     def test_ignore_prior_nans(self):
-        model = self.MODEL(range(10), s=np.nan, G=20)
+        model = self.Model(range(10), s=np.nan, G=20)
         model.solve(errors='ignore')
 
         self.assertTrue(np.allclose(model.s, 1))
@@ -839,7 +909,7 @@ g = log(G)  # Use to test for infinity with log(0)
 
     def test_replace_successfully(self):
         # Model should replace NaNs and keep solving (successfully in this case)
-        model = self.MODEL(range(10), G=20)
+        model = self.Model(range(10), G=20)
         model.solve(errors='replace')
 
         self.assertTrue(np.allclose(model.s, 1))
@@ -848,7 +918,7 @@ g = log(G)  # Use to test for infinity with log(0)
 
     def test_replace_unsuccessfully(self):
         # Model should replace NaNs and keep solving (unsuccessfully in this case)
-        model = self.MODEL(range(10))
+        model = self.Model(range(10))
         model.solve(failures='ignore', errors='replace')
 
         self.assertTrue(np.all(np.isnan(model.s)))
@@ -856,7 +926,7 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.iterations == 100))
 
     def test_replace_prior_nans(self):
-        model = self.MODEL(range(10), s=np.nan, G=20)
+        model = self.Model(range(10), s=np.nan, G=20)
         model.solve(errors='replace')
 
         self.assertTrue(np.allclose(model.s, 1))
@@ -865,7 +935,7 @@ g = log(G)  # Use to test for infinity with log(0)
 
     def test_raise_infinities(self):
         # Model should halt on first period because of log(0)
-        model = self.MODEL(range(10), c0=10, C=10, Y=10)
+        model = self.Model(range(10), c0=10, C=10, Y=10)
 
         with self.assertRaises(fsic.SolutionError):
             model.solve()
@@ -884,7 +954,7 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.iterations == np.array([1] + [-1] * 9)))
 
     def test_replace_infinities(self):
-        model = self.MODEL(range(10), c0=10, C=10, Y=10)
+        model = self.Model(range(10), c0=10, C=10, Y=10)
         model.solve(errors='replace', failures='ignore')
 
         self.assertTrue(np.all(np.isinf(model.g)))
@@ -909,12 +979,14 @@ T = {theta} * Y
 H = H[-1] + YD - C
 '''
     SYMBOLS = fsic.parse_model(MODEL)
-    SIM = fsic.build_model(SYMBOLS)
+
+    def setUp(self):
+        self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_nonconvergence_raise(self):
-        model = self.SIM(range(5),
-                         alpha_1=0.6, alpha_2=0.4,
-                         theta=0.2, G=20)
+        model = self.Model(range(5),
+                           alpha_1=0.6, alpha_2=0.4,
+                           theta=0.2, G=20)
 
         # First period (after initial lag) should solve
         model.solve_t(1)
@@ -928,9 +1000,9 @@ H = H[-1] + YD - C
                                np.array(['-', '.', 'F', '-', '-'])))
 
     def test_nonconvergence_ignore(self):
-        model = self.SIM(range(5),
-                         alpha_1=0.6, alpha_2=0.4,
-                         theta=0.2, G=20)
+        model = self.Model(range(5),
+                           alpha_1=0.6, alpha_2=0.4,
+                           theta=0.2, G=20)
         model.solve(max_iter=5, failures='ignore')
         self.assertTrue(np.all(model.status[1:] == 'F'))
 

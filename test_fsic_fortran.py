@@ -26,6 +26,8 @@ import numpy as np
 import fsic
 import fsic_fortran
 
+import test_fsic
+
 
 # Definition of a stripped-down Model *SIM* from Chapter 3 of Godley and Lavoie
 # (2007)

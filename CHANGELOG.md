@@ -19,6 +19,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Parser test to trap accidental treatment of floats as callable
   (e.g. 'A = 0.5(B)') now only runs for Python 3.8 and above. (Doesn't look
   trivial to handle in earlier versions of Python.)
+- Refactored some FSIC Python unit tests to make them easier to reuse as FSIC
+  Fortran tests.
 
 ### Fixed
 
