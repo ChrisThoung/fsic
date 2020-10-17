@@ -13,6 +13,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Further checks and messages for errors in equations.
 - Added type hints to Python model template.
+- Support for numerical error handling in Fortran implementation, mirroring
+  existing Python implementation.
 
 ### Changed
 

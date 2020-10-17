@@ -185,6 +185,19 @@ class FortranEngine:
                 status = '.'
             else:
                 status = 'F'
+
+        elif error_code == 21 and errors == 'raise':
+            self.status[t] = 'E'
+            self.iterations[t] = iteration
+
+            raise SolutionError(
+                'Numerical solution error after {} iterations(s) '
+                'in period with label: {} (index: {})'
+                .format(iteration, self.span[t], t))
+
+        elif error_code == 22 and errors == 'skip':
+            status = 'S'
+
         else:
             raise FortranEngineError(
                 'Failed to solve model in period with label {} (index: {}), '
@@ -257,6 +270,12 @@ module structure
 
   integer :: lags = {lags}, leads = {leads}
 
+  ! Index numbers of different variable types
+  {endogenous}
+  {exogenous}
+  {parameters}
+  {errors}
+
 end module structure
 
 module error_codes
@@ -264,9 +283,21 @@ module error_codes
 
   integer :: success = 0
 
+  ! Error control options, to match Python implementation
+  integer :: error_control_raise = 0
+  integer :: error_control_skip = 1
+  integer :: error_control_ignore = 2
+  integer :: error_control_replace = 3
+
   ! Indexing / array bounds errors
   integer :: index_error_below = 11, index_error_above = 12
   integer :: index_error_lags = 13, index_error_leads = 14
+
+  ! Numerical solution errors
+  integer :: numerical_error_raise = 21
+  integer :: numerical_error_skip = 22
+  integer :: numerical_error_ignore = 23
+  integer :: numerical_error_replace = 24
 
 end module error_codes
 
@@ -291,6 +322,9 @@ subroutine evaluate(initial_values, t, solved_values, error_code, nrows, ncols)
   ! Copy the initial values before evaluation
   ! (copy all values to avoid having to know which elements will change)
   solved_values = initial_values
+
+  ! Initialise error code to -1 to indicate not yet resolved
+  error_code = -1
 
   ! Reproduce the behaviour in the original Python version of `_evaluate()` to
   ! allow reverse indexing
@@ -330,6 +364,7 @@ end subroutine evaluate
 subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, error_control,  &
                 &  solved_values, converged, iteration, error_code,                         &
                 &  nrows, ncols, nvars)
+  use, intrinsic :: ieee_arithmetic
   use structure
   use error_codes
   implicit none
@@ -355,10 +390,15 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
   real(8), dimension(nrows, ncols) :: previous_values
   real(8), dimension(nvars) :: current_check, previous_check, diff_squared
 
+  integer :: i
+
   ! Copy the initial values before solution
   ! (copy all values to avoid having to know which elements will change)
   solved_values = initial_values
   converged = .false.
+
+  ! Initialise error code to -1 to indicate not yet resolved
+  error_code = -1
 
   ! Array of variable values to check for convergence
   current_check = solved_values(convergence_variables, t)
@@ -380,6 +420,39 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
      ! (indicated by a non-zero error code)
      if(error_code /= 0) then
         return
+     end if
+
+     ! Check for numerical errors
+     if(any(.not. ieee_is_finite(solved_values(endogenous, t)))) then
+
+        if(error_control == error_control_raise) then
+           error_code = numerical_error_raise
+           return
+
+        else if(error_control == error_control_skip) then
+           error_code = numerical_error_skip
+           return
+
+        else if(error_control == error_control_ignore) then
+           cycle
+
+        else if(error_control == error_control_replace) then
+           ! Only replace values if there are still iterations to go
+           ! i.e. a chance for the solution to resolve itself
+           if(iteration < max_iter) then
+
+              do i = 1, size(endogenous)
+                 if(.not. ieee_is_finite(solved_values(endogenous(i), t))) then
+                    solved_values(endogenous(i), t) = 0.0
+                 end if
+              end do
+
+           end if
+
+           cycle
+
+        end if
+
      end if
 
      ! Test for convergence
@@ -443,11 +516,36 @@ def build_fortran_definition(symbols: List[Symbol], *, wrap_width: int = 100) ->
         equation_summary.append(equation)
 
     # Fill in template
+    def create_integer_array_definition(variable_names: Sequence[str], name: str) -> str:
+        """Return a Fortran definition with `name`, containing the index numbers in `variable_names`.
+
+        Examples
+        --------
+        >>> variables_to_numbers = {'A': 1, 'B': 2, 'C': 3, }
+        >>> create_integer_array_definition(['A', 'C'], 'endogenous')
+        'integer, dimension(2) :: endogenous = (/ 1, 3 /)'
+
+        >>> create_integer_array_definition([], 'errors')
+        'integer, dimension(0) :: errors
+        """
+        indexes = [variables_to_numbers[k] for k in variable_names]
+
+        definition = 'integer, dimension({}) :: {}'.format(len(indexes), name)
+        if len(indexes) > 0:
+            definition += ' = (/ {} /)'.format(', '.join(map(str, indexes)))
+
+        return definition
+
     fortran_definition_string = fortran_template.format(
         system='\n'.join('!   ' + x for x in equation_summary),
         equations='\n\n'.join(equation_code),
         lags=lags, leads=leads,
         version=__version__,
+
+        endogenous=create_integer_array_definition(endogenous, 'endogenous'),
+        exogenous=create_integer_array_definition(exogenous, 'exogenous'),
+        parameters=create_integer_array_definition(parameters, 'parameters'),
+        errors=create_integer_array_definition(errors, 'errors'),
     )
 
     return fortran_definition_string
