@@ -29,25 +29,12 @@ import fsic_fortran
 import test_fsic
 
 
-# Definition of a stripped-down Model *SIM* from Chapter 3 of Godley and Lavoie
-# (2007)
-symbols = fsic.parse_model(
-'''
-C = {alpha_1} * YD + {alpha_2} * H[-1]
-YD = Y - T
-Y = C + G
-T = {theta} * Y
-H = H[-1] + YD - C
-''')
-
-SIM = fsic.build_model(symbols)
-
-
-class TestBuildAndSolve(unittest.TestCase):
+class FortranTestWrapper:
 
     def clean(self):
         # Delete intermediate and compiled files
-        files_to_delete = glob.glob('fsic_tmp.f95') + glob.glob('fsic_tmp.*.so')
+        files_to_delete = (glob.glob('fsic_test_tmp.f95') +
+                           glob.glob('fsic_test_tmp.*.so'))
 
         for path in files_to_delete:
             os.remove(path)
@@ -55,27 +42,73 @@ class TestBuildAndSolve(unittest.TestCase):
     def setUp(self):
         self.clean()
 
-        # Generate and write out a file of Fortran code
-        fortran_definition = fsic_fortran.build_fortran_definition(symbols)
-
-        with open('fsic_tmp.f95', 'w') as f:
+        # Write out a file of Fortran code
+        fortran_definition = fsic_fortran.build_fortran_definition(self.SYMBOLS)
+        with open('fsic_test_tmp.f95', 'w') as f:
             f.write(fortran_definition)
 
         # Compile the code
-        subprocess.run(['f2py', '-c', 'fsic_tmp.f95', '-m', 'fsic_tmp'])
+        output = subprocess.run(['f2py', '-c', 'fsic_test_tmp.f95', '-m', 'fsic_test_tmp'],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # Create a new class to embed the compiled Fortran module
-        import fsic_tmp
-        class SIMFortran(fsic_fortran.FortranEngine, SIM):
-            ENGINE = fsic_tmp
+        # Construct the class
+        PythonClass = fsic.build_model(self.SYMBOLS)
 
-        # Instantiate a Python and a corresponding Fortran instance of the
-        # model
-        self.model_python = SIM(range(100), alpha_1=0.6, alpha_2=0.4)
-        self.model_fortran = SIMFortran(range(100), alpha_1=0.6, alpha_2=0.4)
+        import fsic_test_tmp
+        class FortranClass(fsic_fortran.FortranEngine, PythonClass):
+            ENGINE = fsic_test_tmp
+
+        self.Model = FortranClass
 
     def tearDown(self):
         self.clean()
+
+
+class TestInit(FortranTestWrapper, test_fsic.TestInit):
+    pass
+
+class TestInterface(FortranTestWrapper, test_fsic.TestInterface):
+    pass
+
+class TestModelContainerMethods(FortranTestWrapper, test_fsic.TestModelContainerMethods):
+    pass
+
+class TestCopy(FortranTestWrapper, test_fsic.TestCopy):
+    pass
+
+class TestSolve(FortranTestWrapper, test_fsic.TestSolve):
+    pass
+
+class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorHandling):
+    pass
+
+class TestNonConvergenceError(FortranTestWrapper, test_fsic.TestNonConvergenceError):
+    pass
+
+
+class TestBuildAndSolve(FortranTestWrapper, unittest.TestCase):
+
+    # Definition of a stripped-down Model *SIM* from Chapter 3 of Godley and
+    # Lavoie (2007)
+    SCRIPT = '''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+
+    def setUp(self):
+        super().setUp()
+
+        PythonClass = fsic.build_model(self.SYMBOLS)
+        FortranClass = self.Model
+
+        # Instantiate a Python and a corresponding Fortran instance of the
+        # model
+        self.model_python = PythonClass(range(100), alpha_1=0.6, alpha_2=0.4)
+        self.model_fortran = FortranClass(range(100), alpha_1=0.6, alpha_2=0.4)
 
     def test_initialisation_error(self):
         # Check that the Fortran class catches a missing (unlinked) Fortran
