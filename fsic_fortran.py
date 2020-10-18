@@ -390,7 +390,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
   real(8), dimension(nrows, ncols) :: previous_values
   real(8), dimension(nvars) :: current_check, previous_check, diff_squared
 
-  integer :: i
+  integer :: index, i
 
   ! Copy the initial values before solution
   ! (copy all values to avoid having to know which elements will change)
@@ -400,8 +400,33 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
   ! Initialise error code to -1 to indicate not yet resolved
   error_code = -1
 
+  ! Reproduce the behaviour in the original Python version of `_evaluate()` to
+  ! allow reverse indexing
+  index = t
+  if(index < 1) then
+     index = index + ncols
+  end if
+
+  ! Error if `index` is still out of bounds
+  if(index < 1) then
+     error_code = index_error_below
+     return
+  else if(index > ncols) then
+     error_code = index_error_above
+     return
+  end if
+
+  ! Check that `index` allows for enough lags and leads
+  if(index <= lags) then
+     error_code = index_error_lags
+     return
+  else if(index > (ncols - leads)) then
+     error_code = index_error_leads
+     return
+  end if
+
   ! Array of variable values to check for convergence
-  current_check = solved_values(convergence_variables, t)
+  current_check = solved_values(convergence_variables, index)
 
   ! Solve
   do iteration = 1, max_iter
@@ -411,10 +436,10 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
 
      ! Evaluate the system of equations
      previous_values = solved_values
-     call evaluate(previous_values, t, solved_values, error_code, nrows, ncols)
+     call evaluate(previous_values, index, solved_values, error_code, nrows, ncols)
 
      ! Get the new values of the convergence variables
-     current_check = solved_values(convergence_variables, t)
+     current_check = solved_values(convergence_variables, index)
 
      ! Check error code and return if a problem is found
      ! (indicated by a non-zero error code)
@@ -423,7 +448,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
      end if
 
      ! Check for numerical errors
-     if(any(.not. ieee_is_finite(solved_values(endogenous, t)))) then
+     if(any(.not. ieee_is_finite(solved_values(endogenous, index)))) then
 
         if(error_control == error_control_raise) then
            error_code = numerical_error_raise
@@ -442,8 +467,8 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
            if(iteration < max_iter) then
 
               do i = 1, size(endogenous)
-                 if(.not. ieee_is_finite(solved_values(endogenous(i), t))) then
-                    solved_values(endogenous(i), t) = 0.0
+                 if(.not. ieee_is_finite(solved_values(endogenous(i), index))) then
+                    solved_values(endogenous(i), index) = 0.0
                  end if
               end do
 

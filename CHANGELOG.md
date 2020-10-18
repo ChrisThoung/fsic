@@ -31,6 +31,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
      e.g. to prevent `np.mean` -> `np[t].mean`
    - only replace function names on an exact basis
      e.g. to prevent `np.log` -> `np.np.log`
+- Fixed handling of reverse indexing in Fortran code.
 
 
 ## [0.6.2.dev] - 2020-06-27
