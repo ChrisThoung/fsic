@@ -575,6 +575,7 @@ class TestBuild(unittest.TestCase):
         self.assertEqual(code, expected)
 
     def test_conditional_expression(self):
+        # Test that the parser can handle certain conditional expressions
         expected = '''class Model(BaseModel):
     ENDOGENOUS: List[str] = ['Y']
     EXOGENOUS: List[str] = ['X', 'Z']
