@@ -589,6 +589,7 @@ class TestBuild(unittest.TestCase):
     LEADS: int = 0
 
     def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+        # Y[t] = X[t] if X[t] > Z[t] else Z[t]
         self._Y[t] = self._X[t] if self._X[t] > self._Z[t] else self._Z[t]'''
 
         symbols = fsic.parse_model('Y = X if X > Z else Z')

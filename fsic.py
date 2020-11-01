@@ -13,6 +13,7 @@ import enum
 import itertools
 import keyword
 import re
+import textwrap
 from typing import Any, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Tuple, Union
 import warnings
 
@@ -1097,8 +1098,16 @@ def build_model_definition(symbols: List[Symbol]) -> str:
         lags = leads = 0
 
     # Generate code block of equations
-    expressions = [s.code for s in symbols if s.type == Type.ENDOGENOUS]
-    equations = '\n'.join(['        {}'.format(e) for e in expressions])
+    # TODO: Generalise to accommodate other variants e.g. to guard against
+    #       numerical errors, for calibration etc
+    def generate_python_code(symbol: Symbol) -> str:
+        """Return Python code for the current equation as an `exec`utable string."""
+        return '''\
+# {}
+{}'''.format(symbol.equation, symbol.code)
+
+    expressions = [generate_python_code(s) for s in symbols if s.type == Type.ENDOGENOUS]
+    equations = '\n'.join(textwrap.indent(e, '        ') for e in expressions)
 
     # If there are no equations, insert `pass` instead
     if len(equations) == 0:
