@@ -597,6 +597,40 @@ class TestBuild(unittest.TestCase):
         code = fsic.build_model(symbols).CODE
         self.assertEqual(code, expected)
 
+    def test_custom_converter(self):
+        # Test that a custom function can be passed into the model builder
+        expected = '''class Model(BaseModel):
+    ENDOGENOUS: List[str] = ['Y']
+    EXOGENOUS: List[str] = ['X']
+
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
+
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
+
+    LAGS: int = 0
+    LEADS: int = 0
+
+    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+        # Y[t] = X[t]
+        _ = self._X[t]
+        if np.isfinite(_):
+            self._Y[t] = _'''
+
+        symbols = fsic.parse_model('Y = X')
+
+        def converter(symbol):
+            lhs, rhs = map(str.strip, symbol.code.split('=', maxsplit=1))
+            return '''\
+# {}
+_ = {}
+if np.isfinite(_):
+    {} = _'''.format(symbol.equation, rhs, lhs)
+
+        code = fsic.build_model(symbols, converter=converter).CODE
+        self.assertEqual(code, expected)
+
 
 round_1dp = functools.partial(round, ndigits=1)
 

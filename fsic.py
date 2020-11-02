@@ -14,7 +14,7 @@ import itertools
 import keyword
 import re
 import textwrap
-from typing import Any, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, Hashable, Iterator, List, Match, NamedTuple, Optional, Sequence, Tuple, Union
 import warnings
 
 import numpy as np
@@ -1080,8 +1080,18 @@ class Model(BaseModel):
 {equations}\
 '''
 
-def build_model_definition(symbols: List[Symbol]) -> str:
+def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None) -> str:
     """Return a model class definition string from the contents of `symbols`."""
+
+    def default_converter(symbol: Symbol) -> str:
+        """Return Python code for the current equation as an `exec`utable string."""
+        return '''\
+# {}
+{}'''.format(symbol.equation, symbol.code)
+
+    if converter is None:
+        converter = default_converter
+
     # Separate variable names according to variable type
     endogenous = [s.name for s in symbols if s.type == Type.ENDOGENOUS]
     exogenous  = [s.name for s in symbols if s.type == Type.EXOGENOUS]
@@ -1098,15 +1108,7 @@ def build_model_definition(symbols: List[Symbol]) -> str:
         lags = leads = 0
 
     # Generate code block of equations
-    # TODO: Generalise to accommodate other variants e.g. to guard against
-    #       numerical errors, for calibration etc
-    def generate_python_code(symbol: Symbol) -> str:
-        """Return Python code for the current equation as an `exec`utable string."""
-        return '''\
-# {}
-{}'''.format(symbol.equation, symbol.code)
-
-    expressions = [generate_python_code(s) for s in symbols if s.type == Type.ENDOGENOUS]
+    expressions = [converter(s) for s in symbols if s.type == Type.ENDOGENOUS]
     equations = '\n'.join(textwrap.indent(e, '        ') for e in expressions)
 
     # If there are no equations, insert `pass` instead
@@ -1129,7 +1131,7 @@ def build_model_definition(symbols: List[Symbol]) -> str:
 
     return model_definition_string
 
-def build_model(symbols: List[Symbol]) -> Any:
+def build_model(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None) -> Any:
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
 
     Notes
@@ -1142,7 +1144,7 @@ def build_model(symbols: List[Symbol]) -> Any:
     `exec`ute.
     """
     # Construct the class definition
-    model_definition_string = build_model_definition(symbols)
+    model_definition_string = build_model_definition(symbols, converter=converter)
 
     # Execute the class definition code
     try:
