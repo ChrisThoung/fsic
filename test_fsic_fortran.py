@@ -50,6 +50,7 @@ class FortranTestWrapper:
         # Compile the code
         output = subprocess.run(['f2py', '-c', 'fsic_test_tmp.f95', '-m', 'fsic_test_tmp'],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output.check_returncode()
 
         # Construct the class
         PythonClass = fsic.build_model(self.SYMBOLS)
