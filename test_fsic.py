@@ -632,9 +632,10 @@ if np.isfinite(_):
         self.assertEqual(code, expected)
 
 
-round_1dp = functools.partial(round, ndigits=1)
-
 class TestBuildAndSolve(unittest.TestCase):
+
+    # Tolerance for absolute differences to be considered almost equal
+    DELTA = 0.05
 
     def test_gl2007_sim(self):
         # Test that `build_model()` correctly constructs a working model
@@ -660,12 +661,12 @@ H = H[-1] + YD - C
         sim.solve()
 
         # Check final period (steady-state) results
-        self.assertEqual(round_1dp(sim.C[-1]), 80.0)
-        self.assertEqual(round_1dp(sim.YD[-1]), 80.0)
-        self.assertEqual(round_1dp(sim.H[-1]), 80.0)
-        self.assertEqual(round_1dp(sim.Y[-1]), 100.0)
-        self.assertEqual(round_1dp(sim.T[-1]), 20.0)
-        self.assertEqual(round_1dp(sim.G[-1]), 20.0)
+        self.assertAlmostEqual(sim.C[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(sim.YD[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(sim.H[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(sim.Y[-1], 100.0, delta=self.DELTA)
+        self.assertAlmostEqual(sim.T[-1], 20.0, delta=self.DELTA)
+        self.assertAlmostEqual(sim.G[-1], 20.0, delta=self.DELTA)
 
     def test_almon_ami(self):
         # Test that `build_model()` correctly constructs a working model
@@ -714,12 +715,12 @@ Y = 0.72 * Q
         ami.solve(start=7)
 
         # Check final period results
-        self.assertEqual(round_1dp(ami.C[-1]), 3631.3)
-        self.assertEqual(round_1dp(ami.I[-1]), 1136.2)
-        self.assertEqual(round_1dp(ami.PQ[-1]), 6394.5)
-        self.assertEqual(round_1dp(ami.M[-1]), 657.0)
-        self.assertEqual(round_1dp(ami.Q[-1]), 5327.0)
-        self.assertEqual(round_1dp(ami.Y[-1]), 3835.4)
+        self.assertAlmostEqual(ami.C[-1], 3631.3, delta=self.DELTA)
+        self.assertAlmostEqual(ami.I[-1], 1136.2, delta=self.DELTA)
+        self.assertAlmostEqual(ami.PQ[-1], 6394.5, delta=self.DELTA)
+        self.assertAlmostEqual(ami.M[-1], 657.0, delta=self.DELTA)
+        self.assertAlmostEqual(ami.Q[-1], 5327.0, delta=self.DELTA)
+        self.assertAlmostEqual(ami.Y[-1], 3835.4, delta=self.DELTA)
 
 
 class TestCopy(unittest.TestCase):
