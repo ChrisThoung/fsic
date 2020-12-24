@@ -625,6 +625,9 @@ class VectorContainer:
 
         raise TypeError('Invalid index type ({}): `{}`'.format(type(key), key))
 
+    def __contains__(self, key: str) -> bool:
+        return key in self.__dict__['index']
+
     def copy(self) -> 'VectorContainer':
         """Return a copy of the current object."""
         copied = self.__class__(span=copy.deepcopy(self.__dict__['span']))
@@ -721,6 +724,9 @@ class BaseModel(VectorContainer):
             self.add_variable(name,
                               initial_values.get(name, default_value),
                               dtype=dtype)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.__dict__['names']
 
     def __dir__(self) -> List[str]:
         return sorted(super().__dir__() + ['names'])

@@ -17,6 +17,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Added type hints to Python model template.
 - Support for numerical error handling in Fortran implementation, mirroring
   existing Python implementation.
+- Added `__contains__()` magic method to `BaseModel` class, to test that a
+  variable, say, `G` is defined in a model instance e.g. `G in model`.
 
 ### Changed
 

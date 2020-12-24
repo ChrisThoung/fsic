@@ -523,6 +523,19 @@ class TestModelContainerMethods(unittest.TestCase):
         with self.assertRaises(fsic.DimensionError):
             model.C = [0, 0]
 
+    def test_contains(self):
+        # Test `in` (membership) operator
+        model = self.Model(range(10))
+
+        model_variables = ['C', 'YD', 'H', 'alpha_1', 'alpha_2']
+        for x in model_variables:
+            self.assertTrue(x in model)
+
+        self.assertTrue('G' not in model)
+
+        self.assertTrue('status' not in model)
+        self.assertTrue('iterations' not in model)
+
 
 class TestBuild(unittest.TestCase):
 
