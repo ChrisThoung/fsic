@@ -528,13 +528,14 @@ class TestModelContainerMethods(unittest.TestCase):
         model = self.Model(range(10))
 
         model_variables = ['C', 'YD', 'H', 'alpha_1', 'alpha_2']
-        for x in model_variables:
-            self.assertTrue(x in model)
+        for name in model_variables:
+            with self.subTest(name=name):
+                self.assertIn(name, model)
 
-        self.assertTrue('G' not in model)
+        self.assertNotIn('G', model)
 
-        self.assertTrue('status' not in model)
-        self.assertTrue('iterations' not in model)
+        self.assertNotIn('status', model)
+        self.assertNotIn('iterations', model)
 
 
 class TestBuild(unittest.TestCase):
