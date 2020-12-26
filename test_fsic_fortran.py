@@ -17,6 +17,7 @@ programs:
 """
 
 import glob
+import importlib
 import os
 import subprocess
 import unittest
@@ -31,10 +32,14 @@ import test_fsic
 
 class FortranTestWrapper:
 
+    # Define a path specific to each test case to avoid import issues from
+    # trying to redefine the same module on disk at runtime
+    TEST_MODULE_NAME = None
+
     def clean(self):
         # Delete intermediate and compiled files
-        files_to_delete = (glob.glob('fsic_test_tmp.f95') +
-                           glob.glob('fsic_test_tmp.*.so'))
+        files_to_delete = (glob.glob('{}.f95'.format(self.TEST_MODULE_NAME)) +
+                           glob.glob('{}.*.so'.format(self.TEST_MODULE_NAME)))
 
         for path in files_to_delete:
             os.remove(path)
@@ -44,20 +49,21 @@ class FortranTestWrapper:
 
         # Write out a file of Fortran code
         fortran_definition = fsic_fortran.build_fortran_definition(self.SYMBOLS)
-        with open('fsic_test_tmp.f95', 'w') as f:
+        with open('{}.f95'.format(self.TEST_MODULE_NAME), 'w') as f:
             f.write(fortran_definition)
 
         # Compile the code
-        output = subprocess.run(['f2py', '-c', 'fsic_test_tmp.f95', '-m', 'fsic_test_tmp'],
+        output = subprocess.run(['f2py',
+                                 '-c', '{}.f95'.format(self.TEST_MODULE_NAME),
+                                 '-m', self.TEST_MODULE_NAME],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output.check_returncode()
 
         # Construct the class
         PythonClass = fsic.build_model(self.SYMBOLS)
 
-        import fsic_test_tmp
         class FortranClass(fsic_fortran.FortranEngine, PythonClass):
-            ENGINE = fsic_test_tmp
+            ENGINE = importlib.import_module(self.TEST_MODULE_NAME)
 
         self.Model = FortranClass
 
@@ -66,28 +72,30 @@ class FortranTestWrapper:
 
 
 class TestInit(FortranTestWrapper, test_fsic.TestInit):
-    pass
+    TEST_MODULE_NAME = 'fsic_test_fortran_testinit'
 
 class TestInterface(FortranTestWrapper, test_fsic.TestInterface):
-    pass
+    TEST_MODULE_NAME = 'fsic_test_fortran_testinterface'
 
 class TestModelContainerMethods(FortranTestWrapper, test_fsic.TestModelContainerMethods):
-    pass
+    TEST_MODULE_NAME = 'fsic_test_fortran_testmodelcontainermethods'
 
 class TestCopy(FortranTestWrapper, test_fsic.TestCopy):
-    pass
+    TEST_MODULE_NAME = 'fsic_test_fortran_testcopy'
 
 class TestSolve(FortranTestWrapper, test_fsic.TestSolve):
-    pass
+    TEST_MODULE_NAME = 'fsic_test_fortran_testsolve'
 
 class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorHandling):
-    pass
+    TEST_MODULE_NAME = 'fsic_test_fortran_testsolutionerrorhandling'
 
 class TestNonConvergenceError(FortranTestWrapper, test_fsic.TestNonConvergenceError):
-    pass
+    TEST_MODULE_NAME = 'fsic_test_fortran_testnonconvergenceerror'
 
 
 class TestBuildAndSolve(FortranTestWrapper, unittest.TestCase):
+
+    TEST_MODULE_NAME = 'fsic_test_fortran_testbuildandsolve'
 
     # Definition of a stripped-down Model *SIM* from Chapter 3 of Godley and
     # Lavoie (2007)
