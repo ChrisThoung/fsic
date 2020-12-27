@@ -12,8 +12,8 @@ Tools for macroeconomic modelling in Python.
   either:  
   `$ python setup.py install`  
   or: `$ pip install .`
-* see more examples of how to use FSIC: view the contents of the 'examples'
-  folder
+* see more examples of how to use FSIC: view the contents of the
+  [examples](examples/) folder
 * run the test suite: run `python test_fsic.py` or use a `unittest`-compatible
   test framework (e.g. `unittest`, `pytest`, `nose`/`nose2`; other test
   frameworks are available) - these are the same tests that [Travis
