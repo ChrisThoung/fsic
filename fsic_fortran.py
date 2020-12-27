@@ -271,10 +271,10 @@ module structure
   integer :: lags = {lags}, leads = {leads}
 
   ! Index numbers of different variable types
-  {endogenous}
-  {exogenous}
-  {parameters}
-  {errors}
+{endogenous}
+{exogenous}
+{parameters}
+{errors}
 
 end module structure
 
@@ -558,6 +558,10 @@ def build_fortran_definition(symbols: List[Symbol], *, wrap_width: int = 100) ->
         definition = 'integer, dimension({}) :: {}'.format(len(indexes), name)
         if len(indexes) > 0:
             definition += ' = (/ {} /)'.format(', '.join(map(str, indexes)))
+
+        # Line wrap as needed
+        blocks = textwrap.wrap(definition, width=wrap_width)
+        definition = textwrap.indent('  &\n&  '.join(blocks), '  ')
 
         return definition
 

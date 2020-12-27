@@ -36,7 +36,16 @@ class FortranTestWrapper:
     # trying to redefine the same module on disk at runtime
     TEST_MODULE_NAME = None
 
+    # Override as `True` either here or in individual subclasses to retain the
+    # intermediate output (source and compiled Fortran code)
+    DEBUG = False
+
     def clean(self):
+        # Just return if `DEBUG`ging: Don't delete the source and compiled
+        # Fortran code
+        if self.DEBUG:
+            return
+
         # Delete intermediate and compiled files
         files_to_delete = (glob.glob('{}.f95'.format(self.TEST_MODULE_NAME)) +
                            glob.glob('{}.*.so'.format(self.TEST_MODULE_NAME)))
@@ -56,8 +65,14 @@ class FortranTestWrapper:
         output = subprocess.run(['f2py',
                                  '-c', '{}.f95'.format(self.TEST_MODULE_NAME),
                                  '-m', self.TEST_MODULE_NAME],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output.check_returncode()
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Print output on failed compile
+        try:
+            output.check_returncode()
+        except subprocess.CalledProcessError as e:
+            print(e.stdout.decode())
+            raise
 
         # Construct the class
         PythonClass = fsic.build_model(self.SYMBOLS)
@@ -91,6 +106,25 @@ class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorH
 
 class TestNonConvergenceError(FortranTestWrapper, test_fsic.TestNonConvergenceError):
     TEST_MODULE_NAME = 'fsic_test_fortran_testnonconvergenceerror'
+
+
+class TestCompile(FortranTestWrapper, unittest.TestCase):
+
+    TEST_MODULE_NAME = 'fsic_test_fortran_testcompile'
+
+    # Define a large number of variables of the same type (here, arbitrarily,
+    # exogenous variables) to check that index numbers in the resulting Fortran
+    # code are line-wrapped correctly
+    SCRIPT = ('RESULT = A + B + C + D + E + F + G + H + I + J + '
+                       'K + L + M + N + O + P + Q + R + S + T + '
+                       'U + V + W + X + Y + Z')
+    SYMBOLS = fsic.parse_model(SCRIPT)
+
+    def test_continuation_lines(self):
+        # Test line wrapping for long lines
+        # No code here: Check that the code successfully compiles during
+        # `setUp()`
+        pass
 
 
 class TestBuildAndSolve(FortranTestWrapper, unittest.TestCase):
