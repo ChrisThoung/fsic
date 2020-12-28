@@ -377,6 +377,17 @@ H = H[-1] + YD - C
         with self.assertRaises(fsic.DimensionError):
             model.status = ['-', '.']  # Incompatible dimensions
 
+    def test_iter_periods(self):
+        # Check properties of the iterator returned by `iter_periods()`
+        model = self.Model(range(2000, 2009 + 1))
+
+        self.assertEqual(len(model.iter_periods()), 9)
+        self.assertEqual(len(model.iter_periods(start=2005)), 5)
+
+        self.assertEqual(list(model.iter_periods()),
+                         [(i, 2000 + i) for i in range(1, 9 + 1)])
+
+
 class TestModelContainerMethods(unittest.TestCase):
 
     SCRIPT = 'C = {alpha_1} * YD + {alpha_2} * H[-1]'

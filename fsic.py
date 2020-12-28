@@ -676,6 +676,23 @@ class VectorContainer:
 
 # Base class for individual models --------------------------------------------
 
+class PeriodIter:
+    """Iterator of (index, label) pairs returned by `BaseModel.iter_periods()`. Compatible with `len()`."""
+
+    def __init__(self, *args):
+        self._length = len(args[0])
+        self._iter = zip(*args)
+
+    def __iter__(self):
+        yield from self._iter
+
+    def __next__(self):
+        return next(self._iter)
+
+    def __len__(self):
+        return self._length
+
+
 class BaseModel(VectorContainer):
     """Base class for economic models."""
 
@@ -781,8 +798,7 @@ class BaseModel(VectorContainer):
         indexes = range(self.span.index(start),
                         self.span.index(end) + 1)
 
-        for t in indexes:
-            yield t, self.span[t]
+        return PeriodIter(indexes, self.span[indexes.start:indexes.stop])
 
     def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
@@ -836,10 +852,15 @@ class BaseModel(VectorContainer):
          - bools, one per period: `True` if the period solved successfully;
            `False` otherwise
         """
-        indexes, labels = map(list, zip(*self.iter_periods(start=start, end=end)))
-        solved = [False] * len(indexes)
+        period_iter = self.iter_periods(start=start, end=end)
 
-        for i, t in enumerate(indexes):
+        indexes = [None] * len(period_iter)
+        labels = [None] * len(period_iter)
+        solved = [False] * len(period_iter)
+
+        for i, (t, period) in enumerate(period_iter):
+            indexes[i] = t
+            labels[i] = period
             solved[i] = self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset,
                                      failures=failures, errors=errors, **kwargs)
 
