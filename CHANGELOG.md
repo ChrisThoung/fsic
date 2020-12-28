@@ -9,6 +9,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Added blank line between equations in Python-generated model code.
+
 ### Fixed
 
 - Fixed Fortran code generator to text wrap variable index numbers over

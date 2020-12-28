@@ -1115,7 +1115,7 @@ def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[
 
     # Generate code block of equations
     expressions = [converter(s) for s in symbols if s.type == Type.ENDOGENOUS]
-    equations = '\n'.join(textwrap.indent(e, '        ') for e in expressions)
+    equations = '\n\n'.join(textwrap.indent(e, '        ') for e in expressions)
 
     # If there are no equations, insert `pass` instead
     if len(equations) == 0:
