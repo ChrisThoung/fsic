@@ -7,6 +7,15 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Fixed
+
+- Fixed Fortran code generator to text wrap variable index numbers over
+  multiple lines as needed, for when models grow to large(ish) numbers of
+  variables.
+
+
 ## [0.6.3.dev] - 2020-12-26
 
 ### Added
