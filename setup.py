@@ -23,6 +23,9 @@ setuptools.setup(
     py_modules=['fsic', 'fsictools', 'fsic_fortran'],
     python_requires='>=3.6',
 
+    install_requires=[
+        'numpy',
+    ],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
