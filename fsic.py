@@ -85,8 +85,12 @@ equation_re = re.compile(
 # and errors in angle brackets: <epsilon>
 
 term_re = re.compile(
-    # Match Python keywords but without attaching a name (to filter out later)
-    r'(?: \b (?: {} ) \b )|'.format('|'.join(keyword.kwlist)) +
+    # Match attempts to use reserved Python keywords as variable names (to be
+    # raised as errors elsewhere)
+    r'(?: (?P<_INVALID> (?: {}) \s* \[ .*? \]) )|'.format('|'.join(keyword.kwlist)) +
+
+    # Match Python keywords
+    r'(?: \b (?P<_KEYWORD> {} ) \b )|'.format('|'.join(keyword.kwlist)) +
 
     # Valid terms for the parser
     r'''
@@ -115,6 +119,9 @@ class Type(enum.IntEnum):
     ERROR = enum.auto()
 
     FUNCTION = enum.auto()
+    KEYWORD = enum.auto()
+
+    INVALID = enum.auto()
 
 
 # Replacement functions for model solution
@@ -135,8 +142,8 @@ class Term(NamedTuple):
         """Standardised representation of the term."""
         expression = self.name
 
-        # If not a function, add the index
-        if self.type != Type.FUNCTION:
+        # If neither a function nor a keyword, add the index
+        if self.type not in (Type.FUNCTION, Type.KEYWORD):
             assert self.index_ is not None
 
             if self.index_ > 0:
@@ -155,9 +162,9 @@ class Term(NamedTuple):
         """Representation of the term in code for model solution."""
         code = str(self)
 
-        # If a function, update the name; otherwise amend to be an object
-        # attribute
-        if self.type == Type.FUNCTION:
+        # If a function or a keyword, update the name; otherwise amend to be an
+        # object attribute
+        if self.type in (Type.FUNCTION, Type.KEYWORD):
             code = replacement_function_names.get(code, code)
         else:
             code = 'self._' + code
@@ -290,7 +297,7 @@ def parse_terms(expression: str) -> List[Term]:
         index: Optional[int] = None
 
         index_ = groupdict['INDEX']
-        if type_key != '_FUNCTION':
+        if type_key not in ('_FUNCTION', '_KEYWORD'):
             if index_ is None:
                 index_ = '0'
             index = int(index_)
@@ -316,6 +323,13 @@ def parse_equation_terms(equation: str) -> List[Term]:
 
     lhs_terms = [replace_type(t, Type.ENDOGENOUS) for t in parse_terms(left)]
     rhs_terms = [replace_type(t, Type.EXOGENOUS) for t in parse_terms(right)]
+
+    if (any(filter(lambda x: x.type == Type.KEYWORD, lhs_terms)) or
+        any(filter(lambda x: x.type == Type.INVALID, rhs_terms))):
+        raise ParserError(
+            'Equation uses one or more reserved Python keywords as variable '
+            'names - these keywords are invalid for this purpose: `{}`'
+            .format(equation))
 
     return lhs_terms + rhs_terms
 
@@ -1126,11 +1140,12 @@ def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[
     errors     = [s.name for s in symbols if s.type == Type.ERROR]
 
     # Set longest lag and lead
-    non_function_symbols = [s for s in symbols if s.type != Type.FUNCTION]
+    non_indexed_symbols = [s for s in symbols
+                           if s.type not in (Type.FUNCTION, Type.KEYWORD)]
 
-    if len(non_function_symbols) > 0:
-        lags =  abs(min(s.lags  for s in non_function_symbols))
-        leads = abs(max(s.leads for s in non_function_symbols))
+    if len(non_indexed_symbols) > 0:
+        lags =  abs(min(s.lags  for s in non_indexed_symbols))
+        leads = abs(max(s.leads for s in non_indexed_symbols))
     else:
         lags = leads = 0
 

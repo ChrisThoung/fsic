@@ -22,6 +22,7 @@ programs:
 """
 
 import functools
+import keyword
 import unittest
 import sys
 
@@ -880,6 +881,22 @@ Y = GVA + TSP
         # `ParserError`
         with self.assertRaises(fsic.ParserError):
             fsic.parse_model('A = 0.5(B)')
+
+    def test_keywords_as_variables_lhs(self):
+        # Check that the parser catches attempts to use reserved Python
+        # keywords as endogenous variable names in a model
+        for name in keyword.kwlist:
+            with self.subTest(name=name):
+                with self.assertRaises(fsic.ParserError):
+                    fsic.parse_model('{} = 0'.format(name))
+
+    def test_keywords_as_variables_rhs(self):
+        # Check that the parser catches attempts to use reserved Python
+        # keywords as exogenous variable names in a model
+        for name in keyword.kwlist:
+            with self.subTest(name=name):
+                with self.assertRaises(fsic.ParserError):
+                    fsic.parse_model('X = {}[-1]'.format(name))
 
 
 class TestBuildErrors(unittest.TestCase):

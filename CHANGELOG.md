@@ -15,6 +15,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `BaseModel.iter_periods()`. This returns (index, label) pairs as before but
   also implements a `__len__()` magic method to give the number of periods to
   loop over (the length of the iterator).
+- Explicit checks for use of reserved Python keywords as variable
+  names. Previously, these were silently dropped but now lead to
+  `ParserError`s.
 
 ### Changed
 
