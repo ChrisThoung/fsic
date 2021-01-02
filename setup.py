@@ -4,8 +4,18 @@ Adapted from:
 https://packaging.python.org/tutorials/packaging-projects/
 """
 
+import re
 import setuptools
-from fsic import __version__
+
+
+# Get version number without having to `import` the `fsic` module (and
+# attempting to import NumPy before it gets installed). Idea from:
+# https://packaging.python.org/guides/single-sourcing-package-version/
+def get_version():
+    with open('fsic.py') as f:
+        for line in f:
+            if line.startswith('__version__'):
+                return re.split(r'''["']''', line)[1]
 
 
 with open('README.md') as f:
@@ -13,7 +23,7 @@ with open('README.md') as f:
 
 setuptools.setup(
     name='fsic',
-    version=__version__,
+    version=get_version(),
     author='Chris Thoung',
     author_email='chris.thoung@gmail.com',
     description='Tools for macroeconomic modelling in Python',
