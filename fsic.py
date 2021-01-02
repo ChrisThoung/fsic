@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.6.3.dev'
+__version__ = '0.6.4.dev'
 
 
 import copy
