@@ -6,28 +6,27 @@ Status](https://travis-ci.org/ChrisThoung/fsic.svg?branch=master)](https://travi
 Tools for macroeconomic modelling in Python.
 
 
+## Contents
+
+| Module                             | Description                                                                         | Dependencies                                                                                                                                                           | Test suite                                   |
+| ---------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| [fsic.py](fsic.py)                 | Core module: Parser and base classes for modelling                                  | [`NumPy`](https://numpy.org/)                                                                                                                                          | [test_fsic.py](test_fsic.py)                 |
+| [fsic_fortran.py](fsic_fortran.py) | Supporting module: Functions and classes to accelerate model solution using Fortran | [`NumPy`](https://numpy.org/) with [`F2PY`](https://numpy.org/doc/stable/f2py/)                                                                                        | [test_fsic_fortran.py](test_fsic_fortran.py) |
+| [fsictools.py](fsictools.py)       | Utilities: Tools to analyse models and model results                                | Optionally, depending on desired features: [`pandas`](https://pandas.pydata.org/), [`NetworkX`](https://networkx.org/), [`SymPy`](https://www.sympy.org/en/index.html) | [test_fsictools.py](test_fsictools.py)       |
+
+
 ## How to...
 
-* install the Python modules (`fsic`, `fsic_fortran` and `fsictools`): run
-  either:  
+* install the Python modules: run either:  
   `$ python setup.py install`  
   or: `$ pip install .`
 * see more examples of how to use FSIC: view the contents of the
   [examples](examples/) folder
-* run the test suite: run `python test_fsic.py` or use a `unittest`-compatible
-  test framework (e.g. `unittest`, `pytest`, `nose`/`nose2`; other test
-  frameworks are available) - these are the same tests that [Travis
-  CI](https://travis-ci.org/ChrisThoung/fsic) runs
-    * note that there are separate test suites for the non-core modules:
-      `fsic_fortran` and `fsictools`
-    * 'test_fsic_fortran.py', for the supporting `fsic_fortran` module, needs a
-      Fortran compiler accessible to NumPy via F2PY
-    * 'test_fsictools.py', for the supporting `fsictools` module, has further
-      dependencies to run in full: [pandas](https://pandas.pydata.org/),
-      [NetworkX](https://networkx.github.io/) and
-      [SymPy](https://www.sympy.org/en/index.html) (none of these are needed to
-      run a model implemented in FSIC but they may be helpful to analyse the
-      model or its results)
+* run the test suite: run the individual test files (e.g. `python
+  test_fsic.py`) or, better, use
+  [`unittest`](https://docs.python.org/3/library/unittest.html) (e.g. `python
+  -m unittest discover .`) or a `unittest`-compatible test framework like
+  [`pytest`](https://docs.pytest.org/en/stable/)
 
 
 ## Quickstart
