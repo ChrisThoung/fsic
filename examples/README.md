@@ -2,17 +2,18 @@
 
 Example implementations of economic models in FSIC.
 
-While FSIC's only dependency for model solution is NumPy, note that these
-examples also make use of `pandas` (to present the results in a convenient
-format) and `matplotlib` (to produce charts).
+While FSIC's only dependency for model solution is [NumPy](https://numpy.org/),
+note that these examples also make use of [pandas](https://pandas.pydata.org/)
+(to present the results in a convenient format) and
+[Matplotlib](https://matplotlib.org/) (to produce charts).
 
 
 ## Contents
 
-| Folder             | Description                                                      |
-| ------------------ | ---------------------------------------------------------------- |
-| almon_2017         | Accelerator-Multiplier Interaction model (AMI) from Almon (2017) |
-| godley-lavoie_2007 | Models from Godley and Lavoie (2007)                             |
+| Folder                                   | Description                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------- |
+| [almon_2017](almon_2017/)                | Accelerator-Multiplier Interaction model (AMI) from Almon (2017) |
+| [godley-lavoie_2007](godley-lavoie_2007) | Models from Godley and Lavoie (2007)                             |
 
 
 ## References
