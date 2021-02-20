@@ -1,7 +1,6 @@
 # fsic
 
-[![Build
-Status](https://travis-ci.org/ChrisThoung/fsic.svg?branch=master)](https://travis-ci.org/ChrisThoung/fsic)
+![Build Status](https://github.com/ChrisThoung/fsic/actions/workflows/python-package.yml/badge.svg)
 
 Tools for macroeconomic modelling in Python.
 
