@@ -1,6 +1,6 @@
 # fsic
 
-![Build Status](https://github.com/ChrisThoung/fsic/actions/workflows/python-package.yml/badge.svg)
+[![Build Status](https://github.com/ChrisThoung/fsic/actions/workflows/python-package.yml/badge.svg)](https://github.com/ChrisThoung/fsic/actions/workflows/python-package.yml)
 
 Tools for macroeconomic modelling in Python.
 
