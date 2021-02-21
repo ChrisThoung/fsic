@@ -853,7 +853,9 @@ class BaseModel(VectorContainer):
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
-            Further keyword arguments to pass to the solution routines
+            Further keyword arguments to pass on to further methods:
+             - `iter_periods()`
+             - `solve_t()`
 
         Returns
         -------
@@ -866,7 +868,7 @@ class BaseModel(VectorContainer):
          - bools, one per period: `True` if the period solved successfully;
            `False` otherwise
         """
-        period_iter = self.iter_periods(start=start, end=end)
+        period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
         indexes = [None] * len(period_iter)
         labels = [None] * len(period_iter)

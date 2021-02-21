@@ -7,6 +7,17 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+
+- Further keyword arguments to `BaseModel.solve()` are now passed to both
+  `iter_periods()` and `solve_t()` e.g. to pass on arguments to over-riding
+  methods in the user's own code (see
+  [examples/_cookbook/progress_bar.py](examples/_cookbook/progress_bar.py) for
+  an example).
+
+
 ## [0.6.4.dev] - 2021-01-03
 
 ### Added
