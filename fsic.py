@@ -756,6 +756,25 @@ class BaseModel(VectorContainer):
                               initial_values.get(name, default_value),
                               dtype=dtype)
 
+    @classmethod
+    def from_dataframe(cls: 'BaseModel', data: 'DataFrame', *args, **kwargs) -> 'BaseModel':
+        """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
+
+        Parameters
+        ----------
+        data : `pandas` DataFrame(-like)
+            The DataFrame's index (once converted to a list) becomes the
+            model's `span`.
+            The DataFrame's contents set the model's values, as with
+            `**initial_values` in the class `__init__()` method. Default values
+            continue to be set for any variables not included in the DataFrame.
+        *args, **kwargs : further arguments to the class `__init__()` method
+        """
+        return cls(list(data.index),
+                   *args,
+                   **{k: v.values for k, v in data.items()},
+                   **kwargs)
+
     def __contains__(self, key: str) -> bool:
         return key in self.__dict__['names']
 
