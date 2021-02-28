@@ -13,11 +13,12 @@ See the individual files and folders for other *ad hoc* dependencies.
 
 ## Contents
 
-| Folder                                   | Description                                                      |
-| ---------------------------------------- | ---------------------------------------------------------------- |
-| [_cookbook](_cookbook/)                  | Various tips and tricks                                          |
-| [almon_2017](almon_2017/)                | Accelerator-Multiplier Interaction model (AMI) from Almon (2017) |
-| [godley-lavoie_2007](godley-lavoie_2007) | Models from Godley and Lavoie (2007)                             |
+| Folder                                    | Description                                                      |
+| ----------------------------------------- | ---------------------------------------------------------------- |
+| [_cookbook](_cookbook/)                   | Various tips and tricks                                          |
+| [almon_2017](almon_2017/)                 | Accelerator-Multiplier Interaction model (AMI) from Almon (2017) |
+| [godley-lavoie_2007](godley-lavoie_2007/) | Models from Godley and Lavoie (2007)                             |
+| [klein_1950](klein_1950/)                 | Klein Model I from Klein (1950)                                  |
 
 
 ## References
@@ -28,7 +29,12 @@ licensed under [Creative Commons Attribution-NonCommercial 4.0 International
 (BY-NC)](https://creativecommons.org/licenses/by-nc/4.0/legalcode)  
 [http://www.inforum.umd.edu/papers/TheCraft.html](http://www.inforum.umd.edu/papers/TheCraft.html)
 
-Godley, W., Lavoie, M. (2007),
+Godley, W., Lavoie, M. (2007)
 *Monetary economics: an integrated approach to
 credit, money, income, production and wealth*,
 Palgrave Macmillan
+
+Klein, L. R. (1950)
+*Economic fluctuations in the United States, 1921-1941*,
+*Cowles Commission for Research in Economics*, **11**,
+New York: John Wiley & Sons / London: Chapman & Hall
