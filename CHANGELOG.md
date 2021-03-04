@@ -18,6 +18,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   methods in the user's own code (see
   [examples/_cookbook/progress_bar.py](examples/_cookbook/progress_bar.py) for
   an example).
+- New `VectorContainer` class method, `replace_values()`, to update object
+  contents *en masse*. Feeds through to`BaseModel` and derived classes.
 
 
 ## [0.6.4.dev] - 2021-01-03

@@ -268,6 +268,37 @@ H = H[-1] + YD - C
             fsic.parse_model('3.0A')
 
 
+class TestVectorContainer(unittest.TestCase):
+
+    def test_replace(self):
+        # Check multiple-replacement method
+        container = fsic.VectorContainer(range(-10, 10))
+        for i, a in enumerate('ABC'):
+            container.add_variable(a, i)
+
+        self.assertTrue(np.allclose(
+            container.values,
+            np.array([[0] * 20,
+                      [1] * 20,
+                      [2] * 20])))
+
+        container.replace_values(A=5, C=list(range(20)))
+
+        self.assertTrue(np.allclose(
+            container.values,
+            np.array([[5] * 20,
+                      [1] * 20,
+                      list(range(20))])))
+
+        container.replace_values(**{'B': 12, 'C': -1})
+
+        self.assertTrue(np.allclose(
+            container.values,
+            np.array([[5]  * 20,
+                      [12] * 20,
+                      [-1] * 20])))
+
+
 class TestInit(unittest.TestCase):
 
     SCRIPT = '''

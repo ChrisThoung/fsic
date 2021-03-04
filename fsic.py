@@ -639,6 +639,39 @@ class VectorContainer:
 
         raise TypeError('Invalid index type ({}): `{}`'.format(type(key), key))
 
+    def replace_values(self, **new_values) -> None:
+        """Convenience function to replace values in one or more series at once.
+
+        Parameter
+        ---------
+        **new_values : key-value pairs of replacements
+
+        Examples
+        --------
+        >>> container = VectorContainer(range(10))
+        >>> container.add_variable('A', 3)
+        >>> container.add_variable('B', range(0, 20, 2))
+        >>> container.values
+        array([[ 3,  3,  3,  3,  3,  3,  3,  3,  3,  3],
+               [ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18]])
+
+        >>> container.replace_values(A=4)
+        array([[ 4,  4,  4,  4,  4,  4,  4,  4,  4,  4],
+               [ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18]])
+
+        >>> container.replace_values(A=range(10), B=5)
+        >>> container.values
+        array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+               [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]])
+
+        >>> container.replace_values(**{'A': 6, 'B': range(-10, 0)})
+        >>> container.values
+        array([[  6,   6,   6,   6,   6,   6,   6,   6,   6,   6],
+               [-10,  -9,  -8,  -7,  -6,  -5,  -4,  -3,  -2,  -1]])
+        """
+        for k, v in new_values.items():
+            self.__setitem__(k, v)
+
     def __contains__(self, key: str) -> bool:
         return key in self.__dict__['index']
 
