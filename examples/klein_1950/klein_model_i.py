@@ -93,7 +93,7 @@ if __name__ == '__main__':
     for technique, estimates in parameters.iteritems():
         # Copy the base and insert the parameters
         model = base.copy()
-        model.replace(**estimates)
+        model.replace_values(**estimates)
 
         # Solve from 1921 onwards, not 1920, to avoid problem of lagged NaNs
         model.solve(start=1921)
