@@ -33,6 +33,14 @@ Giles, D. E. A. (2012)
 *Econometrics Beat: Dave Giles' blog*, 19/05/2012  
 [https://davegiles.blogspot.com/2012/05/estimating-simulating-sem.html](https://davegiles.blogspot.com/2012/05/estimating-simulating-sem.html)
 
+Greene, W. H. (2012)
+*Econometric analysis*,
+7th edition,
+Pearson  
+Datasets available from:
+[http://people.stern.nyu.edu/wgreene/Text/econometricanalysis.htm](http://people.stern.nyu.edu/wgreene/Text/econometricanalysis.htm)  
+(see 'Table F10.3: Klein's Model I')
+
 Klein, L. R. (1950)
 *Economic fluctuations in the United States, 1921-1941*,
 *Cowles Commission for Research in Economics*, **11**,
