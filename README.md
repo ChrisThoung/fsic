@@ -131,7 +131,7 @@ print(results.round(2))
 | 2009 | 80.00 | 80.00 | 20.0 | 20.00 | 20.00 | 100.00 | 100.00 | ... | 20.0 | 1.0 |   0.2 |     0.6 |     0.4 |      . |        196 |
 | 2010 | 80.00 | 80.00 | 20.0 | 20.00 | 20.00 | 100.00 | 100.00 | ... | 20.0 | 1.0 |   0.2 |     0.6 |     0.4 |      . |        196 |
 
-For further examples, see the `examples` folder or my
+For further examples, see the [examples](examples/) folder or my
 [post](https://www.christhoung.com/2018/07/08/fsic-gl2007-pc/) and accompanying
 [notebook](https://github.com/ChrisThoung/website/tree/master/code/2018-07-08_fsic_pc)
 about Model *PC* from Chapter 4 of Godley and Lavoie (2007).
