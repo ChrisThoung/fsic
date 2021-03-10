@@ -645,6 +645,29 @@ class TestBuild(unittest.TestCase):
         code = fsic.build_model_definition(symbols)
         self.assertEqual(code, expected)
 
+    def test_no_type_hints(self):
+        # Check that `build_model_definition()` can generate a code template
+        # without type hints
+        expected = '''class Model(BaseModel):
+    ENDOGENOUS = ['Y']
+    EXOGENOUS = ['C', 'I', 'G', 'X', 'M']
+
+    PARAMETERS = []
+    ERRORS = []
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
+
+    LAGS = 0
+    LEADS = 0
+
+    def _evaluate(self, t, **kwargs):
+        # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
+        self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]'''
+
+        symbols = fsic.parse_model('Y = C + I + G + X - M')
+        code = fsic.build_model_definition(symbols, with_type_hints=False)
+
     def test_no_symbols(self):
         # Test that empty input generates an empty model template
         expected = '''class Model(BaseModel):

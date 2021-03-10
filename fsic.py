@@ -1157,7 +1157,7 @@ class BaseModel(VectorContainer):
 
 # Model class generator -------------------------------------------------------
 
-model_template = '''\
+model_template_typed = '''\
 class Model(BaseModel):
     ENDOGENOUS: List[str] = {endogenous}
     EXOGENOUS: List[str] = {exogenous}
@@ -1175,8 +1175,150 @@ class Model(BaseModel):
 {equations}\
 '''
 
-def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None) -> str:
-    """Return a model class definition string from the contents of `symbols`."""
+model_template_untyped = '''\
+class Model(BaseModel):
+    ENDOGENOUS = {endogenous}
+    EXOGENOUS = {exogenous}
+
+    PARAMETERS = {parameters}
+    ERRORS = {errors}
+
+    NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK = ENDOGENOUS
+
+    LAGS = {lags}
+    LEADS = {leads}
+
+    def _evaluate(self, t, **kwargs):
+{equations}\
+'''
+
+def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None, *, with_type_hints: bool = True) -> str:
+    """Return a model class definition string from the contents of `symbols` (with type hints, by default).
+
+    Parameters
+    ----------
+    symbols : list of fsic Symbol objects
+        Constituent symbols of the model
+    converter : (optional) callable, default `None`
+        Mechanism for customising the Python code generator. If `None`,
+        generates the equation as a comment followed by the equivalent Python
+        code on the next line (see examples below). If a callable, takes a
+        Symbol object as an input and must return a string of Python code for
+        insertion into the model template.
+    with_type_hints : bool
+        If `True`, use the version of the model template with type hints. If
+        `False`, exclude type hints (which may be convenient if looking to
+        manipulate and/or execute the code directly).
+
+    Notes
+    -----
+    The `converter` argument provides a way to alter the code generated at an
+    equation level. The default converter just takes a Symbol object of type
+    `ENDOGENOUS` and prints both the standardised equation as a comment, and
+    the accompanying code. For example:
+
+        # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
+        self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
+
+    By passing a custom callable, you could generate something like the
+    following instead, using the contents of the Symbol object:
+
+        def custom_converter(symbol):
+            lhs, rhs = map(str.strip, symbol.code.split('=', maxsplit=1))
+            return '''\
+# {}
+_ = {}
+if _ > 0:  # Ignore negative values
+    {} = _'''.format(symbol.equation, rhs, lhs)
+
+    Which would generate:
+
+        # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
+        _ = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
+        if _ > 0:  # Ignore negative values
+            self._Y[t] = _
+
+    Examples
+    --------
+    >>> import fsic
+
+    >>> symbols = fsic.parse_model('Y = C + I + G + X - M')
+    >>> symbols
+    [Symbol(name='Y', type=<Type.ENDOGENOUS: 3>, lags=0, leads=0, equation='Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]', code='self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]'),
+     Symbol(name='C', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None),
+     Symbol(name='I', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None),
+     Symbol(name='G', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None),
+     Symbol(name='X', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None),
+     Symbol(name='M', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None)]
+
+    # With type hints (default)
+    >>> print(fsic.build_model_definition(symbols))
+    class Model(BaseModel):
+        ENDOGENOUS: List[str] = ['Y']
+        EXOGENOUS: List[str] = ['C', 'I', 'G', 'X', 'M']
+
+        PARAMETERS: List[str] = []
+        ERRORS: List[str] = []
+
+        NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK: List[str] = ENDOGENOUS
+
+        LAGS: int = 0
+        LEADS: int = 0
+
+        def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+            # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
+            self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
+
+    # Without type hints
+    >>> print(fsic.build_model_definition(symbols, with_type_hints=False))
+    class Model(BaseModel):
+        ENDOGENOUS = ['Y']
+        EXOGENOUS = ['C', 'I', 'G', 'X', 'M']
+
+        PARAMETERS = []
+        ERRORS = []
+
+        NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK = ENDOGENOUS
+
+        LAGS = 0
+        LEADS = 0
+
+        def _evaluate(self, t, **kwargs):
+            # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
+            self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
+
+    # Custom code generator
+    >>> def custom_converter(symbol):
+    ...     lhs, rhs = map(str.strip, symbol.code.split('=', maxsplit=1))
+    ...     return '''\
+    ... # {}
+    ... _ = {}
+    ... if _ > 0:  # Ignore negative values
+    ...     {} = _'''.format(symbol.equation, rhs, lhs)
+
+    >>> print(fsic.build_model_definition(symbols, converter=custom_converter))
+    class Model(BaseModel):
+        ENDOGENOUS: List[str] = ['Y']
+        EXOGENOUS: List[str] = ['C', 'I', 'G', 'X', 'M']
+
+        PARAMETERS: List[str] = []
+        ERRORS: List[str] = []
+
+        NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK: List[str] = ENDOGENOUS
+
+        LAGS: int = 0
+        LEADS: int = 0
+
+        def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+            # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
+            _ = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
+            if _ > 0:  # Ignore negative values
+                self._Y[t] = _
+    """
 
     def default_converter(symbol: Symbol) -> str:
         """Return Python code for the current equation as an `exec`utable string."""
@@ -1186,6 +1328,11 @@ def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[
 
     if converter is None:
         converter = default_converter
+
+    if with_type_hints:
+        model_template = model_template_typed
+    else:
+        model_template = model_template_untyped
 
     # Separate variable names according to variable type
     endogenous = [s.name for s in symbols if s.type == Type.ENDOGENOUS]
@@ -1227,8 +1374,24 @@ def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[
 
     return model_definition_string
 
-def build_model(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None) -> Any:
+def build_model(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None, *, with_type_hints: bool = True) -> 'BaseModel':
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
+
+    Parameters
+    ----------
+    symbols : list of fsic Symbol objects
+        Constituent symbols of the model
+    converter : (optional) callable, default `None`
+        Mechanism for customising the Python code generator. If `None`,
+        generates the equation as a comment followed by the equivalent Python
+        code on the next line. If a callable, takes a Symbol object as an input
+        and must return a string of Python code for insertion into the model
+        template.
+        See the docstring for `build_model_definition()` for further details.
+    with_type_hints : bool
+        If `True`, use the version of the model template with type hints. If
+        `False`, exclude type hints (which may be convenient if looking to
+        manipulate and/or execute the code directly).
 
     Notes
     -----
@@ -1240,7 +1403,9 @@ def build_model(symbols: List[Symbol], converter: Optional[Callable[[Symbol], st
     `exec`ute.
     """
     # Construct the class definition
-    model_definition_string = build_model_definition(symbols, converter=converter)
+    model_definition_string = build_model_definition(symbols,
+                                                     converter=converter,
+                                                     with_type_hints=with_type_hints)
 
     # Execute the class definition code
     try:
