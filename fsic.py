@@ -778,16 +778,45 @@ class BaseModel(VectorContainer):
         # Set up data container
         super().__init__(span)
 
+        # Use the base class version of `add_variable()` because `self.names`
+        # is set separately (whereas this class's version would attempt to
+        # extend `self.names`)
+
         # Add solution tracking variables
-        self.add_variable('status', '-')
-        self.add_variable('iterations', -1)
+        super().add_variable('status', '-')
+        super().add_variable('iterations', -1)
 
         # Add model variables
         self.__dict__['names'] = self.NAMES
         for name in self.__dict__['names']:
-            self.add_variable(name,
-                              initial_values.get(name, default_value),
-                              dtype=dtype)
+            super().add_variable(name,
+                                 initial_values.get(name, default_value),
+                                 dtype=dtype)
+
+    def add_variable(self, name: str, value: Union[Any, Sequence[Any]], *, dtype: Any = None) -> None:
+        """Add a new variable to the model at runtime, forcing a `dtype` if needed.
+
+        Parameters
+        ----------
+        name : str
+            The name of the new variable, which must not already exist in the
+            model (raise a `DuplicateNameError` if it already exists)
+        value : single value or sequence of values
+            Initial value(s) for the new variable. If a sequence, must yield a
+            length equal to that of `span`
+        dtype : variable type
+            Data type to impose on the variable. The default is to use the
+            type/dtype of `value`
+
+        Notes
+        -----
+        In implementation, as well as adding the data to the underlying
+        container, this version of the method also extends the list of names in
+        `self.names`, to keep the variable list up-to-date and for
+        compatibility with, for example, `fsictools.model_to_dataframe()`.
+        """
+        super().add_variable(name, value, dtype=dtype)
+        self.__dict__['names'] += name
 
     @classmethod
     def from_dataframe(cls: 'BaseModel', data: 'DataFrame', *args, **kwargs) -> 'BaseModel':

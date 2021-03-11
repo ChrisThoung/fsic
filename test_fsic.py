@@ -464,6 +464,36 @@ class TestModelContainerMethods(unittest.TestCase):
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
+    def test_add_variable(self):
+        # Check that `add_variable()` extends the model object's store (both
+        # values and the accompanying key) while preserving the new variable's
+        # type
+        model = self.Model(range(10))
+
+        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2'])
+        self.assertEqual(model.values.shape, (5, 10))
+
+        # Add new variables of various types
+        model.add_variable('I', 0)
+        model.add_variable('J', 0.0)
+        model.add_variable('K', 0, dtype=float)
+        model.add_variable('L', False)
+
+        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L'])
+        self.assertEqual(model.values.shape, (9, 10))
+
+        self.assertEqual(model.I.dtype, int)
+        self.assertEqual(model['I'].dtype, int)
+
+        self.assertEqual(model.J.dtype, float)
+        self.assertEqual(model['J'].dtype, float)
+
+        self.assertEqual(model.K.dtype, float)
+        self.assertEqual(model['K'].dtype, float)
+
+        self.assertEqual(model.L.dtype, bool)
+        self.assertEqual(model['L'].dtype, bool)
+
     def test_getitem_by_name(self):
         # Test variable access by name
         model = self.Model(['{}Q{}'.format(y, q)
@@ -941,6 +971,22 @@ H = H[-1] + YD - C
         self.assertEqual(labels, ['B', 'C'])
         self.assertEqual(indexes, [1, 2])
         self.assertEqual(solved, [True, True])
+
+    def test_solve_add_variable(self):
+        # Check that extending the model with new variables at runtime makes no
+        # difference to the model solution
+        base = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+
+        extended = base.copy()
+        extended.add_variable('A', 20.0)
+
+        base.solve()
+        extended.solve()
+
+        self.assertEqual(base.values.shape, (9, 66))
+        self.assertEqual(extended.values.shape, (10, 66))
+
+        self.assertTrue(np.allclose(base.values, extended.values[:-1, :]))
 
 
 class TestParserErrors(unittest.TestCase):

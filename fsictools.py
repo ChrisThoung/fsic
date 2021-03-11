@@ -83,7 +83,7 @@ def model_to_dataframe(model: BaseModel) -> 'pandas.DataFrame':
     """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
     from pandas import DataFrame
 
-    df = DataFrame(model.values.T, index=model.span, columns=model.names)
+    df = DataFrame({k: model[k] for k in model.names}, index=model.span)
     df['status'] = model.status
     df['iterations'] = model.iterations
 

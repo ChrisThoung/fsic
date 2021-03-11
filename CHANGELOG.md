@@ -22,6 +22,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   contents *en masse*. Feeds through to`BaseModel` and derived classes.
 - `build_model_definition()` modified to optionally produce a code definition
   without type hints.
+- In `BaseModel`, over-ride `VectorContainer.add_variable()` to properly extend
+  the model's store while supporting variables of other `dtype`s. Update
+  `fsictools.model_to_dataframe()` to preserve those `dtype`s.
 
 
 ## [0.6.4.dev] - 2021-01-03

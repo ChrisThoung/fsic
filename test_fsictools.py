@@ -51,6 +51,31 @@ class TestPandasFunctions(unittest.TestCase):
 
         pd.testing.assert_frame_equal(result, expected)
 
+    def test_model_to_dataframe_additional_variables(self):
+        # Check that extending the model with extra variables carries through
+        # to the results DataFrame (including preserving variable types)
+        model = self.MODEL(range(5))
+
+        model.add_variable('I', 0)               # int
+        model.add_variable('J', 0.0)             # float
+        model.add_variable('K', 0, dtype=float)  # float (forced)
+        model.add_variable('L', False)           # bool
+
+        result = fsictools.model_to_dataframe(model)
+        expected = pd.DataFrame({
+            'Y': 0.0,
+            'C': 0.0,
+            'G': 0.0,
+            'I': 0,      # int
+            'J': 0.0,    # float
+            'K': 0.0,    # float (forced)
+            'L': False,  # bool
+            'status': '-',
+            'iterations': -1
+        }, index=range(5))
+
+        pd.testing.assert_frame_equal(result, expected)
+
 
 networkx_installed = True
 
