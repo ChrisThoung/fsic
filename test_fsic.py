@@ -451,6 +451,8 @@ H = H[-1] + YD - C
 
         self.assertEqual(len(model.iter_periods()), 9)
         self.assertEqual(len(model.iter_periods(start=2005)), 5)
+        self.assertEqual(len(model.iter_periods(end=2006)), 6)
+        self.assertEqual(len(model.iter_periods(start=2001, end=2007)), 7)
 
         self.assertEqual(list(model.iter_periods()),
                          [(i, 2000 + i) for i in range(1, 9 + 1)])
