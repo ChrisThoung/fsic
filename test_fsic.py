@@ -472,7 +472,10 @@ class TestModelContainerMethods(unittest.TestCase):
         # type
         model = self.Model(range(10))
 
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
         self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2'])
+
         self.assertEqual(model.values.shape, (5, 10))
 
         # Add new variables of various types
@@ -481,7 +484,10 @@ class TestModelContainerMethods(unittest.TestCase):
         model.add_variable('K', 0, dtype=float)
         model.add_variable('L', False)
 
+        # Check list of names is now changed
+        self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
         self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L'])
+
         self.assertEqual(model.values.shape, (9, 10))
 
         self.assertEqual(model.I.dtype, int)

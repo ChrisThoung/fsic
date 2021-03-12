@@ -787,7 +787,7 @@ class BaseModel(VectorContainer):
         super().add_variable('iterations', -1)
 
         # Add model variables
-        self.__dict__['names'] = self.NAMES
+        self.__dict__['names'] = copy.deepcopy(self.NAMES)
         for name in self.__dict__['names']:
             super().add_variable(name,
                                  initial_values.get(name, default_value),

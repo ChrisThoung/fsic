@@ -40,7 +40,12 @@ class TestPandasFunctions(unittest.TestCase):
         pd.testing.assert_frame_equal(result, expected)
 
     def test_model_to_dataframe(self):
-        result = fsictools.model_to_dataframe(self.MODEL(range(5)))
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        result = fsictools.model_to_dataframe(model)
         expected = pd.DataFrame({
             'Y': 0.0,
             'C': 0.0,
@@ -56,10 +61,16 @@ class TestPandasFunctions(unittest.TestCase):
         # to the results DataFrame (including preserving variable types)
         model = self.MODEL(range(5))
 
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
         model.add_variable('I', 0)               # int
         model.add_variable('J', 0.0)             # float
         model.add_variable('K', 0, dtype=float)  # float (forced)
         model.add_variable('L', False)           # bool
+
+        # Check list of names is now changed
+        self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
 
         result = fsictools.model_to_dataframe(model)
         expected = pd.DataFrame({
