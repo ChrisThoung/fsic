@@ -979,16 +979,35 @@ H = H[-1] + YD - C
         # difference to the model solution
         base = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
 
+        # Add further variables to a copy and check types before solving
         extended = base.copy()
-        extended.add_variable('A', 20.0)
 
+        extended.add_variable('I', 20)
+        extended.add_variable('J', 20.0)
+        extended.add_variable('K', 20, dtype=float)
+        extended.add_variable('L', False)
+
+        self.assertEqual(extended.I.dtype, int)
+        self.assertEqual(extended.J.dtype, float)
+        self.assertEqual(extended.K.dtype, float)
+        self.assertEqual(extended.L.dtype, bool)
+
+        self.assertEqual(base.values.shape, (9, 66))
+        self.assertEqual(extended.values.shape, (13, 66))
+
+        # Solve and check solution values match
         base.solve()
         extended.solve()
 
-        self.assertEqual(base.values.shape, (9, 66))
-        self.assertEqual(extended.values.shape, (10, 66))
+        self.assertTrue(np.allclose(base.values, extended.values[:-4, :]))
 
-        self.assertTrue(np.allclose(base.values, extended.values[:-1, :]))
+        self.assertEqual(base.values.shape, (9, 66))
+        self.assertEqual(extended.values.shape, (13, 66))
+
+        self.assertEqual(extended.I.dtype, int)
+        self.assertEqual(extended.J.dtype, float)
+        self.assertEqual(extended.K.dtype, float)
+        self.assertEqual(extended.L.dtype, bool)
 
 
 class TestParserErrors(unittest.TestCase):
