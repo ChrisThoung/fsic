@@ -1585,6 +1585,44 @@ class BaseLinker(SolverMixin, ModelInterface):
         """
         self.__dict__['submodels'] = submodels
 
+        # Get a list of submodel IDs and pop the first submodel as the one to
+        # compare all the others against
+        identifiers = iter(self.__dict__['submodels'])
+
+        base_name = next(identifiers)
+        base = self.__dict__['submodels'][base_name]
+
+        lags = base.LAGS
+        leads = base.LEADS
+
+        # Check for a common span across submodels (error if not) and work out
+        # the longest lags and leads
+        for name in identifiers:
+            # Check spans are identical
+            comparator = self.__dict__['submodels'][name]
+            if comparator.span != base.span:
+                raise InitialisationError('''\
+Spans of submodels differ:
+ - '{}', {:,} period(s): {}
+ - '{}', {:,} period(s): {}'''.format(
+     base_name, len(base.span), base.span,
+     name, len(comparator.span), comparator.span))
+
+            # Update longest lags and leads
+            lags = max(lags, comparator.LAGS)
+            leads = max(leads, comparator.LEADS)
+
+        # Store lags and leads
+        self.__dict__['_LAGS'] = lags
+        self.__dict__['_LEADS'] = leads
+
+        # Initialise internal store for the core of the model (which is
+        # separate from the individual submodels)
+        super().__init__(span=base.span,
+                         dtype=dtype,
+                         default_value=default_value,
+                         **initial_values)
+
     @property
     def LAGS(self) -> int:
         return self.__dict__['_LAGS']
