@@ -834,7 +834,7 @@ class PeriodIter:
 
     def __init__(self, *args):
         self._length = len(args[0])
-        self._iter = zip(*args)
+        self._iter = list(zip(*args))
 
     def __iter__(self):
         yield from self._iter

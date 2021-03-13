@@ -457,6 +457,19 @@ H = H[-1] + YD - C
         self.assertEqual(list(model.iter_periods()),
                          [(i, 2000 + i) for i in range(1, 9 + 1)])
 
+    def test_iter_periods_reuse(self):
+        # Check that `PeriodIter` objects are reusable
+        model = self.Model(['{}Q{}'.format(year, quarter)
+                            for year in range(2000, 2005 + 1)
+                            for quarter in range(1, 4 + 1)])
+
+        period_iter = model.iter_periods()
+
+        list_1 = list(period_iter)
+        list_2 = list(period_iter)
+
+        self.assertEqual(list_1, list_2)
+
 
 class TestModelContainerMethods(unittest.TestCase):
 
