@@ -1458,3 +1458,39 @@ def build_model(symbols: List[Symbol], converter: Optional[Callable[[Symbol], st
     # the class
     locals()['Model'].CODE = model_definition_string
     return locals()['Model']
+
+
+# Base class to link models ---------------------------------------------------
+
+class BaseLinker:
+    """Base class to link economic models."""
+
+    def __init__(self, submodels: Dict[Hashable, BaseModel], *, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+        """Initialise linker with constituent submodels and core model variables.
+
+        Parameters
+        ----------
+        submodels : dict
+            Mapping of submodel identifiers (keys) to submodel instances
+            (values)
+        dtype : variable type
+            Data type to impose on core model variables (in NumPy arrays)
+        default_value : number
+            Value with which to initialise core model variables
+        **initial_values : keyword arguments of variable names and values
+            Values with which to initialise specific named core model variables
+
+        Notes
+        -----
+        For now, the submodels must have identical `span` attributes. Method
+        raises an `InitialisationError` if not.
+        """
+        self.__dict__['submodels'] = submodels
+
+    @property
+    def LAGS(self) -> int:
+        return self.__dict__['_LAGS']
+
+    @property
+    def LEADS(self) -> int:
+        return self.__dict__['_LEADS']

@@ -1224,5 +1224,9 @@ H = H[-1] + YD - C
         self.assertTrue(np.all(model.status[1:] == 'F'))
 
 
+class TestLinker(unittest.TestCase):
+    pass
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -10,9 +10,9 @@ for dependencies additional to those of `fsic`.
 from fsic import __version__
 
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, Hashable, List
 
-from fsic import BaseModel, Symbol
+from fsic import Symbol, BaseModel, BaseLinker
 import fsic
 
 
@@ -64,7 +64,6 @@ def symbols_to_sympy(symbols: List[Symbol]) -> Dict['sympy.Symbol', 'sympy.Eq']:
 
         return converted
 
-
     system = {}
 
     equations = [s.equation for s in symbols if s.equation is not None]
@@ -88,3 +87,14 @@ def model_to_dataframe(model: BaseModel) -> 'pandas.DataFrame':
     df['iterations'] = model.iterations
 
     return df
+
+def linker_to_dataframes(linker: BaseLinker, *, core_name: Hashable = '_') -> Dict[Hashable, 'pandas.DataFrame']:
+    """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames. **Requires `pandas`**."""
+    from pandas import DataFrame
+
+    results = {core_name: model_to_dataframe(linker)}
+
+    for name, model in linker.submodels.items():
+        results[name] = model_to_dataframe(model)
+
+    return results
