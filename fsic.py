@@ -735,7 +735,7 @@ class ModelInterface(VectorContainer):
         span : iterable
             Sequence of periods that defines the timespan of the model
         dtype : variable type
-            Data type to impose on model variables (in NumPy arrays)
+            Default data type to impose on model variables (in NumPy arrays)
         default_value : number
             Value with which to initialise model variables
         **initial_values : keyword arguments of variable names and values
@@ -743,6 +743,10 @@ class ModelInterface(VectorContainer):
         """
         # Set up data container
         super().__init__(span)
+
+        # Store the `dtype` as the default for future values e.g. using
+        # `add_variable()` after initialisation
+        self.__dict__['dtype'] = dtype
 
         # Use the base class version of `add_variable()` because `self.names`
         # is set separately (whereas this class's version would attempt to
@@ -757,7 +761,7 @@ class ModelInterface(VectorContainer):
         for name in self.__dict__['names']:
             super().add_variable(name,
                                  initial_values.get(name, default_value),
-                                 dtype=dtype)
+                                 dtype=self.__dict__['dtype'])
 
     def add_variable(self, name: str, value: Union[Any, Sequence[Any]], *, dtype: Any = None) -> None:
         """Add a new variable to the model at runtime, forcing a `dtype` if needed.
@@ -772,7 +776,8 @@ class ModelInterface(VectorContainer):
             length equal to that of `span`
         dtype : variable type
             Data type to impose on the variable. The default is to use the
-            type/dtype of `value`
+            `dtype` originally passed at initialisation. Otherwise, use this
+            argument to set the type.
 
         Notes
         -----
@@ -781,6 +786,10 @@ class ModelInterface(VectorContainer):
         `self.names`, to keep the variable list up-to-date and for
         compatibility with, for example, `fsictools.model_to_dataframe()`.
         """
+        # Optionally impose the `dtype`
+        if dtype is None:
+            dtype = self.__dict__['dtype']
+
         super().add_variable(name, value, dtype=dtype)
         self.__dict__['names'] += name
 

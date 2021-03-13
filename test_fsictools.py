@@ -64,10 +64,10 @@ class TestPandasFunctions(unittest.TestCase):
         # Check list of names is unchanged
         self.assertEqual(model.names, model.NAMES)
 
-        model.add_variable('I', 0)               # int
-        model.add_variable('J', 0.0)             # float
-        model.add_variable('K', 0, dtype=float)  # float (forced)
-        model.add_variable('L', False)           # bool
+        model.add_variable('I', 0, dtype=int)
+        model.add_variable('J', 0)
+        model.add_variable('K', 0, dtype=float)
+        model.add_variable('L', False, dtype=bool)
 
         # Check list of names is now changed
         self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])

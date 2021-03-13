@@ -468,8 +468,8 @@ class TestModelContainerMethods(unittest.TestCase):
 
     def test_add_variable(self):
         # Check that `add_variable()` extends the model object's store (both
-        # values and the accompanying key) while preserving the new variable's
-        # type
+        # values and the accompanying key) while applying the correct type,
+        # whether default or explicitly specified
         model = self.Model(range(10))
 
         # Check list of names is unchanged
@@ -479,10 +479,10 @@ class TestModelContainerMethods(unittest.TestCase):
         self.assertEqual(model.values.shape, (5, 10))
 
         # Add new variables of various types
-        model.add_variable('I', 0)
-        model.add_variable('J', 0.0)
-        model.add_variable('K', 0, dtype=float)
-        model.add_variable('L', False)
+        model.add_variable('I', 0, dtype=int)       # Impose int
+        model.add_variable('J', 0)                  # float, by default
+        model.add_variable('K', 0, dtype=float)     # Impose float
+        model.add_variable('L', False, dtype=bool)  # Import bool
 
         # Check list of names is now changed
         self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
@@ -988,10 +988,10 @@ H = H[-1] + YD - C
         # Add further variables to a copy and check types before solving
         extended = base.copy()
 
-        extended.add_variable('I', 20)
-        extended.add_variable('J', 20.0)
+        extended.add_variable('I', 20, dtype=int)
+        extended.add_variable('J', 20)
         extended.add_variable('K', 20, dtype=float)
-        extended.add_variable('L', False)
+        extended.add_variable('L', False, dtype=bool)
 
         self.assertEqual(extended.I.dtype, int)
         self.assertEqual(extended.J.dtype, float)
