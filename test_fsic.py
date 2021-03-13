@@ -472,7 +472,10 @@ class TestModelContainerMethods(unittest.TestCase):
         # type
         model = self.Model(range(10))
 
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
         self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2'])
+
         self.assertEqual(model.values.shape, (5, 10))
 
         # Add new variables of various types
@@ -481,7 +484,10 @@ class TestModelContainerMethods(unittest.TestCase):
         model.add_variable('K', 0, dtype=float)
         model.add_variable('L', False)
 
+        # Check list of names is now changed
+        self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
         self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L'])
+
         self.assertEqual(model.values.shape, (9, 10))
 
         self.assertEqual(model.I.dtype, int)
@@ -979,16 +985,35 @@ H = H[-1] + YD - C
         # difference to the model solution
         base = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
 
+        # Add further variables to a copy and check types before solving
         extended = base.copy()
-        extended.add_variable('A', 20.0)
 
+        extended.add_variable('I', 20)
+        extended.add_variable('J', 20.0)
+        extended.add_variable('K', 20, dtype=float)
+        extended.add_variable('L', False)
+
+        self.assertEqual(extended.I.dtype, int)
+        self.assertEqual(extended.J.dtype, float)
+        self.assertEqual(extended.K.dtype, float)
+        self.assertEqual(extended.L.dtype, bool)
+
+        self.assertEqual(base.values.shape, (9, 66))
+        self.assertEqual(extended.values.shape, (13, 66))
+
+        # Solve and check solution values match
         base.solve()
         extended.solve()
 
-        self.assertEqual(base.values.shape, (9, 66))
-        self.assertEqual(extended.values.shape, (10, 66))
+        self.assertTrue(np.allclose(base.values, extended.values[:-4, :]))
 
-        self.assertTrue(np.allclose(base.values, extended.values[:-1, :]))
+        self.assertEqual(base.values.shape, (9, 66))
+        self.assertEqual(extended.values.shape, (13, 66))
+
+        self.assertEqual(extended.I.dtype, int)
+        self.assertEqual(extended.J.dtype, float)
+        self.assertEqual(extended.K.dtype, float)
+        self.assertEqual(extended.L.dtype, bool)
 
 
 class TestParserErrors(unittest.TestCase):
