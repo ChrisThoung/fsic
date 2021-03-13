@@ -474,7 +474,7 @@ class VectorContainer:
         Parameter
         ---------
         span : iterable
-            Sequence of periods that define the timespan of the model
+            Sequence of periods that defines the timespan of the model
         """
         self.__dict__['span'] = span
         self.__dict__['index'] = []
@@ -721,51 +721,19 @@ class VectorContainer:
             self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
 
 
-# Base class for individual models --------------------------------------------
+# Model interface, wrapping the core `VectorContainer` ------------------------
 
-class PeriodIter:
-    """Iterator of (index, label) pairs returned by `BaseModel.iter_periods()`. Compatible with `len()`."""
+class ModelInterface(VectorContainer):
 
-    def __init__(self, *args):
-        self._length = len(args[0])
-        self._iter = zip(*args)
+    NAMES: List[str] = []
 
-    def __iter__(self):
-        yield from self._iter
-
-    def __next__(self):
-        return next(self._iter)
-
-    def __len__(self):
-        return self._length
-
-
-class BaseModel(VectorContainer):
-    """Base class for economic models."""
-
-    ENDOGENOUS: List[str] = []
-    EXOGENOUS: List[str] = []
-
-    PARAMETERS: List[str] = []
-    ERRORS: List[str] = []
-
-    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
-    CHECK: List[str] = ENDOGENOUS
-
-    LAGS: int = 0
-    LEADS: int = 0
-
-    CODE: Optional[str] = None
-
-    def __init__(self, span: Sequence[Hashable], *, engine: str = 'python', dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+    def __init__(self, span: Sequence[Hashable], *, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise model variables.
 
         Parameters
         ----------
         span : iterable
-            Sequence of periods that define the timespan of the model
-        engine : str
-            Signal of the (expected) underlying solution method/implementation
+            Sequence of periods that defines the timespan of the model
         dtype : variable type
             Data type to impose on model variables (in NumPy arrays)
         default_value : number
@@ -773,8 +741,6 @@ class BaseModel(VectorContainer):
         **initial_values : keyword arguments of variable names and values
             Values with which to initialise specific named model variables
         """
-        self.__dict__['engine'] = engine
-
         # Set up data container
         super().__init__(span)
 
@@ -818,25 +784,6 @@ class BaseModel(VectorContainer):
         super().add_variable(name, value, dtype=dtype)
         self.__dict__['names'] += name
 
-    @classmethod
-    def from_dataframe(cls: 'BaseModel', data: 'DataFrame', *args, **kwargs) -> 'BaseModel':
-        """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
-
-        Parameters
-        ----------
-        data : `pandas` DataFrame(-like)
-            The DataFrame's index (once converted to a list) becomes the
-            model's `span`.
-            The DataFrame's contents set the model's values, as with
-            `**initial_values` in the class `__init__()` method. Default values
-            continue to be set for any variables not included in the DataFrame.
-        *args, **kwargs : further arguments to the class `__init__()` method
-        """
-        return cls(list(data.index),
-                   *args,
-                   **{k: v.values for k, v in data.items()},
-                   **kwargs)
-
     def __contains__(self, key: str) -> bool:
         return key in self.__dict__['names']
 
@@ -870,6 +817,31 @@ class BaseModel(VectorContainer):
         for name, series in zip(self.names, new_values):
             self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
 
+
+# Mixin to define (but not fully implement) solver behaviour ------------------
+
+class PeriodIter:
+    """Iterator of (index, label) pairs returned by `BaseModel.iter_periods()`. Compatible with `len()`."""
+
+    def __init__(self, *args):
+        self._length = len(args[0])
+        self._iter = zip(*args)
+
+    def __iter__(self):
+        yield from self._iter
+
+    def __next__(self):
+        return next(self._iter)
+
+    def __len__(self):
+        return self._length
+
+class SolverMixin:
+    """Requires `self.span` (a `Sequence` of `Hashable`s) as an attribute."""
+
+    LAGS: int = 0
+    LEADS: int = 0
+
     def iter_periods(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None) -> Iterator[Tuple[int, Hashable]]:
         """Return pairs of period indexes and labels.
 
@@ -882,6 +854,11 @@ class BaseModel(VectorContainer):
         end : element in the model's `span`
             Last period to return. If not given, defaults to the last solvable
             period, taking into account any leads in the model's equations
+
+        Returns
+        -------
+        A `PeriodIter` object, which is iterable and returns the period (index,
+        label) pairs in sequence.
         """
         # Default start and end periods
         if start is None:
@@ -934,7 +911,7 @@ class BaseModel(VectorContainer):
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
         kwargs :
-            Further keyword arguments to pass on to further methods:
+            Further keyword arguments to pass on to other methods:
              - `iter_periods()`
              - `solve_t()`
 
@@ -1006,6 +983,109 @@ class BaseModel(VectorContainer):
         """
         t = self.span.index(period)
         return self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
+
+    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+        """Solve for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        max_iter : int
+            Maximum number of iterations to solution each period
+        tol : int or float
+            Tolerance for convergence
+        offset : int
+            If non-zero, copy an initial set of endogenous values from the
+            period at position `t + offset`. For example, `offset=-1` copies
+            the values from the previous period.
+        failures : str, one of {'raise', 'ignore'}
+            Action should the solution fail to converge (by reaching the
+            maximum number of iterations, `max_iter`)
+             - 'raise' (default): stop immediately and raise a
+                                  `NonConvergenceError`
+             - 'ignore': do nothing
+        errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
+            User-specified treatment on encountering numerical solution errors
+            e.g. NaNs and infinities
+             - 'raise' (default): stop immediately and raise a `SolutionError`
+                                  [set period solution status to 'E']
+             - 'skip': stop solving the current period
+                       [set period solution status to 'S']
+             - 'ignore': continue solving, with no special treatment or action
+                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
+        kwargs :
+            Further keyword arguments to pass to the solution routines
+
+        Returns
+        -------
+        `True` if the model solved for the current period; `False` otherwise.
+        """
+        raise NotImplementedError('Method must be over-ridden by a child class')
+
+
+# Base class for individual models --------------------------------------------
+class BaseModel(SolverMixin, ModelInterface):
+    """Base class for economic models."""
+
+    ENDOGENOUS: List[str] = []
+    EXOGENOUS: List[str] = []
+
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
+
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
+
+    LAGS: int = 0
+    LEADS: int = 0
+
+    CODE: Optional[str] = None
+
+    def __init__(self, span: Sequence[Hashable], *, engine: str = 'python', dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+        """Initialise model variables.
+
+        Parameters
+        ----------
+        span : iterable
+            Sequence of periods that defines the timespan of the model
+        engine : str
+            Signal of the (expected) underlying solution method/implementation
+        dtype : variable type
+            Data type to impose on model variables (in NumPy arrays)
+        default_value : number
+            Value with which to initialise model variables
+        **initial_values : keyword arguments of variable names and values
+            Values with which to initialise specific named model variables
+        """
+        self.__dict__['engine'] = engine
+
+        super().__init__(span=span,
+                         dtype=dtype,
+                         default_value=default_value,
+                         **initial_values)
+
+    @classmethod
+    def from_dataframe(cls: 'BaseModel', data: 'DataFrame', *args, **kwargs) -> 'BaseModel':
+        """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
+
+        Parameters
+        ----------
+        data : `pandas` DataFrame(-like)
+            The DataFrame's index (once converted to a list) becomes the
+            model's `span`.
+            The DataFrame's contents set the model's values, as with
+            `**initial_values` in the class `__init__()` method. Default values
+            continue to be set for any variables not included in the DataFrame.
+        *args, **kwargs : further arguments to the class `__init__()` method
+        """
+        return cls(list(data.index),
+                   *args,
+                   **{k: v.values for k, v in data.items()},
+                   **kwargs)
 
     def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
@@ -1462,8 +1542,17 @@ def build_model(symbols: List[Symbol], converter: Optional[Callable[[Symbol], st
 
 # Base class to link models ---------------------------------------------------
 
-class BaseLinker:
+class BaseLinker(SolverMixin, ModelInterface):
     """Base class to link economic models."""
+
+    ENDOGENOUS: List[str] = []
+    EXOGENOUS: List[str] = []
+
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
+
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
 
     def __init__(self, submodels: Dict[Hashable, BaseModel], *, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise linker with constituent submodels and core model variables.

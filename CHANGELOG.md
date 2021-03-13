@@ -27,6 +27,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   the model's store while supporting variables of other `dtype`s. Update
   `fsictools.model_to_dataframe()` to preserve those `dtype`s.
 
+### Changed
+
+- Refactored various parts of `BaseModel` to share more code with the new
+  `BaseLinker` class.
+
 
 ## [0.6.4.dev] - 2021-01-03
 

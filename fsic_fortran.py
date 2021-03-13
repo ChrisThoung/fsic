@@ -37,7 +37,7 @@ class FortranEngine:
         Parameters
         ----------
         span : iterable
-            Sequence of periods that define the timespan of the model
+            Sequence of periods that defines the timespan of the model
         engine : str
             Signal of the (expected) underlying solution method/implementation
         dtype : variable type
