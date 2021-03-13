@@ -88,7 +88,29 @@ class TestPandasFunctions(unittest.TestCase):
         pd.testing.assert_frame_equal(result, expected)
 
     def test_linker_to_dataframes(self):
-        raise NotImplementedError
+        Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
+
+        model = fsic.BaseLinker({
+            'A': Submodel(range(1990, 2005 + 1)),
+            'B': Submodel(range(1990, 2005 + 1)),
+            'C': Submodel(range(1990, 2005 + 1)),
+        })
+
+        results = fsictools.linker_to_dataframes(model)
+
+        pd.testing.assert_frame_equal(results['_'],
+                                      pd.DataFrame({'status': '-',
+                                                    'iterations': -1, },
+                                                   index=range(1990, 2005 + 1)))
+
+        expected = pd.DataFrame({x: 0.0 for x in 'YCIGXM'},
+                                index=range(1990, 2005 + 1))
+        expected['status'] = '-'
+        expected['iterations'] = -1
+
+        for name, submodel in model.submodels.items():
+            with self.subTest(submodel=name):
+                pd.testing.assert_frame_equal(results[name], expected)
 
 
 networkx_installed = True

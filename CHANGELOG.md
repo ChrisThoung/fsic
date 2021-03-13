@@ -11,7 +11,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
-- New `BaseLinker` class to nest and solve multiple `BaseModels`.
+- New `BaseLinker` class to nest and solve multiple `BaseModels`, with an
+  accompanying `linker_to_dataframes()` function in `fsictools` to extract the
+  results.
 - New `BaseModel` class method, `from_dataframe()`, to instantiate a model
   object from a `pandas` DataFrame or similar.
 - Further keyword arguments to `BaseModel.solve()` are now passed to both

@@ -1249,8 +1249,19 @@ H = H[-1] + YD - C
         self.assertTrue(np.all(model.status[1:] == 'F'))
 
 
-class TestLinker(unittest.TestCase):
-    pass
+class TestLinkerInit(unittest.TestCase):
+
+    SYMBOLS = fsic.parse_model('Y = C + I + G + X - M')
+
+    def setUp(self):
+        self.Submodel = fsic.build_model(self.SYMBOLS)
+
+    def test_init(self):
+        model = fsic.BaseLinker({
+            'A': self.Submodel(range(1990, 2005 + 1)),
+            'B': self.Submodel(range(1990, 2005 + 1)),
+            'C': self.Submodel(range(1990, 2005 + 1)),
+        })
 
 
 if __name__ == '__main__':
