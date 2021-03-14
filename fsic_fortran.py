@@ -192,6 +192,13 @@ class FortranEngine:
                     'in period with label: {} (index: {})'
                     .format(iteration, period, t))
 
+            # Found pre-existing NaN or infinity prior to solution
+            elif error_code == 31 and errors == 'raise':
+                raise SolutionError(
+                    'Pre-existing NaNs or infinities found '
+                    'in period with label: {} (index: {})'
+                    .format(period, t))
+
             # Some other error but `errors='skip'`
             elif error_code == 22 and errors == 'skip':
                 self.status[t] = 'S'
@@ -457,6 +464,9 @@ module error_codes
   integer :: numerical_error_ignore = 23
   integer :: numerical_error_replace = 24
 
+  ! Convergence check errors
+  integer :: pre_existing_non_finite_value = 31
+
 end module error_codes
 
 
@@ -586,6 +596,12 @@ subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variabl
 
   ! Array of variable values to check for convergence
   current_check = solved_values(convergence_variables, index)
+
+  ! Check for pre-existing NaNs or infinities
+  if(error_control == error_control_raise .and. any(.not. ieee_is_finite(current_check))) then
+     error_code = pre_existing_non_finite_value
+     return
+  end if
 
   ! Solve
   do iteration = 1, max_iter
