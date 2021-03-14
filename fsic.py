@@ -938,8 +938,8 @@ class SolverMixin:
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
         indexes = [None] * len(period_iter)
-        labels = [None] * len(period_iter)
-        solved = [False] * len(period_iter)
+        labels  = [None] * len(period_iter)
+        solved  = [None] * len(period_iter)
 
         for i, (t, period) in enumerate(period_iter):
             indexes[i] = t
