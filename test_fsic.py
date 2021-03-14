@@ -938,6 +938,9 @@ H = H[-1] + YD - C
 '''
     SYMBOLS = fsic.parse_model(SCRIPT)
 
+    # Tolerance for absolute differences to be considered almost equal
+    DELTA = 0.05
+
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
@@ -992,6 +995,42 @@ H = H[-1] + YD - C
         self.assertEqual(labels, ['B', 'C'])
         self.assertEqual(indexes, [1, 2])
         self.assertEqual(solved, [True, True])
+
+    def test_iter_solve_t(self):
+        # Use `iter_periods()` and `solve_t` to solve the model
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4)
+        model.G[15:] = 20
+        model.theta[15:] = 0.2
+
+        for t, period in model.iter_periods():
+            model.solve_t(t)
+
+        # Check final period (steady-state) results
+        self.assertAlmostEqual(model.C[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.YD[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.H[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.Y[-1], 100.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.T[-1], 20.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.G[-1], 20.0, delta=self.DELTA)
+
+    def test_iter_solve_period(self):
+        # Use `iter_periods()` and `solve_period` to solve the model
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4)
+        model.G[15:] = 20
+        model.theta[15:] = 0.2
+
+        for t, period in model.iter_periods():
+            model.solve_period(period)
+
+        # Check final period (steady-state) results
+        self.assertAlmostEqual(model.C[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.YD[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.H[-1], 80.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.Y[-1], 100.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.T[-1], 20.0, delta=self.DELTA)
+        self.assertAlmostEqual(model.G[-1], 20.0, delta=self.DELTA)
 
     def test_solve_add_variable(self):
         # Check that extending the model with new variables at runtime makes no
