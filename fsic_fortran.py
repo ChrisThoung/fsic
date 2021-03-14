@@ -634,7 +634,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variabl
         return
      end if
 
-     solved_values(endogenous, index) = solved_values(offset_location, index)
+     solved_values(endogenous, index) = solved_values(endogenous, offset_location)
 
   end if
 
