@@ -142,7 +142,7 @@ class FortranEngine:
 
         # Solve: Add 1 to `indexes` to go from zero-based (Python) to one-based
         #        (Fortran) indexing
-        solved_values, statuses, iterations, error_codes = (
+        solved_values, convergences, iterations, error_codes = (
             self.ENGINE.solve(self.values.astype(float),
                               [t + 1 for t in indexes],
                               max_iter,
@@ -159,8 +159,51 @@ class FortranEngine:
         # Loop through results information and update object and return values
         solved = [None] * len(indexes)
 
-        for i, (t, period, status, iteration, error_code) in enumerate(zip(indexes, labels, statuses, iterations, error_codes)):
-            pass
+        for i, (t, period, converged, iteration, error_code) in enumerate(zip(indexes, labels, convergences, iterations, error_codes)):
+
+            # Converged
+            if converged:
+                self.status[t] = '.'
+                self.iterations[t] = iteration
+                solved[i] = True
+                continue
+
+            # Failed to converge but no errors
+            elif not converged and error_code == 0:
+                self.status[t] = 'F'
+                self.iterations[t] = iteration
+                solved[i] = False
+
+                # Raise Exception as required
+                if failures == 'raise':
+                    raise NonConvergenceError(
+                        'Solution failed to converge after {} iterations(s) '
+                        'in period with label: {} (index: {})'
+                        .format(iteration, period, t))
+
+            # Numerical solution error: Raise
+            elif error_code == 21 and errors == 'raise':
+                self.status[t] = 'E'
+                self.iterations[t] = iteration
+                solved[i] = False
+
+                raise SolutionError(
+                    'Numerical solution error after {} iterations(s) '
+                    'in period with label: {} (index: {})'
+                    .format(iteration, period, t))
+
+            # Some other error but `errors='skip'`
+            elif error_code == 22 and errors == 'skip':
+                self.status[t] = 'S'
+                self.iterations[t] = iteration
+                solved[i] = False
+
+            # Any uncaught errors
+            else:
+                raise FortranEngineError(
+                    'Failed to solve model in period with label {} (index: {}), '
+                    'with uncaught error code {} after {} iteration(s)'
+                    .format(period, t, error_code, iteration))
 
         return labels, indexes, solved
 
@@ -614,7 +657,7 @@ end subroutine solve_t
 
 subroutine solve(initial_values, indexes,                                                       &
               &  max_iter, tol, offset, convergence_variables, failure_control, error_control,  &
-              &  solved_values, solution_statuses, solution_iterations, solution_error_codes,   &
+              &  solved_values, convergence_results, iterations, solution_error_codes,          &
               &  nrows, ncols, nvars, nperiods)
   use, intrinsic :: ieee_arithmetic
   use structure
@@ -642,7 +685,8 @@ subroutine solve(initial_values, indexes,                                       
   integer, intent(in) :: failure_control, error_control
 
   real(8), dimension(nrows, ncols), intent(out) :: solved_values
-  integer, dimension(nperiods), intent(out) :: solution_statuses, solution_iterations, solution_error_codes
+  logical, dimension(nperiods), intent(out) :: convergence_results
+  integer, dimension(nperiods), intent(out) :: iterations, solution_error_codes
 
   integer :: i
   real(8), dimension(nrows, ncols) :: previous_values
@@ -653,19 +697,38 @@ subroutine solve(initial_values, indexes,                                       
   solved_values = initial_values
 
   ! Initialise other results variables to -1 (not yet resolved)
-  solution_statuses = -1
-  solution_iterations = -1
+  convergence_results = .false.
+  iterations = -1
   solution_error_codes = -1
 
   do i = 1, nperiods
+
      previous_values = solved_values
 
      call solve_t(previous_values, indexes(i), max_iter, tol, offset, convergence_variables, error_control,  &
                &  solved_values, converged, iteration, error_code,                                           &
                &  nrows, ncols, nvars)
 
-     solution_iterations(i) = iteration
+     iterations(i) = iteration
      solution_error_codes(i) = error_code
+
+     ! No errors: Check if converged or not
+     if(error_code == 0) then
+
+        if(converged) then
+           ! Converged: Store and continue
+           convergence_results(i) = .true.
+
+        else if(failure_control == failure_control_raise) then
+           ! Failed to converge: Raise an error as required
+           return
+        end if
+
+     ! Errors: Raise as required
+     else if(error_control == error_control_raise) then
+        return
+     end if
+
   end do
 
 end subroutine solve
