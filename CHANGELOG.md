@@ -28,6 +28,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - In `BaseModel`, over-ride `VectorContainer.add_variable()` to properly extend
   the model's store while supporting variables of other `dtype`s. Update
   `fsictools.model_to_dataframe()` to preserve those `dtype`s.
+- In `fsic_fortran`, implemented Fortran equivalent of `solve()` method
+  (including Python wrapper) for further speed gains by bypassing `solve_t()`.
 
 ### Changed
 
