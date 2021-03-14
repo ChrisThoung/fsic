@@ -199,6 +199,30 @@ class FortranEngine:
                     'in period with label: {} (index: {})'
                     .format(period, t))
 
+            # Error if `offset` points prior to the current model span
+            elif error_code == 41:
+                t_check = t
+                if t_check < 0:
+                    t_check += len(self.span)
+
+                raise IndexError(
+                    '`offset` argument ({}) for position `t` ({}) '
+                    'implies a period before the span of the current model instance: '
+                    '{} + {} -> position {} < 0'.format(
+                        offset, t, offset, t, offset + t_check))
+
+            # Error if `offset` points beyond the current model span
+            elif error_code == 42:
+                t_check = t
+                if t_check < 0:
+                    t_check += len(self.span)
+
+                raise IndexError(
+                    '`offset` argument ({}) for position `t` ({}) '
+                    'implies a period beyond the span of the current model instance: '
+                    '{} + {} -> position {} >= {} periods in span'.format(
+                        offset, t, offset, t, offset + t_check, len(self.span)))
+
             # Some other error but `errors='skip'`
             elif error_code == 22 and errors == 'skip':
                 self.status[t] = 'S'
@@ -467,6 +491,9 @@ module error_codes
   ! Convergence check errors
   integer :: pre_existing_non_finite_value = 31
 
+  ! Offset errors
+  integer :: offset_predates_span = 41, offset_postdates_span = 42
+
 end module error_codes
 
 
@@ -559,7 +586,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variabl
   real(8), dimension(nrows, ncols) :: previous_values
   real(8), dimension(nvars) :: current_check, previous_check, diff_squared
 
-  integer :: index, i
+  integer :: index, offset_location, i
 
   ! Copy the initial values before solution
   ! (copy all values to avoid having to know which elements will change)
@@ -592,6 +619,23 @@ subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variabl
   else if(index > (ncols - leads)) then
      error_code = index_error_leads
      return
+  end if
+
+  ! Optionally copy initial values from another period
+  if(offset /= 0) then
+
+     offset_location = index + offset
+
+     if(offset_location < 1) then
+        error_code = offset_predates_span
+        return
+     else if(offset_location > ncols) then
+        error_code = offset_postdates_span
+        return
+     end if
+
+     solved_values(endogenous, index) = solved_values(offset_location, index)
+
   end if
 
   ! Array of variable values to check for convergence
