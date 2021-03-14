@@ -12,7 +12,7 @@ from fsic import __version__
 import itertools
 import re
 import textwrap
-from typing import Any, Dict, Hashable, List, Sequence, Union
+from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -30,6 +30,18 @@ class FortranEngine:
     """Subclass for derivatives of FSIC `BaseModel` to speed up model solution by calling compiled Fortran code."""
 
     ENGINE = None
+
+    _FAILURE_OPTIONS = {
+        'raise':   0,
+        'ignore':  2,
+    }
+
+    _ERROR_OPTIONS = {
+        'raise':   0,
+        'skip':    1,
+        'ignore':  2,
+        'replace': 3,
+    }
 
     def __init__(self, span: Sequence[Hashable], *, engine: str = 'fortran', dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise model variables.
@@ -57,8 +69,106 @@ class FortranEngine:
                          engine=engine,
                          dtype=dtype, default_value=default_value, **initial_values)
 
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
+        """Solve the model. Use default periods if none provided.
+
+        This method is part of the `FortranEngine` class and wraps a Fortran
+        subroutine for faster solution.
+
+        Parameters
+        ----------
+        start : element in the model's `span`
+            First period to solve. If not given, defaults to the first solvable
+            period, taking into account any lags in the model's equations
+        end : element in the model's `span`
+            Last period to solve. If not given, defaults to the last solvable
+            period, taking into account any leads in the model's equations
+        max_iter : int
+            Maximum number of iterations to solution each period
+        tol : int or float
+            Tolerance for convergence
+        offset : int
+            If non-zero, copy an initial set of endogenous values from the
+            relative period described by `offset`. For example, `offset=-1`
+            initialises each period's solution with the values from the
+            previous period.
+        failures : str, one of {'raise', 'ignore'}
+            Action should the solution fail to converge in a period (by
+            reaching the maximum number of iterations, `max_iter`)
+             - 'raise' (default): stop immediately and raise a
+                                  `NonConvergenceError`
+             - 'ignore': continue to the next period
+        errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
+            User-specified treatment on encountering numerical solution errors
+            e.g. NaNs and infinities
+             - 'raise' (default): stop immediately and raise a `SolutionError`
+                                  [set current period solution status to 'E']
+             - 'skip': stop solving the current period and move to the next one
+                       [set current period solution status to 'S']
+             - 'ignore': continue solving, with no special treatment or action
+                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
+        kwargs :
+            Further keyword arguments to pass on to other methods:
+             - `iter_periods()`
+             - `solve_t()`
+
+        Returns
+        -------
+        Three lists, each of length equal to the number of periods to be
+        solved:
+         - the names of the periods to be solved, as they appear in the model's
+           span
+         - integers: the index positions of the above periods in the model's
+           span
+         - bools, one per period: `True` if the period solved successfully;
+           `False` otherwise
+        """
+        # Form lists of period information (avoid using `iter_periods()` in case
+        # this is being over-ridden elsewhere)
+
+        # Set default start and end periods if no others supplied
+        if start is None:
+            start = self.span[self.LAGS]
+        if end is None:
+            end = self.span[-1 - self.LEADS]
+
+        # Convert to an integer range and assemble accompanying list of labels
+        indexes = list(range(self.span.index(start),
+                             self.span.index(end) + 1))
+        labels = [self.span[t] for t in indexes]
+
+        # Solve: Add 1 to `indexes` to go from zero-based (Python) to one-based
+        #        (Fortran) indexing
+        solved_values, statuses, iterations, error_codes = (
+            self.ENGINE.solve(self.values.astype(float),
+                              [t + 1 for t in indexes],
+                              max_iter,
+                              tol,
+                              offset,
+                              [self.names.index(x) for x in self.CHECK],
+                              self._FAILURE_OPTIONS[failures],
+                              self._ERROR_OPTIONS[errors], )
+        )
+
+        # Store the values back to this Python instance
+        self.values = solved_values
+
+        # Loop through results information and update object and return values
+        solved = [None] * len(indexes)
+
+        for i, (t, period, status, iteration, error_code) in enumerate(zip(indexes, labels, statuses, iterations, error_codes)):
+            pass
+
+        return labels, indexes, solved
+
     def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
+
+        This method is part of the `FortranEngine` class and wraps a Fortran
+        subroutine for faster solution.
 
         Parameters
         ----------
@@ -118,14 +228,7 @@ class FortranEngine:
                 self.__dict__['_' + name][t] for name in self.CHECK
             ])
 
-        error_options = {
-            'raise':   0,
-            'skip':    1,
-            'ignore':  2,
-            'replace': 3,
-        }
-
-        if errors not in error_options:
+        if errors not in self._ERROR_OPTIONS:
             raise ValueError('Invalid `errors` argument: {}'.format(errors))
 
         # Optionally copy initial values from another period
@@ -171,8 +274,9 @@ class FortranEngine:
                                 t + 1,
                                 max_iter,
                                 tol,
+                                offset,
                                 [self.names.index(x) for x in self.CHECK],
-                                error_options[errors]))
+                                self._ERROR_OPTIONS[errors]))
 
         converged = bool(converged)
 
@@ -217,6 +321,9 @@ class FortranEngine:
 
     def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        This method is part of the `FortranEngine` class and wraps a Fortran
+        subroutine for faster solution.
 
         Parameters
         ----------
@@ -278,10 +385,18 @@ module structure
 
 end module structure
 
-module error_codes
+
+module failure_codes
   implicit none
 
-  integer :: success = 0
+  ! Failure control options, to match Python implementation
+  integer :: failure_control_raise = 0
+  integer :: failure_control_ignore = 2
+
+end module failure_codes
+
+module error_codes
+  implicit none
 
   ! Error control options, to match Python implementation
   integer :: error_control_raise = 0
@@ -308,7 +423,7 @@ subroutine evaluate(initial_values, t, solved_values, error_code, nrows, ncols)
   implicit none
 
   ! `nrows` is the number of variables
-  ! `ncols` is the number of periods
+  ! `ncols` is the full number of periods in the current model instance
   integer, intent(in) :: nrows, ncols
 
   real(8), dimension(nrows, ncols), intent(in) :: initial_values
@@ -356,13 +471,13 @@ subroutine evaluate(initial_values, t, solved_values, error_code, nrows, ncols)
   ! ---------------------------------------------------------------------------
 
   ! If here, evaluation ran through seemingly without hitch: Return 0
-  error_code = success
+  error_code = 0
 
 end subroutine evaluate
 
 
-subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, error_control,  &
-                &  solved_values, converged, iteration, error_code,                         &
+subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variables, error_control,  &
+                &  solved_values, converged, iteration, error_code,                                 &
                 &  nrows, ncols, nvars)
   use, intrinsic :: ieee_arithmetic
   use structure
@@ -380,6 +495,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
   real(8), dimension(nrows, ncols), intent(in) :: initial_values
   integer, intent(in) :: t, max_iter
   real(8), intent(in) :: tol
+  integer, intent(in) :: offset
   integer, dimension(nvars), intent(in) :: convergence_variables
   integer, intent(in) :: error_control
 
@@ -495,6 +611,64 @@ subroutine solve_t(initial_values, t, max_iter, tol, convergence_variables, erro
   end if
 
 end subroutine solve_t
+
+subroutine solve(initial_values, indexes,                                                       &
+              &  max_iter, tol, offset, convergence_variables, failure_control, error_control,  &
+              &  solved_values, solution_statuses, solution_iterations, solution_error_codes,   &
+              &  nrows, ncols, nvars, nperiods)
+  use, intrinsic :: ieee_arithmetic
+  use structure
+  use failure_codes
+  use error_codes
+  implicit none
+
+  ! `nrows` is the number of variables
+  ! `ncols` is the full number of periods in the current model instance
+  integer, intent(in) :: nrows, ncols
+
+  ! `nvars` is the number of variables to check for convergence (indexes set in
+  ! `convergence_variables`)
+  integer, intent(in) :: nvars
+
+  ! `nperiods` is the number of periods to solve
+  integer, intent(in) :: nperiods
+
+  real(8), dimension(nrows, ncols), intent(in) :: initial_values
+  integer, dimension(nperiods), intent(in) :: indexes
+  integer, intent(in) :: max_iter
+  real(8), intent(in) :: tol
+  integer, intent(in) :: offset
+  integer, dimension(nvars), intent(in) :: convergence_variables
+  integer, intent(in) :: failure_control, error_control
+
+  real(8), dimension(nrows, ncols), intent(out) :: solved_values
+  integer, dimension(nperiods), intent(out) :: solution_statuses, solution_iterations, solution_error_codes
+
+  integer :: i
+  real(8), dimension(nrows, ncols) :: previous_values
+  logical :: converged
+  integer :: iteration, error_code
+
+  ! Copy the initial values before solution
+  solved_values = initial_values
+
+  ! Initialise other results variables to -1 (not yet resolved)
+  solution_statuses = -1
+  solution_iterations = -1
+  solution_error_codes = -1
+
+  do i = 1, nperiods
+     previous_values = solved_values
+
+     call solve_t(previous_values, indexes(i), max_iter, tol, offset, convergence_variables, error_control,  &
+               &  solved_values, converged, iteration, error_code,                                           &
+               &  nrows, ncols, nvars)
+
+     solution_iterations(i) = iteration
+     solution_error_codes(i) = error_code
+  end do
+
+end subroutine solve
 '''
 
 def build_fortran_definition(symbols: List[Symbol], *, wrap_width: int = 100) -> str:
