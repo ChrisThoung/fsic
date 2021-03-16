@@ -967,7 +967,7 @@ H = H[-1] + YD - C
         self.assertEqual(model.YD[-1].round(1), 40.0)
         self.assertEqual(model.C[-1].round(1), 20.0)
 
-    def test_offset_error_lag(self):
+    def test_offset_error_lag_solve(self):
         # Check for an `IndexError` if `offset` points prior to the span of the
         # current model instance
         model = self.Model(range(1945, 2010 + 1))
@@ -977,7 +977,17 @@ H = H[-1] + YD - C
             # there's a lag in the model) with an offset of -2 should fail
             model.solve(offset=-2)
 
-    def test_offset_error_lead(self):
+    def test_offset_error_lag_solve_period(self):
+        # Check for an `IndexError` if `offset` points prior to the span of the
+        # current model instance
+        model = self.Model(range(1945, 2010 + 1))
+
+        with self.assertRaises(IndexError):
+            # With Model *SIM*, trying to solve the second period (remember
+            # there's a lag in the model) with an offset of -2 should fail
+            model.solve_period(1946, offset=-2)
+
+    def test_offset_error_lead_solve(self):
         # Check for an `IndexError` if `offset` points beyond the span of the
         # current model instance
         model = self.Model(range(1945, 2010 + 1))
@@ -986,6 +996,16 @@ H = H[-1] + YD - C
             # With Model *SIM*, trying to solve the final period with an offset
             # of +1 should fail
             model.solve(offset=1)
+
+    def test_offset_error_lead_solve_t(self):
+        # Check for an `IndexError` if `offset` points beyond the span of the
+        # current model instance
+        model = self.Model(range(1945, 2010 + 1))
+
+        with self.assertRaises(IndexError):
+            # With Model *SIM*, trying to solve the final period with an offset
+            # of +1 should fail
+            model.solve_t(-1, offset=1)
 
     def test_solve_return_values(self):
         # Check that the return values from `solve()` are as expected
@@ -1155,7 +1175,7 @@ g = log(G)  # Use to test for infinity with log(0)
         with self.assertRaises(fsic.SolutionError):
             model.solve()
 
-    def test_skip(self):
+    def test_skip_solve(self):
         model = self.Model(range(10), G=20)
 
         # Model should skip to next period each time
@@ -1170,7 +1190,26 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.status == '.'))
         self.assertTrue(np.all(model.iterations == 2))
 
-    def test_ignore_successfully(self):
+    def test_skip_solve_t(self):
+        model = self.Model(range(10), G=20)
+
+        # Model should skip to next period each time
+        for t, _ in model.iter_periods():
+            model.solve_t(t, errors='skip')
+
+        self.assertTrue(np.all(np.isnan(model.s)))
+        self.assertTrue(np.all(model.status == 'S'))
+        self.assertTrue(np.all(model.iterations == 1))
+
+        # Re-running with 'skip' should successfully solve, though
+        for t, _ in model.iter_periods():
+            model.solve_t(t, errors='skip')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 2))
+
+    def test_ignore_successfully_solve(self):
         # Model should keep solving (successfully in this case)
         model = self.Model(range(10), G=20)
         model.solve(errors='ignore')
@@ -1184,7 +1223,23 @@ g = log(G)  # Use to test for infinity with log(0)
         # 3. Convergence check now possible (no NaNs): success
         self.assertTrue(np.all(model.iterations == 3))
 
-    def test_ignore_unsuccessfully(self):
+    def test_ignore_successfully_solve_t(self):
+        # Model should keep solving (successfully in this case)
+        model = self.Model(range(10), G=20)
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, errors='ignore')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+
+        # Three iterations to solve:
+        # 1. `s` evaluates to NaN: continue
+        # 2. NaNs persist from previous iteration: continue
+        # 3. Convergence check now possible (no NaNs): success
+        self.assertTrue(np.all(model.iterations == 3))
+
+    def test_ignore_unsuccessfully_solve(self):
         # Model should keep solving (unsuccessfully in this case)
         model = self.Model(range(10))
         model.solve(failures='ignore', errors='ignore')
@@ -1193,7 +1248,18 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.status == 'F'))
         self.assertTrue(np.all(model.iterations == 100))
 
-    def test_ignore_prior_nans(self):
+    def test_ignore_unsuccessfully_solve_t(self):
+        # Model should keep solving (unsuccessfully in this case)
+        model = self.Model(range(10))
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, failures='ignore', errors='ignore')
+
+        self.assertTrue(np.all(np.isnan(model.s)))
+        self.assertTrue(np.all(model.status == 'F'))
+        self.assertTrue(np.all(model.iterations == 100))
+
+    def test_ignore_prior_nans_solve(self):
         model = self.Model(range(10), s=np.nan, G=20)
         model.solve(errors='ignore')
 
@@ -1201,7 +1267,17 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.status == '.'))
         self.assertTrue(np.all(model.iterations == 3))
 
-    def test_replace_successfully(self):
+    def test_ignore_prior_nans_solve_t(self):
+        model = self.Model(range(10), s=np.nan, G=20)
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, errors='ignore')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 3))
+
+    def test_replace_successfully_solve(self):
         # Model should replace NaNs and keep solving (successfully in this case)
         model = self.Model(range(10), G=20)
         model.solve(errors='replace')
@@ -1210,7 +1286,18 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.status == '.'))
         self.assertTrue(np.all(model.iterations == 3))
 
-    def test_replace_unsuccessfully(self):
+    def test_replace_successfully_solve_t(self):
+        # Model should replace NaNs and keep solving (successfully in this case)
+        model = self.Model(range(10), G=20)
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, errors='replace')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 3))
+
+    def test_replace_unsuccessfully_solve(self):
         # Model should replace NaNs and keep solving (unsuccessfully in this case)
         model = self.Model(range(10))
         model.solve(failures='ignore', errors='replace')
@@ -1219,9 +1306,30 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.status == 'F'))
         self.assertTrue(np.all(model.iterations == 100))
 
-    def test_replace_prior_nans(self):
+    def test_replace_unsuccessfully_solve_t(self):
+        # Model should replace NaNs and keep solving (unsuccessfully in this case)
+        model = self.Model(range(10))
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, failures='ignore', errors='replace')
+
+        self.assertTrue(np.all(np.isnan(model.s)))
+        self.assertTrue(np.all(model.status == 'F'))
+        self.assertTrue(np.all(model.iterations == 100))
+
+    def test_replace_prior_nans_solve(self):
         model = self.Model(range(10), s=np.nan, G=20)
         model.solve(errors='replace')
+
+        self.assertTrue(np.allclose(model.s, 1))
+        self.assertTrue(np.all(model.status == '.'))
+        self.assertTrue(np.all(model.iterations == 3))
+
+    def test_replace_prior_nans_solve_t(self):
+        model = self.Model(range(10), s=np.nan, G=20)
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, errors='replace')
 
         self.assertTrue(np.allclose(model.s, 1))
         self.assertTrue(np.all(model.status == '.'))
@@ -1247,9 +1355,26 @@ g = log(G)  # Use to test for infinity with log(0)
         self.assertTrue(np.all(model.status == np.array(['E'] + ['-'] * 9)))
         self.assertTrue(np.all(model.iterations == np.array([1] + [-1] * 9)))
 
-    def test_replace_infinities(self):
+    def test_replace_infinities_solve(self):
         model = self.Model(range(10), c0=10, C=10, Y=10)
         model.solve(errors='replace', failures='ignore')
+
+        self.assertTrue(np.all(np.isinf(model.g)))
+
+        self.assertTrue(np.allclose(model.s, 0))
+        self.assertTrue(np.allclose(model.C, 10))
+        self.assertTrue(np.allclose(model.Y, 10))
+        self.assertTrue(np.allclose(model.G, 0))
+        self.assertTrue(np.allclose(model.c0, 10))
+        self.assertTrue(np.allclose(model.c1, 0))
+
+        self.assertTrue(np.all(model.status == 'F'))
+
+    def test_replace_infinities_solve_t(self):
+        model = self.Model(range(10), c0=10, C=10, Y=10)
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, errors='replace', failures='ignore')
 
         self.assertTrue(np.all(np.isinf(model.g)))
 
@@ -1293,11 +1418,21 @@ H = H[-1] + YD - C
         self.assertTrue(np.all(model.status ==
                                np.array(['-', '.', 'F', '-', '-'])))
 
-    def test_nonconvergence_ignore(self):
+    def test_nonconvergence_ignore_solve(self):
         model = self.Model(range(5),
                            alpha_1=0.6, alpha_2=0.4,
                            theta=0.2, G=20)
         model.solve(max_iter=5, failures='ignore')
+        self.assertTrue(np.all(model.status[1:] == 'F'))
+
+    def test_nonconvergence_ignore_solve_t(self):
+        model = self.Model(range(5),
+                           alpha_1=0.6, alpha_2=0.4,
+                           theta=0.2, G=20)
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, max_iter=5, failures='ignore')
+
         self.assertTrue(np.all(model.status[1:] == 'F'))
 
 
