@@ -1625,8 +1625,10 @@ Spans of submodels differ:
 
     @property
     def LAGS(self) -> int:
+        """Longest lag among submodels."""
         return self.__dict__['_LAGS']
 
     @property
     def LEADS(self) -> int:
+        """Longest lead among submodels."""
         return self.__dict__['_LEADS']
