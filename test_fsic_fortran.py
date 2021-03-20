@@ -47,11 +47,39 @@ class FortranTestWrapper:
             return
 
         # Delete intermediate and compiled files
-        files_to_delete = (glob.glob('{}.f95'.format(self.TEST_MODULE_NAME)) +
-                           glob.glob('{}.*.so'.format(self.TEST_MODULE_NAME)))
+        files_to_delete = (glob.glob('{}*.f95'.format(self.TEST_MODULE_NAME)) +
+                           glob.glob('{}*.*.so'.format(self.TEST_MODULE_NAME)))
 
         for path in files_to_delete:
             os.remove(path)
+
+    @staticmethod
+    def build_model(symbols, test_module_name):
+        # Write out a file of Fortran code
+        fortran_definition = fsic_fortran.build_fortran_definition(symbols)
+        with open('{}.f95'.format(test_module_name), 'w') as f:
+            f.write(fortran_definition)
+
+        # Compile the code
+        output = subprocess.run(['f2py',
+                                 '-c', '{}.f95'.format(test_module_name),
+                                 '-m', test_module_name],
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        # Print output on failed compile
+        try:
+            output.check_returncode()
+        except subprocess.CalledProcessError as e:
+            print(e.stdout.decode())
+            raise
+
+        # Construct the class
+        PythonClass = fsic.build_model(symbols)
+
+        class FortranClass(fsic_fortran.FortranEngine, PythonClass):
+            ENGINE = importlib.import_module(test_module_name)
+
+        return FortranClass
 
     def setUp(self):
         self.clean()
@@ -107,8 +135,14 @@ class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorH
 class TestNonConvergenceError(FortranTestWrapper, test_fsic.TestNonConvergenceError):
     TEST_MODULE_NAME = 'fsic_test_fortran_testnonconvergenceerror'
 
+
 class TestLinkerInit(FortranTestWrapper, test_fsic.TestLinkerInit):
     TEST_MODULE_NAME = 'fsic_test_fortran_testlinkerinit'
+
+    def setUp(self):
+        self.SubmodelNoLags = self.build_model(self.SYMBOLS_NO_LAGS, 'fsic_test_fortran_testlinkerinit_no_lags')
+        self.SubmodelWithLags = self.build_model(self.SYMBOLS_WITH_LAGS, 'fsic_test_fortran_testlinkerinit_with_lags')
+        self.SubmodelWithLeads = self.build_model(self.SYMBOLS_WITH_LEADS, 'fsic_test_fortran_testlinkerinit_with_leads')
 
 
 class TestCompile(FortranTestWrapper, unittest.TestCase):

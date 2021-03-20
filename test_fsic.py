@@ -1438,17 +1438,56 @@ H = H[-1] + YD - C
 
 class TestLinkerInit(unittest.TestCase):
 
-    SYMBOLS = fsic.parse_model('Y = C + I + G + X - M')
+    SYMBOLS_NO_LAGS = fsic.parse_model('Y = C + I + G + X - M')
+    SYMBOLS_WITH_LAGS = fsic.parse_model('C = {alpha_1} * YD + {alpha_2} * H[-1]')
+    SYMBOLS_WITH_LEADS = fsic.parse_model('A = {a0} + {a1} * A[1] + {a2} * A[2]')
+
+    @staticmethod
+    def build_model(symbols):
+        return fsic.build_model(symbols)
 
     def setUp(self):
-        self.Model = fsic.build_model(self.SYMBOLS)
+        self.SubmodelNoLags = self.build_model(self.SYMBOLS_NO_LAGS)
+        self.SubmodelWithLags = self.build_model(self.SYMBOLS_WITH_LAGS)
+        self.SubmodelWithLeads = self.build_model(self.SYMBOLS_WITH_LEADS)
 
     def test_init(self):
-        model = fsic.BaseLinker({
-            'A': self.Model(range(1990, 2005 + 1)),
-            'B': self.Model(range(1990, 2005 + 1)),
-            'C': self.Model(range(1990, 2005 + 1)),
+        linker = fsic.BaseLinker({
+            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+            'B': self.SubmodelNoLags(range(1990, 2005 + 1)),
+            'C': self.SubmodelNoLags(range(1990, 2005 + 1)),
         })
+
+        self.assertEqual(linker.LAGS, 0)
+        self.assertEqual(linker.LEADS, 0)
+
+    def test_init_different_lags(self):
+        linker = fsic.BaseLinker({
+            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+            'B': self.SubmodelWithLags(range(1990, 2005 + 1)),
+        })
+
+        self.assertEqual(linker.LAGS, 1)
+        self.assertEqual(linker.LEADS, 0)
+
+    def test_init_different_leads(self):
+        linker = fsic.BaseLinker({
+            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+            'B': self.SubmodelWithLeads(range(1990, 2005 + 1)),
+        })
+
+        self.assertEqual(linker.LAGS, 0)
+        self.assertEqual(linker.LEADS, 2)
+
+    def test_init_mixed_lags_leads(self):
+        linker = fsic.BaseLinker({
+            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+            'B': self.SubmodelWithLags(range(1990, 2005 + 1)),
+            'C': self.SubmodelWithLeads(range(1990, 2005 + 1)),
+        })
+
+        self.assertEqual(linker.LAGS, 1)
+        self.assertEqual(linker.LEADS, 2)
 
 
 if __name__ == '__main__':
