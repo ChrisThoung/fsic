@@ -83,32 +83,7 @@ class FortranTestWrapper:
 
     def setUp(self):
         self.clean()
-
-        # Write out a file of Fortran code
-        fortran_definition = fsic_fortran.build_fortran_definition(self.SYMBOLS)
-        with open('{}.f95'.format(self.TEST_MODULE_NAME), 'w') as f:
-            f.write(fortran_definition)
-
-        # Compile the code
-        output = subprocess.run(['f2py',
-                                 '-c', '{}.f95'.format(self.TEST_MODULE_NAME),
-                                 '-m', self.TEST_MODULE_NAME],
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # Print output on failed compile
-        try:
-            output.check_returncode()
-        except subprocess.CalledProcessError as e:
-            print(e.stdout.decode())
-            raise
-
-        # Construct the class
-        PythonClass = fsic.build_model(self.SYMBOLS)
-
-        class FortranClass(fsic_fortran.FortranEngine, PythonClass):
-            ENGINE = importlib.import_module(self.TEST_MODULE_NAME)
-
-        self.Model = FortranClass
+        self.Model = self.build_model(self.SYMBOLS, self.TEST_MODULE_NAME)
 
     def tearDown(self):
         self.clean()
