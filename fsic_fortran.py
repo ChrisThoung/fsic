@@ -69,7 +69,7 @@ class FortranEngine:
                          engine=engine,
                          dtype=dtype, default_value=default_value, **initial_values)
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
         This method is part of the `FortranEngine` class and wraps a Fortran
@@ -83,6 +83,8 @@ class FortranEngine:
         end : element in the model's `span`
             Last period to solve. If not given, defaults to the last solvable
             period, taking into account any leads in the model's equations
+        min_iter : int
+            Minimum number of iterations to solution each period
         max_iter : int
             Maximum number of iterations to solution each period
         tol : int or float
@@ -110,10 +112,8 @@ class FortranEngine:
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
-        kwargs :
-            Further keyword arguments to pass on to other methods:
-             - `iter_periods()`
-             - `solve_t()`
+        **kwargs : not used
+            Retained for consistency with the wider fsic API
 
         Returns
         -------
@@ -125,7 +125,19 @@ class FortranEngine:
            span
          - bools, one per period: `True` if the period solved successfully;
            `False` otherwise
+
+        Notes
+        -----
+        Unlike the `BaseModel` version of `solve()` (which in turn inherits
+        from `SolverMixin`), this implementation does not call
+        `iter_periods()`.
         """
+        # Error if `min_iter` exceeds `max_iter`
+        if min_iter > max_iter:
+            raise ValueError(
+                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
+                    min_iter, max_iter))
+
         # Form lists of period information (avoid using `iter_periods()` in case
         # this is being over-ridden elsewhere)
 
@@ -145,6 +157,7 @@ class FortranEngine:
         solved_values, convergences, iterations, error_codes = (
             self.ENGINE.solve(self.values.astype(float),
                               [t + 1 for t in indexes],
+                              min_iter,
                               max_iter,
                               tol,
                               offset,
@@ -238,7 +251,7 @@ class FortranEngine:
 
         return labels, indexes, solved
 
-    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
         This method is part of the `FortranEngine` class and wraps a Fortran
@@ -248,6 +261,8 @@ class FortranEngine:
         ----------
         t : int
             Position in `span` of the period to solve
+        min_iter : int
+            Minimum number of iterations to solution each period
         max_iter : int
             Maximum number of iterations to solution each period
         tol : int or float
@@ -302,6 +317,12 @@ class FortranEngine:
                 self.__dict__['_' + name][t] for name in self.CHECK
             ])
 
+        # Error if `min_iter` exceeds `max_iter`
+        if min_iter > max_iter:
+            raise ValueError(
+                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
+                    min_iter, max_iter))
+
         if errors not in self._ERROR_OPTIONS:
             raise ValueError('Invalid `errors` argument: {}'.format(errors))
 
@@ -346,6 +367,7 @@ class FortranEngine:
         solved_values, converged, iteration, error_code = (
             self.ENGINE.solve_t(self.values.astype(float),
                                 t + 1,
+                                min_iter,
                                 max_iter,
                                 tol,
                                 offset,
@@ -556,8 +578,8 @@ subroutine evaluate(initial_values, t, solved_values, error_code, nrows, ncols)
 end subroutine evaluate
 
 
-subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variables, error_control,  &
-                &  solved_values, converged, iteration, error_code,                                 &
+subroutine solve_t(initial_values, t, min_iter, max_iter, tol, offset, convergence_variables, error_control,  &
+                &  solved_values, converged, iteration, error_code,                                           &
                 &  nrows, ncols, nvars)
   use, intrinsic :: ieee_arithmetic
   use structure
@@ -573,7 +595,7 @@ subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variabl
   integer, intent(in) :: nvars
 
   real(8), dimension(nrows, ncols), intent(in) :: initial_values
-  integer, intent(in) :: t, max_iter
+  integer, intent(in) :: t, min_iter, max_iter
   real(8), intent(in) :: tol
   integer, intent(in) :: offset
   integer, dimension(nvars), intent(in) :: convergence_variables
@@ -699,6 +721,10 @@ subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variabl
 
      end if
 
+     if(iteration < min_iter) then
+        cycle
+     end if
+
      ! Test for convergence
      diff_squared = (current_check - previous_check) ** 2
 
@@ -715,9 +741,9 @@ subroutine solve_t(initial_values, t, max_iter, tol, offset, convergence_variabl
 
 end subroutine solve_t
 
-subroutine solve(initial_values, indexes,                                                       &
-              &  max_iter, tol, offset, convergence_variables, failure_control, error_control,  &
-              &  solved_values, convergence_results, iterations, solution_error_codes,          &
+subroutine solve(initial_values, indexes,                                                                 &
+              &  min_iter, max_iter, tol, offset, convergence_variables, failure_control, error_control,  &
+              &  solved_values, convergence_results, iterations, solution_error_codes,                    &
               &  nrows, ncols, nvars, nperiods)
   use, intrinsic :: ieee_arithmetic
   use structure
@@ -738,7 +764,7 @@ subroutine solve(initial_values, indexes,                                       
 
   real(8), dimension(nrows, ncols), intent(in) :: initial_values
   integer, dimension(nperiods), intent(in) :: indexes
-  integer, intent(in) :: max_iter
+  integer, intent(in) :: min_iter, max_iter
   real(8), intent(in) :: tol
   integer, intent(in) :: offset
   integer, dimension(nvars), intent(in) :: convergence_variables
@@ -765,8 +791,8 @@ subroutine solve(initial_values, indexes,                                       
 
      previous_values = solved_values
 
-     call solve_t(previous_values, indexes(i), max_iter, tol, offset, convergence_variables, error_control,  &
-               &  solved_values, converged, iteration, error_code,                                           &
+     call solve_t(previous_values, indexes(i), min_iter, max_iter, tol, offset, convergence_variables, error_control,  &
+               &  solved_values, converged, iteration, error_code,                                                     &
                &  nrows, ncols, nvars)
 
      iterations(i) = iteration

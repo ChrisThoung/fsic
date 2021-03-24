@@ -1087,6 +1087,74 @@ H = H[-1] + YD - C
         self.assertEqual(extended.K.dtype, float)
         self.assertEqual(extended.L.dtype, bool)
 
+    def test_min_iter_solve(self):
+        # Check that `min_iter` forces a minimum number of iterations
+
+        # With no further arguments, the model with all parameters set to zero
+        # should solve in one iteration per period
+        model = self.Model(range(1945, 2010 + 1))
+        model.solve()
+
+        self.assertEqual(model.status[0], '-')
+        self.assertTrue((model.status[1:] == '.').all())
+
+        self.assertEqual(model.iterations[0], -1)
+        self.assertTrue((model.iterations[1:] == 1).all())
+
+        # The same model should still solve in one iteration but it should be
+        # possible to force more iterations
+        model = self.Model(range(1945, 2010 + 1))
+        model.solve(min_iter=10)
+
+        self.assertEqual(model.status[0], '-')
+        self.assertTrue((model.status[1:] == '.').all())
+
+        self.assertEqual(model.iterations[0], -1)
+        self.assertTrue((model.iterations[1:] == 10).all())
+
+    def test_min_iter_solve_t(self):
+        # Check that `min_iter` forces a minimum number of iterations
+
+        # With no further arguments, the model with all parameters set to zero
+        # should solve in one iteration per period
+        model = self.Model(range(1945, 2010 + 1))
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t)
+
+        self.assertEqual(model.status[0], '-')
+        self.assertTrue((model.status[1:] == '.').all())
+
+        self.assertEqual(model.iterations[0], -1)
+        self.assertTrue((model.iterations[1:] == 1).all())
+
+        # The same model should still solve in one iteration but it should be
+        # possible to force more iterations
+        model = self.Model(range(1945, 2010 + 1))
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, min_iter=10)
+
+        self.assertEqual(model.status[0], '-')
+        self.assertTrue((model.status[1:] == '.').all())
+
+        self.assertEqual(model.iterations[0], -1)
+        self.assertTrue((model.iterations[1:] == 10).all())
+
+    def test_min_iter_error_solve(self):
+        # Check that models raise an error if `min_iter` exceeds `max_iter`
+        model = self.Model(range(1945, 2010 + 1))
+
+        with self.assertRaises(ValueError):
+            model.solve(min_iter=10, max_iter=5)
+
+    def test_min_iter_error_solve_t(self):
+        # Check that models raise an error if `min_iter` exceeds `max_iter`
+        model = self.Model(range(1945, 2010 + 1))
+
+        with self.assertRaises(ValueError):
+            model.solve_t(1, min_iter=10, max_iter=5)
+
 
 class TestParserErrors(unittest.TestCase):
 

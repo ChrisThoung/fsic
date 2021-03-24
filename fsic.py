@@ -881,7 +881,7 @@ class SolverMixin:
 
         return PeriodIter(indexes, self.span[indexes.start:indexes.stop])
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
         Parameters
@@ -892,6 +892,8 @@ class SolverMixin:
         end : element in the model's `span`
             Last period to solve. If not given, defaults to the last solvable
             period, taking into account any leads in the model's equations
+        min_iter : int
+            Minimum number of iterations to solution each period
         max_iter : int
             Maximum number of iterations to solution each period
         tol : int or float
@@ -935,6 +937,12 @@ class SolverMixin:
          - bools, one per period: `True` if the period solved successfully;
            `False` otherwise
         """
+        # Error if `min_iter` exceeds `max_iter`
+        if min_iter > max_iter:
+            raise ValueError(
+                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
+                    min_iter, max_iter))
+
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
         indexes = [None] * len(period_iter)
@@ -944,18 +952,20 @@ class SolverMixin:
         for i, (t, period) in enumerate(period_iter):
             indexes[i] = t
             labels[i] = period
-            solved[i] = self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset,
+            solved[i] = self.solve_t(t, min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset,
                                      failures=failures, errors=errors, **kwargs)
 
         return labels, indexes, solved
 
-    def solve_period(self, period: Hashable, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_period(self, period: Hashable, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve a single period.
 
         Parameters
         ----------
         period : element in the model's `span`
             Named period to solve
+        min_iter : int
+            Minimum number of iterations to solution each period
         max_iter : int
             Maximum number of iterations to solution each period
         tol : int or float
@@ -991,15 +1001,17 @@ class SolverMixin:
         `True` if the model solved for the current period; `False` otherwise.
         """
         t = self.span.index(period)
-        return self.solve_t(t, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
+        return self.solve_t(t, min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
 
-    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
         ----------
         t : int
             Position in `span` of the period to solve
+        min_iter : int
+            Minimum number of iterations to solution each period
         max_iter : int
             Maximum number of iterations to solution each period
         tol : int or float
@@ -1096,13 +1108,15 @@ class BaseModel(SolverMixin, ModelInterface):
                    **{k: v.values for k, v in data.items()},
                    **kwargs)
 
-    def solve_t(self, t: int, *, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
         ----------
         t : int
             Position in `span` of the period to solve
+        min_iter : int
+            Minimum number of iterations to solution each period
         max_iter : int
             Maximum number of iterations to solution each period
         tol : int or float
@@ -1156,6 +1170,12 @@ class BaseModel(SolverMixin, ModelInterface):
             return np.array([
                 self.__dict__['_' + name][t] for name in self.CHECK
             ])
+
+        # Error if `min_iter` exceeds `max_iter`
+        if min_iter > max_iter:
+            raise ValueError(
+                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
+                    min_iter, max_iter))
 
         # Optionally copy initial values from another period
         if offset:
@@ -1239,6 +1259,9 @@ class BaseModel(SolverMixin, ModelInterface):
 
                 else:
                     raise ValueError('Invalid `errors` argument: {}'.format(errors))
+
+            if iteration < min_iter:
+                continue
 
             diff = current_values - previous_values
             diff_squared = diff ** 2
