@@ -21,6 +21,7 @@ programs:
     http://gennaro.zezza.it/software/eviews/glch03.php
 """
 
+import copy
 import functools
 import keyword
 import unittest
@@ -904,13 +905,57 @@ H = H[-1] + YD - C
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
-    def test_copy(self):
+    def test_copy_method(self):
         model = self.Model(range(1945, 2010 + 1),
                            alpha_1=0.6, alpha_2=0.4,
                            theta=0.2)
         model.G = 20
 
         duplicate_model = model.copy()
+
+        # Values should be identical at this point
+        self.assertTrue(np.allclose(model.values,
+                                    duplicate_model.values))
+
+        # The solved model should have different values to the duplicate
+        model.solve()
+        self.assertFalse(np.allclose(model.values,
+                                     duplicate_model.values))
+
+        # The solved duplicate should match the original again
+        duplicate_model.solve()
+        self.assertTrue(np.allclose(model.values,
+                                    duplicate_model.values))
+
+    def test_copy_dunder_method(self):
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4,
+                           theta=0.2)
+        model.G = 20
+
+        duplicate_model = copy.copy(model)
+
+        # Values should be identical at this point
+        self.assertTrue(np.allclose(model.values,
+                                    duplicate_model.values))
+
+        # The solved model should have different values to the duplicate
+        model.solve()
+        self.assertFalse(np.allclose(model.values,
+                                     duplicate_model.values))
+
+        # The solved duplicate should match the original again
+        duplicate_model.solve()
+        self.assertTrue(np.allclose(model.values,
+                                    duplicate_model.values))
+
+    def test_deepcopy_dunder_method(self):
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4,
+                           theta=0.2)
+        model.G = 20
+
+        duplicate_model = copy.deepcopy(model)
 
         # Values should be identical at this point
         self.assertTrue(np.allclose(model.values,
@@ -1556,6 +1601,111 @@ class TestLinkerInit(unittest.TestCase):
 
         self.assertEqual(linker.LAGS, 1)
         self.assertEqual(linker.LEADS, 2)
+
+
+class TestLinkerCopy(unittest.TestCase):
+
+    SYMBOLS = fsic.parse_model('Y = C + I + G + X - M')
+
+    class Linker(fsic.BaseLinker):
+        ENDOGENOUS = ['X', 'M', 'NX']
+        NAMES = ENDOGENOUS
+        CHECK = ENDOGENOUS
+
+        def evaluate_t_after(self, t, *args, **kwargs):
+            self._X[t] = sum(submodel.X[t] for submodel in self.submodels.values())
+            self._M[t] = sum(submodel.M[t] for submodel in self.submodels.values())
+            self._NX[t] = self._X[t] - self._M[t]
+
+    def setUp(self):
+        self.Model = fsic.build_model(self.SYMBOLS)
+
+    def test_copy_method(self):
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1)),
+            'B': self.Model(range(1990, 2005 + 1)),
+            'C': self.Model(range(1990, 2005 + 1)),
+        })
+
+        duplicate_linker = linker.copy()
+        duplicate_linker.values = np.full((3, 16), -1)
+
+        for v in duplicate_linker.submodels.values():
+            v.values = np.ones((6, 16))
+
+        self.assertEqual(linker.values.shape, (3, 16))
+        self.assertTrue(np.allclose(linker.values, 0))
+
+        for k, v in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertEqual(v.values.shape, (6, 16))
+                self.assertTrue(np.allclose(v.values, 0))
+
+        self.assertEqual(duplicate_linker.values.shape, (3, 16))
+        self.assertTrue(np.allclose(duplicate_linker.values, -1))
+
+        for k, v in duplicate_linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertEqual(v.values.shape, (6, 16))
+                self.assertTrue(np.allclose(v.values, 1))
+
+    def test_copy_dunder_method(self):
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1)),
+            'B': self.Model(range(1990, 2005 + 1)),
+            'C': self.Model(range(1990, 2005 + 1)),
+        })
+
+        duplicate_linker = copy.copy(linker)
+        duplicate_linker.values = np.full((3, 16), -1)
+
+        for v in duplicate_linker.submodels.values():
+            v.values = np.ones((6, 16))
+
+        self.assertEqual(linker.values.shape, (3, 16))
+        self.assertTrue(np.allclose(linker.values, 0))
+
+        for k, v in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertEqual(v.values.shape, (6, 16))
+                self.assertTrue(np.allclose(v.values, 0))
+
+        self.assertEqual(duplicate_linker.values.shape, (3, 16))
+        self.assertTrue(np.allclose(duplicate_linker.values, -1))
+
+        for k, v in duplicate_linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertEqual(v.values.shape, (6, 16))
+                self.assertTrue(np.allclose(v.values, 1))
+
+    def test_deepcopy_dunder_method(self):
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1)),
+            'B': self.Model(range(1990, 2005 + 1)),
+            'C': self.Model(range(1990, 2005 + 1)),
+        })
+
+        duplicate_linker = copy.deepcopy(linker)
+        duplicate_linker.values = np.full((3, 16), -1)
+
+        for v in duplicate_linker.submodels.values():
+            v.values = np.ones((6, 16))
+
+        self.assertEqual(linker.values.shape, (3, 16))
+        self.assertTrue(np.allclose(linker.values, 0))
+
+        for k, v in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertEqual(v.values.shape, (6, 16))
+                self.assertTrue(np.allclose(v.values, 0))
+
+        self.assertEqual(duplicate_linker.values.shape, (3, 16))
+        self.assertTrue(np.allclose(duplicate_linker.values, -1))
+
+        for k, v in duplicate_linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertEqual(v.values.shape, (6, 16))
+                self.assertTrue(np.allclose(v.values, 1))
 
 
 if __name__ == '__main__':

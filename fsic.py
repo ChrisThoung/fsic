@@ -684,7 +684,9 @@ class VectorContainer:
         return copied
 
     __copy__ = copy
-    __deepcopy__ = copy
+
+    def __deepcopy__(self, *args, **kwargs) -> 'VectorContainer':
+        return self.copy()
 
     def __dir__(self) -> List[str]:
         return sorted(
@@ -1655,3 +1657,23 @@ Spans of submodels differ:
     def LEADS(self) -> int:
         """Longest lead among submodels."""
         return self.__dict__['_LEADS']
+
+    def copy(self) -> 'BaseLinker':
+        """Return a copy of the current object."""
+        copied = self.__class__(
+            submodels={copy.deepcopy(k): copy.deepcopy(v)
+                       for k, v in self.__dict__['submodels'].items()}
+        )
+
+        copied.__dict__.update(
+            {k: copy.deepcopy(v)
+             for k, v in self.__dict__.items()
+             if k not in ['submodels']}
+        )
+
+        return copied
+
+    __copy__ = copy
+
+    def __deepcopy__(self, *args, **kwargs) -> 'BaseLinker':
+        return self.copy()

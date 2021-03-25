@@ -110,6 +110,9 @@ class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorH
 class TestNonConvergenceError(FortranTestWrapper, test_fsic.TestNonConvergenceError):
     TEST_MODULE_NAME = 'fsic_test_fortran_testnonconvergenceerror'
 
+class TestLinkerCopy(FortranTestWrapper, test_fsic.TestLinkerCopy):
+    TEST_MODULE_NAME = 'fsic_test_fortran_testlinkercopy'
+
 
 class TestLinkerInit(FortranTestWrapper, test_fsic.TestLinkerInit):
     TEST_MODULE_NAME = 'fsic_test_fortran_testlinkerinit'
