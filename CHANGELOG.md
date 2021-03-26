@@ -30,11 +30,18 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `fsictools.model_to_dataframe()` to preserve those `dtype`s.
 - In `fsic_fortran`, implemented Fortran equivalent of `solve()` method
   (including Python wrapper) for further speed gains by bypassing `solve_t()`.
+- Added new `min_iter` keyword to solution methods, to force a minimum number
+  of iterations before testing for convergence.
 
 ### Changed
 
 - Refactored various parts of `BaseModel` to share more code with the new
   `BaseLinker` class.
+
+### Fixed
+
+- Corrected handling of `copy.deepcopy()` in `fsic` `BaseModel`
+  class. Implemented similar (and correct) behaviour in new `BaseLinker` class.
 
 
 ## [0.6.4.dev] - 2021-01-03
