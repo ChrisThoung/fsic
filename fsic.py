@@ -1677,3 +1677,239 @@ Spans of submodels differ:
 
     def __deepcopy__(self, *args, **kwargs) -> 'BaseLinker':
         return self.copy()
+
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, submodels: Optional[Sequence[Hashable]] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
+        """Solve the linker and its constituent submodels. Use default periods if none provided.
+
+        Parameters
+        ----------
+        start : element in the model's `span`
+            First period to solve. If not given, defaults to the first solvable
+            period, taking into account any lags in the model's equations
+        end : element in the model's `span`
+            Last period to solve. If not given, defaults to the last solvable
+            period, taking into account any leads in the model's equations
+        submodels : sequence of submodel identifiers (as in `self.submodels.keys()`), default `None`
+            Submodels to solve for. If `None` (the default), solve them all.
+        min_iter : int
+            Minimum number of iterations to solution each period
+        max_iter : int
+            Maximum number of iterations to solution each period
+        tol : int or float
+            Tolerance for convergence
+        offset : int
+            If non-zero, copy an initial set of endogenous values from the
+            relative period described by `offset`. For example, `offset=-1`
+            initialises each period's solution with the values from the
+            previous period.
+        failures : str, one of {'raise', 'ignore'}
+            Action should the solution fail to converge in a period (by
+            reaching the maximum number of iterations, `max_iter`)
+             - 'raise' (default): stop immediately and raise a
+                                  `NonConvergenceError`
+             - 'ignore': continue to the next period
+        errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
+            User-specified treatment on encountering numerical solution errors
+            e.g. NaNs and infinities
+             - 'raise' (default): stop immediately and raise a `SolutionError`
+                                  [set current period solution status to 'E']
+             - 'skip': stop solving the current period and move to the next one
+                       [set current period solution status to 'S']
+             - 'ignore': continue solving, with no special treatment or action
+                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
+        kwargs :
+            Further keyword arguments to pass on to other methods:
+             - `iter_periods()`
+             - `solve_t()`
+
+        Returns
+        -------
+        Three lists, each of length equal to the number of periods to be
+        solved:
+         - the names of the periods to be solved, as they appear in the model's
+           span
+         - integers: the index positions of the above periods in the model's
+           span
+         - bools, one per period: `True` if the period solved successfully;
+           `False` otherwise
+        """
+        # Error if `min_iter` exceeds `max_iter`
+        if min_iter > max_iter:
+            raise ValueError(
+                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
+                    min_iter, max_iter))
+
+        period_iter = self.iter_periods(start=start, end=end, **kwargs)
+
+        indexes = [None] * len(period_iter)
+        labels  = [None] * len(period_iter)
+        solved  = [None] * len(period_iter)
+
+        for i, (t, period) in enumerate(period_iter):
+            indexes[i] = t
+            labels[i] = period
+            solved[i] = self.solve_t(t,
+                                     submodels=submodels,
+                                     min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset,
+                                     failures=failures, errors=errors, **kwargs)
+
+        return labels, indexes, solved
+
+    def solve_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+        """Solve for the period at integer position `t` in the linker's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        submodels : sequence of submodel identifiers (as in `self.submodels.keys()`), default `None`
+            Submodels to solve for. If `None` (the default), solve them all.
+        min_iter : int
+            Minimum number of iterations to solution each period
+        max_iter : int
+            Maximum number of iterations to solution each period
+        tol : int or float
+            Tolerance for convergence
+        offset : int
+            If non-zero, copy an initial set of endogenous values from the
+            period at position `t + offset`. For example, `offset=-1` copies
+            the values from the previous period.
+        failures : str, one of {'raise', 'ignore'}
+            Action should the solution fail to converge (by reaching the
+            maximum number of iterations, `max_iter`)
+             - 'raise' (default): stop immediately and raise a
+                                  `NonConvergenceError`
+             - 'ignore': do nothing
+        errors : str, one of {'raise', 'skip', 'ignore', 'replace'}
+            User-specified treatment on encountering numerical solution errors
+            e.g. NaNs and infinities
+             - 'raise' (default): stop immediately and raise a `SolutionError`
+                                  [set period solution status to 'E']
+             - 'skip': stop solving the current period
+                       [set period solution status to 'S']
+             - 'ignore': continue solving, with no special treatment or action
+                         [period solution statuses as usual i.e. '.' or 'F']
+             - 'replace': each iteration, replace NaNs and infinities with
+                          zeroes
+                          [period solution statuses as usual i.e. '.' or 'F']
+        kwargs :
+            Further keyword arguments to pass to the solution routines
+
+        Returns
+        -------
+        `True` if the linker solved for the current period; `False` otherwise.
+        """
+        if submodels is None:
+            submodels = list(self.__dict__['submodels'].keys())
+
+
+        def get_check_values() -> Dict[Hashable, np.ndarray]:
+            """Return NumPy arrays of variable values for the current period, for checking."""
+            check_values = {
+                '_': np.array([self.__dict__['_' + name][t] for name in self.CHECK]),
+            }
+
+            for k, submodel in self.submodels.items():
+                if k in submodels:
+                    check_values[k] = np.array([submodel[name][t] for name in submodel.CHECK])
+
+            return check_values
+
+
+        status = '-'
+        current_values = get_check_values()
+
+        # Set iteration counters to zero for submodels to solve (also use this
+        # as an opportunity to make sure specified submodels are valid)
+        for name in submodels:
+            try:
+                submodel = self.__dict__['submodels'][name]
+            except KeyError:
+                raise KeyError("'{}' not found in list of submodels".format(name))
+
+            submodel.iterations[t] = 0
+
+        # Run any code prior to solution
+        self.solve_t_before(t, submodels=submodels, **kwargs)
+
+        for iteration in range(1, max_iter + 1):
+            previous_values = copy.deepcopy(current_values)
+
+            self.evaluate_t_before(t, submodels=submodels, **kwargs)
+            self.evaluate_t(       t, submodels=submodels, **kwargs)
+            self.evaluate_t_after( t, submodels=submodels, **kwargs)
+
+            if iteration < min_iter:
+                continue
+
+            current_values = get_check_values()
+
+            diff = {k: current_values[k] - previous_values[k]
+                    for k in current_values.keys()}
+            diff_squared = {k: v ** 2 for k, v in diff.items()}
+
+            if all(np.all(v < tol) for v in diff_squared.values()):
+                status = '.'
+                self.solve_t_after(t, submodels=submodels, **kwargs)
+                break
+
+        else:
+            status = 'F'
+
+        self.status[t] = status
+        self.iterations[t] = iteration
+
+        for name in submodels:
+            submodel = self.__dict__['submodels'][name]
+            submodel.status[t] = status
+
+        if status == 'F' and failures == 'raise':
+            raise NonConvergenceError(
+                'Solution failed to converge after {} iterations(s) '
+                'in period with label: {} (index: {})'
+                .format(iteration, self.span[t], t))
+
+        return status == '.'
+
+    def evaluate_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate the system of equations for the period at integer position `t` in the linker's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        submodels : sequence of submodel identifiers (as in `self.submodels.keys()`), default `None`
+            Submodels to evaluate. If `None` (the default), evaluate them all.
+        kwargs :
+            Further keyword arguments for solution
+        """
+        if submodels is None:
+            submodels = list(self.__dict__['submodels'].keys())
+
+        for name in submodels:
+            submodel = self.__dict__['submodels'][name]
+
+            with warnings.catch_warnings(record=True):
+                warnings.simplefilter('always')
+                submodel._evaluate(t, **kwargs)
+
+            submodel.iterations[t] += 1
+
+    def solve_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom linker behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom linker behaviour."""
+        pass
+
+    def evaluate_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate any linker equations before solving the individual country models. Over-ride to implement custom linker behaviour."""
+        pass
+
+    def evaluate_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate any linker equations after solving the individual country models. Over-ride to implement custom linker behaviour."""
+        pass
