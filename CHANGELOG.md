@@ -29,17 +29,30 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   the model's store while supporting variables of other `dtype`s. Update
   `fsictools.model_to_dataframe()` to preserve those `dtype`s.
 - In `fsic_fortran`, implemented Fortran equivalent of `solve()` method
-  (including Python wrapper) for further speed gains by bypassing `solve_t()`.
+  (including Python wrapper) for further speed gains by bypassing Python
+  version of `solve_t()`.
+- `fsic_fortran` implementation of `solve_t()` now catches NaNs and infinities
+  prior to solution (if desired).
+- `fsic_fortran` implementation now supports `offset` argument in solution.
 - Added new `min_iter` keyword to solution methods, to force a minimum number
   of iterations before testing for convergence.
+- `ModelInterface` (and, in turn, `BaseModel` and `BaseLinker`) now stores the
+  default `dtype` as an object attribute.
 
 ### Changed
 
 - Refactored various parts of `BaseModel` to share more code with the new
   `BaseLinker` class.
+- `PeriodIter` no longer consumes its contents on iteration i.e. it is now
+  reusable.
+- Minor: `solve()` method now initialises `solved` as a list of `None`s to help
+  with debugging. Previously, the list was initialised with `False`.
 
 ### Fixed
 
+- Corrected instantiation of `BaseModel` objects to initialise variables from a
+  copy of `BaseModel.NAMES`. This ensures that adding variables to the object
+  only modifies that specific object, not the underlying class.
 - Corrected handling of `copy.deepcopy()` in `fsic` `BaseModel`
   class. Implemented similar (and correct) behaviour in new `BaseLinker` class.
 
