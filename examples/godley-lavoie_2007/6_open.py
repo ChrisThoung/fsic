@@ -34,6 +34,8 @@ Outputs:
 
 1. Replicates Figures 6.8, 6.9, 6.10 and 6.11 of Godley and Lavoie (2007),
    saving the charts to 'figures-6.8t6.11.png'
+    * This file also includes versions of Figures 6.8 and 6.9 for the South
+      propensity to consume out of current income
 
 References:
 
@@ -190,5 +192,149 @@ if __name__ == '__main__':
     # 6.8.4 A further example of the compensation thesis: increasing the
     #       propensity to save
     saving_propensity_scenario = baseline.copy()
-    saving_propensity_scenario.submodels['South']['alpha_2', 1960:] = 0.6
+    saving_propensity_scenario.submodels['South']['alpha_1', 1960:] = 0.6  # Compares to 0.7 in the baseline
     saving_propensity_scenario.solve(start=1960, max_iter=250)  # No need to solve pre-1960 again
+
+    # -------------------------------------------------------------------------
+    # Extract results as dictionaries of DataFrames
+    baseline_results = fsictools.linker_to_dataframes(baseline)
+    imports_results = fsictools.linker_to_dataframes(import_propensity_scenario)
+    savings_results = fsictools.linker_to_dataframes(saving_propensity_scenario)
+
+    # -------------------------------------------------------------------------
+    # Reproduce figures from Godley and Lavoie (2007)
+    _, axes = plt.subplots(2, 3, figsize=(24, 14))
+    plt.suptitle('Model $\it{OPEN}$: Rejecting the Mundell–Fleming approach and adopting the compensation approach')
+
+    # Figure 6.8: Evolution of GDP in the North and in the South countries,
+    #             following an increase in the South propensity to import
+    axes[0, 0].plot(imports_results['North'].loc[1950:2000, :].index,
+                    [imports_results['North']['Y'].loc[1950]] * len(imports_results['North'].loc[1950:2000, :].index),
+                    color='k', linewidth=0.75)
+
+    axes[0, 0].plot(imports_results['North'].loc[1950:2000, :].index,
+                    imports_results['North'].loc[1950:2000, :]['Y'],
+                    label='North country GDP', color='#33C3F0', linestyle='-')
+    axes[0, 0].plot(imports_results['South'].loc[1950:2000, :].index,
+                    imports_results['South'].loc[1950:2000, :]['Y'],
+                    label='South country GDP', color='#FF4F2E', linestyle='--')
+
+    axes[0, 0].set_xlim(1950, 2000)
+    axes[0, 0].legend(bbox_to_anchor=(0.990, 0.485))
+    axes[0, 0].set_title('Figure 6.8: North and South GDP following an\n'
+                         'increase in the South propensity to import')
+
+    # Figure 6.9: Evolution of the balances of the South country – net
+    #             acquisition of financial assets by the household sector,
+    #             government budget balance, trade balance – following an
+    #             increase in the South propensity to import
+    axes[0, 1].plot(imports_results['South'].index,
+                    [0] * len(imports_results['South'].index),
+                    color='k', linewidth=0.75)
+
+    axes[0, 1].plot(imports_results['South'].index,
+                    imports_results['South']['V'].diff(),
+                    label='Change in household wealth', color='#33C3F0', linestyle='-')
+    axes[0, 1].plot(imports_results['South'].index,
+                    imports_results['South'].eval('T - G') - imports_results['South'].eval('r * Bh').shift(),
+                    label='Government balance', color='#FF4F2E', linestyle=':')
+    axes[0, 1].plot(imports_results['South'].index,
+                    imports_results['South'].eval('X - IM'),
+                    label='Trade balance', color='#77C3AF', linestyle='--')
+
+    axes[0, 1].set_xlim(1950, 2000)
+    axes[0, 1].legend()
+    axes[0, 1].set_title('Figure 6.9: South country sectoral balances following an\n'
+                         'increase in the South propensity to import')
+
+    # Figure 6.10: Evolution of the three components of the balance sheet of
+    #              the South central bank – gold reserves, domestic Treasury
+    #              bills and money – following an increase in the South
+    #              propensity to import
+    axes[0, 2].plot(imports_results['South'].index,
+                    [0] * len(imports_results['South'].index),
+                    color='k', linewidth=0.75)
+
+    axes[0, 2].plot(imports_results['South'].index,
+                    imports_results['South']['Bcb'].diff(),
+                    label='Change in stock of bills held',
+                    color='#33C3F0', linestyle='-')
+    axes[0, 2].plot(imports_results['South'].index,
+                    imports_results['South']['Hh'].diff(),
+                    label='Change in stock of money',
+                    color='#FF4F2E', linestyle=':')
+    axes[0, 2].plot(imports_results['South'].index,
+                    imports_results['South']['or_'].diff(),
+                    label='Change in gold reserves',
+                    color='#77C3AF', linestyle='--')
+
+    axes[0, 2].set_xlim(1950, 2000)
+    axes[0, 2].legend(loc='lower right')
+    axes[0, 2].set_title('Figure 6.10: Evolution of the South central bank balance sheet\n'
+                         'following an increase in the South propensity to import')
+
+    # Figure 6.11: Evolution of the components of the balance sheet of the
+    #              South central bank, following a decrease in the South
+    #              propensity to consume out of current income
+    # (As in the note on Gennaro Zezza's website, there's a typo in the Figure
+    # 6.11 title, which reads 'an increase in the ... propensity to consume'.)
+    axes[1, 2].plot(savings_results['South'].index,
+                    [0] * len(savings_results['South'].index),
+                    color='k', linewidth=0.75)
+
+    axes[1, 2].plot(savings_results['South'].index,
+                    savings_results['South']['Bcb'].diff(),
+                    label='Change in stock of bills held',
+                    color='#33C3F0', linestyle='-')
+    axes[1, 2].plot(savings_results['South'].index,
+                    savings_results['South']['Hh'].diff(),
+                    label='Change in stock of money',
+                    color='#FF4F2E', linestyle=':')
+    axes[1, 2].plot(savings_results['South'].index,
+                    savings_results['South']['or_'].diff(),
+                    label='Change in gold reserves',
+                    color='#77C3AF', linestyle='--')
+
+    axes[1, 2].set_xlim(1950, 2000)
+    axes[1, 2].legend(loc='upper right')
+    axes[1, 2].set_title('Figure 6.11: Evolution of the South central bank balance sheet following\n'
+                         'a decrease in the South propensity to consume out of current income')
+
+    # For completeness, generate corresponding versions of Figures 6.8 and 6.9
+    # for the decrease in the South propensity to consume out of current income
+    axes[1, 0].plot(savings_results['North'].loc[1950:2000, :].index,
+                    [savings_results['North']['Y'].loc[1950]] * len(savings_results['North'].loc[1950:2000, :].index),
+                    color='k', linewidth=0.75)
+
+    axes[1, 0].plot(savings_results['North'].loc[1950:2000, :].index,
+                    savings_results['North'].loc[1950:2000, :]['Y'],
+                    label='North country GDP', color='#33C3F0', linestyle='-')
+    axes[1, 0].plot(savings_results['South'].loc[1950:2000, :].index,
+                    savings_results['South'].loc[1950:2000, :]['Y'],
+                    label='South country GDP', color='#FF4F2E', linestyle='--')
+
+    axes[1, 0].set_xlim(1950, 2000)
+    axes[1, 0].legend(bbox_to_anchor=(0.990, 0.84))
+    axes[1, 0].set_title('Figure 6.8a: North and South GDP following a decrease\n'
+                         'in the South propensity to consume out of current income')
+
+    axes[1, 1].plot(savings_results['South'].index,
+                    [0] * len(savings_results['South'].index),
+                    color='k', linewidth=0.75)
+
+    axes[1, 1].plot(savings_results['South'].index,
+                    savings_results['South']['V'].diff(),
+                    label='Change in household wealth', color='#33C3F0', linestyle='-')
+    axes[1, 1].plot(savings_results['South'].index,
+                    savings_results['South'].eval('T - G') - savings_results['South'].eval('r * Bh').shift(),
+                    label='Government balance', color='#FF4F2E', linestyle=':')
+    axes[1, 1].plot(savings_results['South'].index,
+                    savings_results['South'].eval('X - IM'),
+                    label='Trade balance', color='#77C3AF', linestyle='--')
+
+    axes[1, 1].set_xlim(1950, 2000)
+    axes[1, 1].legend(loc='upper right')
+    axes[1, 1].set_title('Figure 6.9a: South country sectoral balances following a decrease\n'
+                         'in the South propensity to consume out of current income')
+
+    plt.savefig('figures-6.8t6.11.png')
