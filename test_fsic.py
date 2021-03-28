@@ -1602,6 +1602,167 @@ class TestLinkerInit(unittest.TestCase):
         self.assertEqual(linker.LAGS, 1)
         self.assertEqual(linker.LEADS, 2)
 
+    def test_init_different_spans_error(self):
+        # Check for an error if the submodel spans differ
+        with self.assertRaises(fsic.InitialisationError):
+            linker = fsic.BaseLinker({
+                'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+                'B': self.SubmodelNoLags(range(1991, 2005 + 1)),  # Start is 1990 for 'A'
+            })
+
+
+class TestLinkerSolve(unittest.TestCase):
+
+    # Tolerance for absolute differences to be considered almost equal
+    DELTA = 0.05
+
+    SYMBOLS = fsic.parse_model('''
+Y = C + I + G + X - M
+M = {mu} * Y''')
+
+    class Linker(fsic.BaseLinker):
+
+        def evaluate_t_before(self, t, *args, **kwargs):
+            self.submodels['A'].X[t] = self.submodels['B'].M[t]
+            self.submodels['B'].X[t] = self.submodels['A'].M[t]
+
+    def setUp(self):
+        self.Model = fsic.build_model(self.SYMBOLS)
+
+    def test_solve(self):
+        # Check that linker behaves and solves as expected with custom methods
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1)),
+            'B': self.Model(range(1990, 2005 + 1)),
+        })
+
+        # All values should start at zero
+        for k, submodel in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertTrue(np.allclose(submodel.values, 0.0))
+
+        # Add in a propensity to import and government expenditure
+        for k, submodel in linker.submodels.items():
+            submodel.mu = 0.2
+            submodel.G = 20
+
+        linker.solve()
+
+        # Check results
+        self.assertTrue(np.all(linker.status == '.'))
+
+        for k, submodel in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertTrue(np.all(submodel.status == '.'))
+                self.assertTrue(np.all(submodel.iterations == linker.iterations))
+
+                self.assertTrue(np.allclose(submodel['Y'], 20.0))
+                self.assertTrue(np.allclose(submodel['C'],  0.0))
+                self.assertTrue(np.allclose(submodel['I'],  0.0))
+                self.assertTrue(np.allclose(submodel['G'], 20.0))
+                self.assertTrue(np.allclose(submodel['X'],  4.0))
+                self.assertTrue(np.allclose(submodel['M'],  4.0))
+
+    def test_solve_min_iter(self):
+        # Check that linker behaves and solves as expected with custom methods
+        # and a minimum of number of iterations
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1)),
+            'B': self.Model(range(1990, 2005 + 1)),
+        })
+
+        # All values should start at zero
+        for k, submodel in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertTrue(np.allclose(submodel.values, 0.0))
+
+        # Add in a propensity to import and government expenditure
+        for k, submodel in linker.submodels.items():
+            submodel.mu = 0.2
+            submodel.G = 20
+
+        linker.solve(min_iter=50)
+
+        # Check results
+        self.assertTrue(np.all(linker.status == '.'))
+        self.assertTrue(np.all(linker.iterations == 50))
+
+        for k, submodel in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertTrue(np.all(submodel.status == '.'))
+                self.assertTrue(np.all(submodel.iterations == linker.iterations))
+
+                self.assertTrue(np.allclose(submodel['Y'], 20.0))
+                self.assertTrue(np.allclose(submodel['C'],  0.0))
+                self.assertTrue(np.allclose(submodel['I'],  0.0))
+                self.assertTrue(np.allclose(submodel['G'], 20.0))
+                self.assertTrue(np.allclose(submodel['X'],  4.0))
+                self.assertTrue(np.allclose(submodel['M'],  4.0))
+
+    def test_solve_selective(self):
+        # Check that the linker can solve selected submodels
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+        })
+
+        linker.solve(submodels=['A'])
+
+        # Check results
+        for k, submodel in linker.submodels.items():
+            with self.subTest(submodel=k):
+                self.assertTrue(np.allclose(submodel['C'],  0.0))
+                self.assertTrue(np.allclose(submodel['I'],  0.0))
+                self.assertTrue(np.allclose(submodel['G'], 20.0))
+
+        self.assertTrue(np.allclose(linker.submodels['A'].Y, 16 + 2/3))
+        self.assertTrue(np.allclose(linker.submodels['A'].X, 0))
+        self.assertTrue(np.allclose(linker.submodels['A'].M, 3 + 1/3))
+
+        self.assertTrue(np.allclose(linker.submodels['B'].Y, 0))
+        self.assertTrue(np.allclose(linker.submodels['B'].X, 3 + 1/3))
+        self.assertTrue(np.allclose(linker.submodels['B'].M, 0))
+
+    def test_solve_selective_key_error(self):
+        # Check for error with nonexistent specified submodel
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+        })
+
+        with self.assertRaises(KeyError):
+            linker.solve(submodels=['C'])
+
+    def test_solve_min_iter_error(self):
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+        })
+
+        # Check for error if `min_iter` > `max_iter`
+        with self.assertRaises(ValueError):
+            linker.solve(min_iter=10, max_iter=5)
+
+    def test_solve_nonconvergence_error(self):
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+        })
+
+        # Too few iterations to solve: Should raise an error
+        with self.assertRaises(fsic.NonConvergenceError):
+            linker.solve(max_iter=1)
+
+    def test_solve_nonconvergence_continue(self):
+        linker = self.Linker({
+            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+        })
+
+        # Too few iterations to solve but `failures='ignore'` should let the
+        # method complete without error
+        linker.solve(max_iter=1, failures='ignore')
+
 
 class TestLinkerCopy(unittest.TestCase):
 
