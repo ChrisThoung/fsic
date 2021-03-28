@@ -1842,10 +1842,10 @@ Spans of submodels differ:
             self.evaluate_t(       t, submodels=submodels, **kwargs)
             self.evaluate_t_after( t, submodels=submodels, **kwargs)
 
+            current_values = get_check_values()
+
             if iteration < min_iter:
                 continue
-
-            current_values = get_check_values()
 
             diff = {k: current_values[k] - previous_values[k]
                     for k in current_values.keys()}
