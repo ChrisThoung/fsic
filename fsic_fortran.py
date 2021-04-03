@@ -12,12 +12,14 @@ from fsic import __version__
 import itertools
 import re
 import textwrap
+from types import ModuleType
 from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 from fsic import FSICError, InitialisationError, NonConvergenceError, SolutionError
 from fsic import Symbol, Type
+from fsic import BaseModel
 
 
 class FortranEngineError(FSICError):
@@ -26,17 +28,17 @@ class FortranEngineError(FSICError):
 
 # Class implementing interface to Fortran code --------------------------------
 
-class FortranEngine:
+class FortranEngine(BaseModel):
     """Subclass for derivatives of FSIC `BaseModel` to speed up model solution by calling compiled Fortran code."""
 
-    ENGINE = None
+    ENGINE: Optional[ModuleType] = None
 
-    _FAILURE_OPTIONS = {
+    _FAILURE_OPTIONS: Dict[str, int] = {
         'raise':   0,
         'ignore':  2,
     }
 
-    _ERROR_OPTIONS = {
+    _ERROR_OPTIONS: Dict[str, int] = {
         'raise':   0,
         'skip':    1,
         'ignore':  2,
