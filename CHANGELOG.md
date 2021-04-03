@@ -7,42 +7,57 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.7.0.dev] - 2021-04-03
+
+New `BaseLinker` class to solve multiple `BaseModel`(-derived) instances as a
+linked multi-entity model e.g. for multiple countries or regions connected by
+trade.
+
+Various other changes and fixes.
 
 ### Added
 
-- New `BaseLinker` class to nest and solve multiple `BaseModels`, with an
-  accompanying `linker_to_dataframes()` function in `fsictools` to extract the
-  results.
-- New `BaseModel` class method, `from_dataframe()`, to instantiate a model
-  object from a `pandas` DataFrame or similar.
-- Further keyword arguments to `BaseModel.solve()` are now passed to both
-  `iter_periods()` and `solve_t()` e.g. to pass on arguments to over-riding
-  methods in the user's own code (see
-  [examples/_cookbook/progress_bar.py](examples/_cookbook/progress_bar.py) for
-  an example).
-- New `VectorContainer` class method, `replace_values()`, to update object
-  contents *en masse*. Feeds through to`BaseModel` and derived classes.
-- `build_model_definition()` modified to optionally produce a code definition
-  without type hints.
-- In `BaseModel`, over-ride `VectorContainer.add_variable()` to properly extend
-  the model's store while supporting variables of other `dtype`s. Update
-  `fsictools.model_to_dataframe()` to preserve those `dtype`s.
-- In `fsic_fortran`, implemented Fortran equivalent of `solve()` method
-  (including Python wrapper) for further speed gains by bypassing Python
-  version of `solve_t()`.
-- `fsic_fortran` implementation of `solve_t()` now catches NaNs and infinities
-  prior to solution (if desired).
-- `fsic_fortran` implementation now supports `offset` argument in solution.
-- Added new `min_iter` keyword to solution methods, to force a minimum number
-  of iterations before testing for convergence.
-- `ModelInterface` (and, in turn, `BaseModel` and `BaseLinker`) now stores the
-  default `dtype` as an object attribute.
+- Solution:
+   - New `min_iter` keyword argument in solution methods to force a minimum
+     number of iterations before testing for convergence.
+- New `BaseLinker` class to nest and solve multiple `BaseModel`-derived
+  instances.
+   - New `linker_to_dataframes()` function in `fsictools` to extract results as
+     a set of DataFrames.
+- Additions to `BaseModel`:
+   - New `from_dataframe()` class method to instantiate a model from a `pandas`
+     DataFrame.
+   - Further keyword arguments in `solve()` (i.e. `**kwargs`) are now passed on
+     to both `iter_periods()` and `solve_t()` to support custom keywords in the
+     user's own code. (See
+     [examples/_cookbook/progress_bar.py](examples/_cookbook/progress_bar.py)
+     for an example.)
+   - Over-rode `VectorContainer.add_variable()` to properly extend a model
+     instance's store while supporting variables of non-default
+     `dtype`s. Updated `fsictools.model_to_dataframe()` to preserve those
+     `dtype`s.
+- Additions to `ModelInterface`, feeding through to both `BaseModel` and
+  `BaseLinker`:
+   - `ModelInterface` now stores the default `dtype` as an object attribute.
+- Additions to `VectorContainer`, feeding through to both `BaseModel` and
+  `BaseLinker`:
+   - New `replace_values()` method to update object contents *en masse*, with a
+     similar interface to `__init__()`.
+- Additions to parser:
+   - `build_model_definition()` now optionally produces code without type
+     hints.
+- `fsic_fortran`:
+   - Implemented Fortran equivalent of `solve()` method (including Python
+     wrapper) for further speed gains by bypassing Python-Fortran data transfer
+     each period (as happens with calls to `solve_t()`).
+   - `solve_t()` now catches NaNs and infinities prior to solution (if
+     desired).
+   - Solution methods now support `offset` argument.
 
 ### Changed
 
-- Refactored various parts of `BaseModel` to share more code with the new
-  `BaseLinker` class.
+- Refactored various parts of `BaseModel` to be able to share more code with
+  the new `BaseLinker` class.
 - `PeriodIter` no longer consumes its contents on iteration i.e. it is now
   reusable.
 - Minor: `solve()` method now initialises `solved` as a list of `None`s to help
@@ -51,8 +66,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 ### Fixed
 
 - Corrected instantiation of `BaseModel` objects to initialise variables from a
-  copy of `BaseModel.NAMES`. This ensures that adding variables to the object
-  only modifies that specific object, not the underlying class.
+  copy of `BaseModel.NAMES`. This ensures that adding variables to an object
+  only modifies that specific object, rather than the underlying class.
 - Corrected handling of `copy.deepcopy()` in `fsic` `BaseModel`
   class. Implemented similar (and correct) behaviour in new `BaseLinker` class.
 
