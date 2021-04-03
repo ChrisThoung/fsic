@@ -466,7 +466,7 @@ fortran_template = '''\
 ! This file of Fortran code has been generated programmatically by
 ! `fsic_fortran`, a module of `fsic` (Version {version}).
 !
-! This module embeds the following equations in the `evaluate()` subroutine:
+! This module embeds the following equation(s) in the `evaluate()` subroutine:
 !
 {system}
 
