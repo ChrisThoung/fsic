@@ -88,11 +88,11 @@ def model_to_dataframe(model: BaseModel) -> 'pandas.DataFrame':
 
     return df
 
-def linker_to_dataframes(linker: BaseLinker, *, core_name: Hashable = '_') -> Dict[Hashable, 'pandas.DataFrame']:
+def linker_to_dataframes(linker: BaseLinker) -> Dict[Hashable, 'pandas.DataFrame']:
     """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames. **Requires `pandas`**."""
     from pandas import DataFrame
 
-    results = {core_name: model_to_dataframe(linker)}
+    results = {linker.name: model_to_dataframe(linker)}
 
     for name, model in linker.submodels.items():
         results[name] = model_to_dataframe(model)

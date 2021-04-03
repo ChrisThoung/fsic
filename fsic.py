@@ -1599,7 +1599,7 @@ class BaseLinker(SolverMixin, ModelInterface):
     NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
     CHECK: List[str] = ENDOGENOUS
 
-    def __init__(self, submodels: Dict[Hashable, BaseModel], *, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+    def __init__(self, submodels: Dict[Hashable, BaseModel], *, name: Hashable = '_', dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise linker with constituent submodels and core model variables.
 
         Parameters
@@ -1607,6 +1607,9 @@ class BaseLinker(SolverMixin, ModelInterface):
         submodels : dict
             Mapping of submodel identifiers (keys) to submodel instances
             (values)
+        name :
+            Identifier for the model embedded in the linker (in the same way
+            that the submodels each have an identifier/key, as in `submodels`)
         dtype : variable type
             Data type to impose on core model variables (in NumPy arrays)
         default_value : number
@@ -1620,6 +1623,7 @@ class BaseLinker(SolverMixin, ModelInterface):
         raises an `InitialisationError` if not.
         """
         self.__dict__['submodels'] = submodels
+        self.__dict__['name'] = name
 
         # Get a list of submodel IDs and pop the first submodel as the one to
         # compare all the others against

@@ -94,12 +94,14 @@ class TestPandasFunctions(unittest.TestCase):
             'A': Submodel(range(1990, 2005 + 1)),
             'B': Submodel(range(1990, 2005 + 1)),
             'C': Submodel(range(1990, 2005 + 1)),
-        })
+        }, name='test')
+        model.add_variable('D', 0.0)
 
         results = fsictools.linker_to_dataframes(model)
 
-        pd.testing.assert_frame_equal(results['_'],
-                                      pd.DataFrame({'status': '-',
+        pd.testing.assert_frame_equal(results['test'],
+                                      pd.DataFrame({'D': 0.0,
+                                                    'status': '-',
                                                     'iterations': -1, },
                                                    index=range(1990, 2005 + 1)))
 
