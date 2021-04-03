@@ -268,6 +268,24 @@ H = H[-1] + YD - C
         with self.assertRaises(fsic.ParserError):
             fsic.parse_model('3.0A')
 
+    def test_inconsistent_variable_type_left(self):
+        # Check for an error if a variable is defined in multiple ways e.g. as
+        # both an endogenous/exogenous variable and a parameter
+        with self.assertRaises(fsic.SymbolError):
+            fsic.parse_model('''
+A = f(B, {C})  # C is a parameter
+B = f(C, D)    # But here, C is an exogenous variable
+''')
+
+    def test_inconsistent_variable_type_right(self):
+        # Check for an error if a variable is defined in multiple ways e.g. as
+        # both an endogenous/exogenous variable and a parameter
+        with self.assertRaises(fsic.SymbolError):
+            fsic.parse_model('''
+A = f(B, C, D)  # C is an exogenous variable
+B = f(<C>, D)   # But here, C is an error
+''')
+
 
 class TestVectorContainer(unittest.TestCase):
 

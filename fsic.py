@@ -47,6 +47,9 @@ class ParserError(FSICError):
 class SolutionError(FSICError):
     pass
 
+class SymbolError(FSICError):
+    pass
+
 
 # Compiled regular expressions ------------------------------------------------
 
@@ -202,8 +205,16 @@ class Symbol(NamedTuple):
 
         combined_type = self.type
         if self.type != other.type:
-            assert self.type in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS)
-            assert other.type in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS)
+            if (self.type  not in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS) or
+                other.type not in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS)):
+                raise SymbolError('''\
+Unable to combine the following pair of symbols:
+ - {}
+ - {}
+
+Variables cannot appear in the input script as both endogenous/exogenous
+variables and parameters/errors etc.'''.format(self, other))
+
             combined_type = max(self.type, other.type)
 
         if self.lags is None:
