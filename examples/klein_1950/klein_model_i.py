@@ -4,8 +4,12 @@ klein_model_i
 =============
 Example FSIC implementation of Klein Model I, from Klein (1950).
 
-Run 'estimate_equations.py' first to generate 'parameters.csv', a CSV file of
-parameter estimates for the equations.
+Before running this script:
+
+1. Download the data from Greene (2012) and run 'process_data.py' (see that
+   script for details), to create 'data.csv'.
+2. Run 'estimate_equations.py' to generate 'parameters.csv', a CSV file of
+   parameter estimates for the equations.
 
 While FSIC only requires NumPy, this example also uses:
 
@@ -13,7 +17,20 @@ While FSIC only requires NumPy, this example also uses:
   of model results
 * `matplotlib` to create plots of the endogenous variables
 
-Reference:
+References:
+
+    Giles, D. E. A. (2012)
+    'Estimating and simulating an SEM',
+    *Econometrics Beat: Dave Giles' blog*, 19/05/2012
+    https://davegiles.blogspot.com/2012/05/estimating-simulating-sem.html
+
+    Greene, W. H. (2012)
+    *Econometric analysis*,
+    7th edition,
+    Pearson
+    Datasets available from:
+    http://people.stern.nyu.edu/wgreene/Text/econometricanalysis.htm
+    (see Data Sets > 'Table F10.3: Klein's Model I')
 
     Klein, L. R. (1950)
     *Economic fluctuations in the United States, 1921-1941*,
@@ -37,7 +54,7 @@ descriptions = {
     'C': 'Consumption ($1934bn)',
     'I': 'Net investment ($1934bn)',
     'G': 'Exogenous investment ($1934bn)',
-    'Y': 'Net national income ($1934bn)',
+    'X': 'Gross National Product ($1934bn)',
     'T': 'Business taxes ($1934bn)',
     'K': 'End-of-year stock of capital ($1934bn)',                     # K_{-1}, i.e. lagged, in Klein (1950)
     'P': 'Profits ($1934bn)',                                          # Π in Klein (1950)
@@ -50,15 +67,10 @@ descriptions = {
 script = '''
 C  = {alpha_0} + {alpha_1} * P + {alpha_2} * P[-1] + {alpha_3} * (Wp + Wg) + <C_r>
 I  = {beta_0}  + {beta_1}  * P + {beta_2}  * P[-1] + {beta_3}  * K[-1]     + <I_r>
+Wp = {gamma_0} + {gamma_1} * X + {gamma_2} * X[-1] + {gamma_3} * time      + <Wp_r>
 
-Wp = ({gamma_0} +
-      {gamma_1} * (Y     + T     - Wg    ) +
-      {gamma_2} * (Y[-1] + T[-1] - Wg[-1]) +
-      {gamma_3} * time +
-      <Wp_r>)
-
-Y = (C + I + G) - T
-P = Y - (Wp + Wg)
+X = C + T + G
+P = X - T - Wp
 K = K[-1] + I
 '''
 symbols = fsic.parse_model(script)
@@ -74,7 +86,6 @@ if __name__ == '__main__':
     # Setup -------------------------------------------------------------------
     # Read data
     data = pd.read_csv('data.csv', index_col=0)
-    data = data.ffill()  # Remove the NaN at the end of 'K' (capital stock)
 
     # Read parameters
     parameters = pd.read_csv('parameters.csv', index_col=0)
@@ -90,18 +101,32 @@ if __name__ == '__main__':
 
 
     # Solve for each set of parameters ----------------------------------------
-    for technique, estimates in parameters.iteritems():
+    for estimator, parameter_estimates in parameters.iteritems():
         # Copy the base and insert the parameters
         model = base.copy()
-        model.replace_values(**estimates)
+        model.replace_values(**parameter_estimates)
 
-        # Solve from 1921 onwards, not 1920, to avoid problem of lagged NaNs
-        model.solve(start=1921)
+        # Solve settings:
+        #  - `start` solving from 1921 onwards, not 1920, to avoid problem of
+        #    lagged NaNs
+        #  - 'ignore' errors in solution, trusting that NaNs in the input data
+        #    will eventually be overwritten with non-NaN values (model will
+        #    still throw an error if NaNs remain after trying to solve a
+        #    period)
+        model.solve(start=1921, errors='ignore')
 
-        results[technique] = fsictools.model_to_dataframe(model)
+        results[estimator] = fsictools.model_to_dataframe(model)
 
 
     # Create plots of the endogenous variables --------------------------------
+    styles = {
+        'Actual': {'color': '#FF4F2E', 'linestyle': '-' },
+        'OLS':    {'color': '#77C3AF', 'linestyle': '--'},
+        '2SLS':   {'color': '#33C3F0', 'linestyle': '--'},
+        'LIML':   {'color': '#FF992E', 'linestyle': '--'},
+        '3SLS':   {'color': '#4563F2', 'linestyle': '--'},
+    }
+
     _, axes = plt.subplots(3, 2, figsize=(12, 15))
 
     plt.suptitle('Klein Model I: Comparison of actual and simulated results')
@@ -110,10 +135,8 @@ if __name__ == '__main__':
         # Extract results (across multiple runs) for the current variable as a DataFrame
         plot_data = DataFrame({k: df[name] for k, df in results.items()})
 
-        ax.plot(plot_data['Actual'].index, plot_data['Actual'], color='#FF4F2E', linestyle='-')
-        ax.plot(plot_data['OLS'].index,    plot_data['OLS'],    color='#77C3AF', linestyle='--')
-        ax.plot(plot_data['2SLS'].index,   plot_data['2SLS'],   color='#33C3F0', linestyle='--')
-        ax.plot(plot_data['3SLS'].index,   plot_data['3SLS'],   color='#4563F2', linestyle='--')
+        for estimator, settings in styles.items():
+            ax.plot(plot_data[estimator].index, plot_data[estimator], **settings)
 
         description = KleinModelI.__slots__[name].split('(')[0].strip()
         ax.set_title('{}: {}'.format(name, description))
@@ -126,10 +149,8 @@ if __name__ == '__main__':
 
     # Add legend
     axes[-1, -1].legend(handles=[
-        Line2D([], [], color='#FF4F2E', linestyle='-',  label='Actual'),
-        Line2D([], [], color='#77C3AF', linestyle='--', label='OLS'),
-        Line2D([], [], color='#33C3F0', linestyle='--', label='2SLS'),
-        Line2D([], [], color='#4563F2', linestyle='--', label='3SLS'),
-    ], loc='lower right', bbox_to_anchor=(1.015, -0.425))
+        Line2D([], [], label=estimator, **settings)
+        for estimator, settings in styles.items()
+    ], loc='lower right', bbox_to_anchor=(1.015, -0.455))
 
     plt.savefig('results.png')

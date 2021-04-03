@@ -13,17 +13,29 @@ This example shows how to:
 
 ## Usage
 
-1. Run ['estimate_equations.py'](estimate_equations.py) to generate a CSV file
+With *this folder* as the current working directory:
+
+1. Download the data from Greene (2012) - 'Table F10.3: Klein's Model I' (under
+   'Data Sets'), saving to this folder as 'TableF10-3.csv':  
+   [http://people.stern.nyu.edu/wgreene/Text/econometricanalysis.htm](http://people.stern.nyu.edu/wgreene/Text/econometricanalysis.htm)
+2. Run ['process_data.py'](process_data.py) to generate 'data.csv', a slightly
+   amended version of the original data.
+3. Run ['estimate_equations.py'](estimate_equations.py) to generate a CSV file
    of parameter estimates, 'parameters.csv', using different estimation
    techniques.
-2. Run ['klein_model_i.py'](klein_model_i.py) with *this folder* as the current
-   working directory.
+4. Run ['klein_model_i.py'](klein_model_i.py). This solves the model using the
+   various sets of parameter estimates and generates 'results.png', which plots
+   the results against the actual data.
+
+(Having downloaded the data by Step [1], the accompanying
+['makefile'](makefile) can automatically run Steps [2-4].)
 
 
 ## Notes
 
-The notation varies slightly from the original in Klein (1950). See the
-`descriptions` variable in ['klein_model_i.py'](klein_model_i.py) for details.
+Broadly, the notation follows Greene (2012) which, in turn, varies slightly
+from the original in Klein (1950). See the `descriptions` variable in
+['klein_model_i.py'](klein_model_i.py) for details of the variables.
 
 
 ## References
@@ -39,7 +51,7 @@ Greene, W. H. (2012)
 Pearson  
 Datasets available from:
 [http://people.stern.nyu.edu/wgreene/Text/econometricanalysis.htm](http://people.stern.nyu.edu/wgreene/Text/econometricanalysis.htm)  
-(see 'Table F10.3: Klein's Model I')
+(see Data Sets > 'Table F10.3: Klein's Model I')
 
 Klein, L. R. (1950)
 *Economic fluctuations in the United States, 1921-1941*,
