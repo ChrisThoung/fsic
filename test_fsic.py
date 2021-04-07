@@ -286,6 +286,12 @@ A = f(B, C, D)  # C is an exogenous variable
 B = f(<C>, D)   # But here, C is an error
 ''')
 
+    def test_leading_whitespace(self):
+        # Check that an equation with unnecessary leading whitespace raises an
+        # `IndentationError`
+        with self.assertRaises(IndentationError):
+            fsic.parse_model(' Y = C + I + G + X - M')
+
 
 class TestVectorContainer(unittest.TestCase):
 

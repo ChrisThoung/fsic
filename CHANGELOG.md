@@ -7,6 +7,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+
+- Added check in `split_equations_iter()` for unnecessary leading whitespace in
+  equations, to raise a more helpful error message.
+
+
 ## [0.7.0.dev] - 2021-04-03
 
 New `BaseLinker` class to solve multiple `BaseModel`(-derived) instances as a

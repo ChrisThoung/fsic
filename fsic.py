@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.7.0.dev'
+__version__ = '0.7.1.dev'
 
 
 import copy
@@ -279,7 +279,18 @@ def split_equations_iter(model: str) -> Iterator[str]:
                 match = equation_re.search(equation)
 
                 if not match:
-                    raise ParserError('Failed to parse equation: {}'.format(equation))
+                    # A failed match could occur because of unnecessary leading
+                    # whitespace in the equation expression. Check for this and
+                    # raise a slightly more helpful error if so
+                    match = equation_re.search(equation.strip())
+
+                    if isinstance(match, re.Match):
+                        raise IndentationError(
+                            "Found unnecessary leading whitespace in equation: '{}'"
+                            .format(equation))
+
+                    # Otherwise, raise the general error
+                    raise ParserError("Failed to parse equation: '{}'".format(equation))
 
                 yield equation
 
