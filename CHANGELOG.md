@@ -18,6 +18,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Added further checks to `parse_equation()` for consistency with
   `parse_model()`.
 
+### Changed
+
+- In `build_model()` and `build_model_definition()`, `converter` is now a
+  keyword-only argument.
+
 ### Fixed
 
 - Corrected keyword passthrough from `BaseModel.solve()` by making sure

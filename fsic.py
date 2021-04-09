@@ -1382,7 +1382,7 @@ class Model(BaseModel):
 {equations}\
 '''
 
-def build_model_definition(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None, *, with_type_hints: bool = True) -> str:
+def build_model_definition(symbols: List[Symbol], *, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> str:
     """Return a model class definition string from the contents of `symbols` (with type hints, by default).
 
     Parameters
@@ -1563,7 +1563,7 @@ if _ > 0:  # Ignore negative values
 
     return model_definition_string
 
-def build_model(symbols: List[Symbol], converter: Optional[Callable[[Symbol], str]] = None, *, with_type_hints: bool = True) -> 'BaseModel':
+def build_model(symbols: List[Symbol], *, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> 'BaseModel':
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
 
     Parameters
