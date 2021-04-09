@@ -284,7 +284,8 @@ def split_equations_iter(model: str) -> Iterator[str]:
                     # raise a slightly more helpful error if so
                     match = equation_re.search(equation.strip())
 
-                    if isinstance(match, re.Match):
+                    # Not compatible with Python 3.6: `if isinstance(match, re.Match):`
+                    if match is not None:
                         raise IndentationError(
                             "Found unnecessary leading whitespace in equation: '{}'"
                             .format(equation))
