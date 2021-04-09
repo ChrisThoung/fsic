@@ -14,6 +14,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Added check in `split_equations_iter()` for unnecessary leading whitespace in
   equations, to raise a more helpful error message.
 
+### Fixed
+
+- Corrected keyword passthrough from `BaseModel.solve()` by making sure
+  `iter_periods()` can absorb the arguments, even if not needed.
+
 
 ## [0.7.0.dev] - 2021-04-03
 

@@ -1013,6 +1013,20 @@ H = H[-1] + YD - C
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
+    def test_solve_keyword_passthrough(self):
+        # Check that keyword arguments pass through the solution stack without
+        # triggering any errors
+        model = self.Model(range(10))
+        model.solve(custom_keyword=True)
+
+    def test_solve_t_keyword_passthrough(self):
+        # Check that keyword arguments pass through the solution stack without
+        # triggering any errors
+        model = self.Model(range(10))
+
+        for t, _ in model.iter_periods():
+            model.solve_t(t, custom_keyword=True)
+
     def test_solve_t_negative(self):
         # Check support for negative values of `t` in `solve_t()`
         model = self.Model(range(1945, 2010 + 1), alpha_1=0.5)

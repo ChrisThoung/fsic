@@ -875,7 +875,7 @@ class SolverMixin:
     LAGS: int = 0
     LEADS: int = 0
 
-    def iter_periods(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None) -> Iterator[Tuple[int, Hashable]]:
+    def iter_periods(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, **kwargs: Any) -> Iterator[Tuple[int, Hashable]]:
         """Return pairs of period indexes and labels.
 
         Parameters
@@ -887,6 +887,9 @@ class SolverMixin:
         end : element in the model's `span`
             Last period to return. If not given, defaults to the last solvable
             period, taking into account any leads in the model's equations
+        **kwargs : not used
+            Absorbs arguments passed from `solve()`. Available should the user
+            want to over-ride this method in their own derived class.
 
         Returns
         -------
