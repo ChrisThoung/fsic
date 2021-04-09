@@ -1936,9 +1936,9 @@ Spans of submodels differ:
         pass
 
     def evaluate_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
-        """Evaluate any linker equations before solving the individual country models. Over-ride to implement custom linker behaviour."""
+        """Evaluate any linker equations before solving the individual submodels. Over-ride to implement custom linker behaviour."""
         pass
 
     def evaluate_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
-        """Evaluate any linker equations after solving the individual country models. Over-ride to implement custom linker behaviour."""
+        """Evaluate any linker equations after solving the individual submodels. Over-ride to implement custom linker behaviour."""
         pass
