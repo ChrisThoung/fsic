@@ -357,6 +357,18 @@ def parse_equation_terms(equation: str) -> List[Term]:
 
 def parse_equation(equation: str) -> List[Symbol]:
     """Return the symbols of `equation` as a list of Symbol objects."""
+    # Return an empty list if the string is empty / pure whitespace
+    if len(equation.strip()) == 0:
+        return []
+
+    # Use `split_equations()` to check that the expression is valid and only
+    # contains one equation
+    equations = split_equations(equation)
+    if len(equations) != 1:
+        raise ParserError(
+            '`parse_equation()` expects a string that defines a single equation '
+            'but found {} instead'.format(len(equations)))
+
     terms = parse_equation_terms(equation)
 
     # Construct standardised and code representations of the equation

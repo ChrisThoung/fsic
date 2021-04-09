@@ -13,6 +13,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Added check in `split_equations_iter()` for unnecessary leading whitespace in
   equations, to raise a more helpful error message.
+- Added further checks to `parse_equation()` for consistency with
+  `parse_model()`.
 
 ### Fixed
 

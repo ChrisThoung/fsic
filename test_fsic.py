@@ -172,6 +172,25 @@ H = (H[-1] +
 
         self.assertEqual(fsic.parse_equation(equation), expected)
 
+    def test_parse_equation_empty(self):
+        # Check that `parse_equation()` returns an empty list if the equation
+        # string is empty
+        self.assertEqual(fsic.parse_equation(''), [])
+        self.assertEqual(fsic.parse_equation(' '), [])
+
+    def test_parse_equation_multiple_equations_error(self):
+        # Check that `parse_equation()` raises a `ParserError` if a string
+        # doesn't define a single equation
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_equation('A = B\nC = D')
+
+    def test_parse_equation_indentation_error(self):
+        # Check that `parse_equation()` behaves identically to `parse_model()`
+        # and raises an `IndentationError` if there's any leading whitespace in
+        # an equation string
+        with self.assertRaises(IndentationError):
+            fsic.parse_equation(' Y = C + G')
+
     def test_parse_equation_function_replacement(self):
         # Check that function replacement only applies to functions explicitly
         # defined in `fsic.replacement_function_names`. For example:
