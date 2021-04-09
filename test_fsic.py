@@ -730,7 +730,7 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         pass'''
 
         symbols = fsic.parse_model('Y = C + G')
@@ -756,7 +756,7 @@ class TestBuild(unittest.TestCase):
     LAGS = 0
     LEADS = 0
 
-    def _evaluate(self, t, **kwargs):
+    def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
         # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
         self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]'''
 
@@ -778,7 +778,7 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         pass'''
 
         symbols = fsic.parse_model('')
@@ -800,7 +800,7 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         # Y[t] = X[t] if X[t] > Z[t] else Z[t]
         self._Y[t] = self._X[t] if self._X[t] > self._Z[t] else self._Z[t]'''
 
@@ -823,7 +823,7 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         # Y[t] = X[t]
         _ = self._X[t]
         if np.isfinite(_):
@@ -1256,6 +1256,165 @@ H = H[-1] + YD - C
 
         with self.assertRaises(ValueError):
             model.solve_t(1, min_iter=10, max_iter=5)
+
+
+class TestCustomModel(unittest.TestCase):
+
+    SCRIPT = '''
+s = 1 - (C / YD)  # Unless handled, this equation will generate a NaN on the first iteration
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+
+    # Tolerance for absolute differences to be considered almost equal
+    DELTA = 0.05
+
+    def setUp(self):
+
+        def custom_converter(symbol):
+            lhs, _ = map(str.strip, symbol.code.split('=', maxsplit=1))
+            return '''\
+# {}
+with warnings.catch_warnings():
+    warnings.simplefilter('error')
+
+    try:
+        {}
+
+    except RuntimeWarning:
+        if errors == 'raise':
+            {} = np.nan
+            self.status[t] = 'E'
+            self.iterations[t] = iteration
+
+            raise SolutionError(
+                'Numerical solution error after {{}} iterations(s) '
+                'in period with label: {{}} (index: {{}})'
+                .format(iteration, self.span[t], t))
+
+        elif errors == 'skip':
+            {} = np.nan
+            return
+
+        elif errors == 'ignore':
+            {} = np.nan
+
+        elif errors == 'replace':
+            {} = 0
+
+        else:
+            raise ValueError('Invalid `errors` argument: {{}}'.format(errors))'''.format(
+                symbol.equation, symbol.code, lhs, lhs, lhs, lhs)
+
+        self.Model = fsic.build_model(self.SYMBOLS, converter=custom_converter)
+
+    def test_custom_solve_raise(self):
+        # Check that the custom code leads to a `SolutionError` in the absence
+        # of any alternative error handling
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+
+        with self.assertRaises(fsic.SolutionError):
+            model.solve()
+
+        # `s` should have generated a NaN
+        self.assertTrue(np.isclose(model.s[0], 0))
+        self.assertTrue(np.isnan(model.s[1]))
+        self.assertTrue(np.allclose(model.s[2:], 0))
+
+        # The `SolutionError` should be recorded in `status`
+        self.assertEqual(model.status[0], '-')
+        self.assertEqual(model.status[1], 'E')
+        self.assertTrue(np.all(model.status[2:] == '-'))
+
+        # The single pass in `iterations` should also be recorded
+        self.assertEqual(model.iterations[0], -1)
+        self.assertEqual(model.iterations[1], 1)
+        self.assertTrue(np.all(model.iterations[2:] == -1))
+
+        # All other values should be unchanged
+        for x in ['C', 'YD', 'Y', 'T', 'H']:
+            self.assertTrue(np.allclose(model[x], 0))
+
+        self.assertTrue(np.allclose(model.alpha_1, 0.6))
+        self.assertTrue(np.allclose(model.alpha_2, 0.4))
+        self.assertTrue(np.allclose(model.G, 20))
+        self.assertTrue(np.allclose(model.theta, 0.2))
+
+    def test_custom_solve_skip(self):
+        # Check that the custom code correctly skips on the first iteration of
+        # each period
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+
+        model.solve(errors='skip')
+
+        # `s` should just be NaNs
+        self.assertTrue(np.isclose(model.s[0], 0))
+        self.assertTrue(np.all(np.isnan(model.s[1:])))
+
+        # Solution status should indicate [S]kipped
+        self.assertEqual(model.status[0], '-')
+        self.assertTrue(np.all(model.status[1:] == 'S'))
+
+        # Just one iteration per period
+        self.assertEqual(model.iterations[0], -1)
+        self.assertTrue(np.all(model.iterations[1:] == 1))
+
+        # All other values should be unchanged
+        for x in ['C', 'YD', 'Y', 'T', 'H']:
+            self.assertTrue(np.allclose(model[x], 0))
+
+        self.assertTrue(np.allclose(model.alpha_1, 0.6))
+        self.assertTrue(np.allclose(model.alpha_2, 0.4))
+        self.assertTrue(np.allclose(model.G, 20))
+        self.assertTrue(np.allclose(model.theta, 0.2))
+
+    def test_custom_solve_ignore(self):
+        # Check that the custom code solves as usual with `errors='ignore'`
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+
+        model._evaluate(1, errors='ignore')
+        self.assertTrue(np.isnan(model.s[1]))
+
+        model.solve(errors='ignore')
+
+        # `s` should be entirely non-NaN
+        self.assertFalse(np.any(np.isnan(model.s)))
+
+        # The other model variables should have converged to their stationary
+        # state values
+        self.assertAlmostEqual(model.C[-1], 80, delta=self.DELTA)
+        self.assertAlmostEqual(model.YD[-1], 80, delta=self.DELTA)
+        self.assertAlmostEqual(model.H[-1], 80, delta=self.DELTA)
+        self.assertAlmostEqual(model.Y[-1], 100, delta=self.DELTA)
+        self.assertAlmostEqual(model.T[-1], 20, delta=self.DELTA)
+
+    def test_custom_solve_replace(self):
+        # Check that the custom code solves as usual with `errors='replace'`
+        model = self.Model(range(1945, 2010 + 1),
+                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+
+        model._evaluate(1, errors='replace')
+        self.assertAlmostEqual(model.s[1], 0)
+
+        model.solve(errors='replace')
+
+        # `s` should be entirely non-NaN
+        self.assertFalse(np.any(np.isnan(model.s)))
+
+        # The other model variables should have converged to their stationary
+        # state values
+        self.assertAlmostEqual(model.C[-1], 80, delta=self.DELTA)
+        self.assertAlmostEqual(model.YD[-1], 80, delta=self.DELTA)
+        self.assertAlmostEqual(model.H[-1], 80, delta=self.DELTA)
+        self.assertAlmostEqual(model.Y[-1], 100, delta=self.DELTA)
+        self.assertAlmostEqual(model.T[-1], 20, delta=self.DELTA)
 
 
 class TestParserErrors(unittest.TestCase):

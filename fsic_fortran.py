@@ -417,7 +417,7 @@ class FortranEngine(BaseModel):
 
         return status == '.'
 
-    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         This method is part of the `FortranEngine` class and wraps a Fortran
@@ -427,6 +427,12 @@ class FortranEngine(BaseModel):
         ----------
         t : int
             Position in `span` of the period to solve
+        errors : str
+            ** Does nothing: defined for compatibility with the base Python API
+               only **
+        iteration : int
+            ** Does nothing: defined for compatibility with the base Python API
+               only **
         kwargs :
             ** Does nothing: defined for compatibility with the base Python API
                only **

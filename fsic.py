@@ -1257,7 +1257,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
             with warnings.catch_warnings(record=True):
                 warnings.simplefilter('always')
-                self._evaluate(t, **kwargs)
+                self._evaluate(t, errors=errors, iteration=iteration, **kwargs)
 
             current_values = get_check_values()
 
@@ -1322,13 +1322,22 @@ class BaseModel(SolverMixin, ModelInterface):
 
         return status == '.'
 
-    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
         ----------
         t : int
             Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
         kwargs :
             Further keyword arguments for solution
         """
@@ -1351,7 +1360,7 @@ class Model(BaseModel):
     LAGS: int = {lags}
     LEADS: int = {leads}
 
-    def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
 {equations}\
 '''
 
@@ -1369,7 +1378,7 @@ class Model(BaseModel):
     LAGS = {lags}
     LEADS = {leads}
 
-    def _evaluate(self, t, **kwargs):
+    def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
 {equations}\
 '''
 
@@ -1447,7 +1456,7 @@ if _ > 0:  # Ignore negative values
         LAGS: int = 0
         LEADS: int = 0
 
-        def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
             # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
             self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
 
@@ -1466,7 +1475,7 @@ if _ > 0:  # Ignore negative values
         LAGS = 0
         LEADS = 0
 
-        def _evaluate(self, t, **kwargs):
+        def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
             # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
             self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
 
@@ -1493,7 +1502,7 @@ if _ > 0:  # Ignore negative values
         LAGS: int = 0
         LEADS: int = 0
 
-        def _evaluate(self, t: int, **kwargs: Dict[str, Any]) -> None:
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
             # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
             _ = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
             if _ > 0:  # Ignore negative values
@@ -1874,14 +1883,14 @@ Spans of submodels differ:
             submodel.iterations[t] = 0
 
         # Run any code prior to solution
-        self.solve_t_before(t, submodels=submodels, **kwargs)
+        self.solve_t_before(t, submodels=submodels, errors=errors, iteration=0, **kwargs)
 
         for iteration in range(1, max_iter + 1):
             previous_values = copy.deepcopy(current_values)
 
-            self.evaluate_t_before(t, submodels=submodels, **kwargs)
-            self.evaluate_t(       t, submodels=submodels, **kwargs)
-            self.evaluate_t_after( t, submodels=submodels, **kwargs)
+            self.evaluate_t_before(t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
+            self.evaluate_t(       t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
+            self.evaluate_t_after( t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
 
             current_values = get_check_values()
 
@@ -1894,7 +1903,7 @@ Spans of submodels differ:
 
             if all(np.all(v < tol) for v in diff_squared.values()):
                 status = '.'
-                self.solve_t_after(t, submodels=submodels, **kwargs)
+                self.solve_t_after(t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
                 break
 
         else:
@@ -1915,7 +1924,7 @@ Spans of submodels differ:
 
         return status == '.'
 
-    def evaluate_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+    def evaluate_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the linker's `span`.
 
         Parameters
@@ -1924,6 +1933,14 @@ Spans of submodels differ:
             Position in `span` of the period to solve
         submodels : sequence of submodel identifiers (as in `self.submodels.keys()`), default `None`
             Submodels to evaluate. If `None` (the default), evaluate them all.
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors, as passed to the individual submodels.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the individual submodels'
+            over-riding code to decide how to handle this.
         kwargs :
             Further keyword arguments for solution
         """
@@ -1935,22 +1952,22 @@ Spans of submodels differ:
 
             with warnings.catch_warnings(record=True):
                 warnings.simplefilter('always')
-                submodel._evaluate(t, **kwargs)
+                submodel._evaluate(t, errors=errors, iteration=iteration, **kwargs)
 
             submodel.iterations[t] += 1
 
-    def solve_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom linker behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom linker behaviour."""
         pass
 
-    def evaluate_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+    def evaluate_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate any linker equations before solving the individual submodels. Over-ride to implement custom linker behaviour."""
         pass
 
-    def evaluate_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, **kwargs: Dict[str, Any]) -> None:
+    def evaluate_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate any linker equations after solving the individual submodels. Over-ride to implement custom linker behaviour."""
         pass

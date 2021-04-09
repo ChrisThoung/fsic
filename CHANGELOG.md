@@ -11,6 +11,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Added further keyword arguments to pass from `solve_t()` into `_evaluate()`:
+  `errors` (from the user) and `iteration` (from the solution loop).
 - Added check in `split_equations_iter()` for unnecessary leading whitespace in
   equations, to raise a more helpful error message.
 - Added further checks to `parse_equation()` for consistency with
