@@ -1419,6 +1419,30 @@ with warnings.catch_warnings():
 
 class TestParserErrors(unittest.TestCase):
 
+    def test_invalid_index(self):
+        # Check that the parser can detect an invalid index
+        with self.assertRaises(fsic.ParserError):
+            # In the index, '1' and '-' are the wrong way around
+            fsic.parse_model('A = A[1-]')
+
+    def test_missing_closing_bracket(self):
+        # Check that the parser can detect a missing closing bracket
+        with self.assertRaises(fsic.ParserError):
+            # Missing closing bracket at the end of the string below
+            fsic.parse_model('Y = C + I + G + (X - M')
+
+    def test_misplaced_closing_bracket(self):
+        # Check that the parser can detect a closing bracket without an
+        # accompanying prior open bracket
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('Y = C + I + G +)X - M')
+
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('Y = C + I + G +)X - M)')
+
+        with self.assertRaises(fsic.ParserError):
+            fsic.parse_model('Y = C + I + G +)X - M(')
+
     def test_extra_equals_single_equation(self):
         with self.assertRaises(fsic.ParserError):
             fsic.parse_model('Y = C + I + G = X - M')

@@ -268,6 +268,10 @@ def split_equations_iter(model: str) -> Iterator[str]:
             elif char == ')':
                 unmatched_parentheses -= 1
 
+            if unmatched_parentheses < 0:
+                raise ParserError('Found closing bracket before opening bracket '
+                                  'while attempting to read the following: {}'.format('\n'.join(buffer)))
+
         # If complete, combine and yield
         if unmatched_parentheses == 0:
             # Combine into a single string
@@ -298,6 +302,12 @@ def split_equations_iter(model: str) -> Iterator[str]:
             # Reset the buffer to collect another equation
             buffer = []
 
+    # If `unmatched_parentheses` is non-zero at this point, there must have
+    # been an error in the input script's syntax. Throw an error
+    if unmatched_parentheses != 0:
+        raise ParserError('Failed to identify any equations in the following, '
+                          'owing to unmatched brackets: {}'.format('\n'.join(buffer)))
+
 def split_equations(model: str) -> List[str]:
     """Return the equations of `model` as a list of strings."""
     return list(split_equations_iter(model))
@@ -323,7 +333,12 @@ def parse_terms(expression: str) -> List[Term]:
         if type_key not in ('_FUNCTION', '_KEYWORD'):
             if index_ is None:
                 index_ = '0'
-            index = int(index_)
+
+            try:
+                index = int(index_)
+            except ValueError:
+                raise ParserError("Unable to parse index '{}' of '{}' in '{}'".format(
+                    index_, match.group(0), expression))
 
         return Term(name=groupdict[type_key],
                     type=Type[type_key[1:]],
