@@ -614,7 +614,7 @@ subroutine solve_t(initial_values, t, min_iter, max_iter, tol, offset, convergen
   integer, intent(out) :: iteration, error_code
 
   real(8), dimension(nrows, ncols) :: previous_values
-  real(8), dimension(nvars) :: current_check, previous_check, diff_squared
+  real(8), dimension(nvars) :: current_check, previous_check, diff
 
   integer :: index, offset_location, i
 
@@ -734,9 +734,9 @@ subroutine solve_t(initial_values, t, min_iter, max_iter, tol, offset, convergen
      end if
 
      ! Test for convergence
-     diff_squared = (current_check - previous_check) ** 2
+     diff = current_check - previous_check
 
-     if(all(diff_squared < tol)) then
+     if(all(abs(diff) < tol)) then
         converged = .true.
         exit
      end if

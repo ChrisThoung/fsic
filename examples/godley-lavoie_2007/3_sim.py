@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     # Solve the model with an increased maximum number of iterations, to ensure
     # convergence
-    model.solve(max_iter=200)
+    model.solve(max_iter=350)
 
     # Store results to a DataFrame and print to the screen
     results = fsictools.model_to_dataframe(model)

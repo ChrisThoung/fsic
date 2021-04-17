@@ -22,6 +22,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Changed
 
+- Changed convergence checks to take the absolute differences between
+  iterations (rather than the squared differences).
 - In `build_model()` and `build_model_definition()`, `converter` is now a
   keyword-only argument.
 

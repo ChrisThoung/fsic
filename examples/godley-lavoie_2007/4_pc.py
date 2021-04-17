@@ -87,7 +87,7 @@ if __name__ == '__main__':
     #  - Equation 4.7A has a division operation: starting from zero, this may
     #    initially generate a NaN in solution - ignore this because it should
     #    be overwritten in a later iteration
-    starting_from_zero.solve(max_iter=150, errors='ignore')
+    starting_from_zero.solve(max_iter=200, errors='ignore')
 
     # Take the results from the last period as the stationary state
     stationary_state = dict(zip(starting_from_zero.names,
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     # Solve the model with the default solution options (needs fewer iterations
     # from the stationary state and no need to catch NaNs)
-    interest_rate_scenario.solve()
+    interest_rate_scenario.solve(max_iter=200)
 
 
     # 3. Reproduce Figures 4.3 and 4.4 of Godley and Lavoie (2007)

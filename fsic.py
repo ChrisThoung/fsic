@@ -1319,9 +1319,7 @@ class BaseModel(SolverMixin, ModelInterface):
                 continue
 
             diff = current_values - previous_values
-            diff_squared = diff ** 2
-
-            if np.all(diff_squared < tol):
+            if np.all(np.abs(diff) < tol):
                 status = '.'
                 break
         else:

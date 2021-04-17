@@ -113,7 +113,7 @@ if __name__ == '__main__':
         #    will eventually be overwritten with non-NaN values (model will
         #    still throw an error if NaNs remain after trying to solve a
         #    period)
-        model.solve(start=1921, errors='ignore')
+        model.solve(start=1921, max_iter=200, errors='ignore')
 
         results[estimator] = fsictools.model_to_dataframe(model)
 

@@ -98,7 +98,7 @@ if __name__ == '__main__':
     starting_from_zero.r_l_bar = 0.04
     starting_from_zero.r_l[0] = starting_from_zero.r_m[0] = starting_from_zero.r_l_bar[0]
 
-    starting_from_zero.solve(max_iter=250)
+    starting_from_zero.solve(max_iter=400)
 
     # Take the results from the last period to be the stationary state
     stationary_state = dict(zip(starting_from_zero.names,
@@ -111,12 +111,12 @@ if __name__ == '__main__':
     # 2. An increase in autonomous consumption expenditures
     consumption_scenario = baseline.copy()
     consumption_scenario['alpha_0', 1960:] = 28
-    consumption_scenario.solve(start=1960, max_iter=250)
+    consumption_scenario.solve(start=1960, max_iter=400)
 
     # 3. An increase in the propensity to save out of disposable income
     saving_scenario = baseline.copy()
     saving_scenario['alpha_1', 1960:] = 0.74
-    saving_scenario.solve(start=1960, max_iter=250)
+    saving_scenario.solve(start=1960, max_iter=400)
 
     # -------------------------------------------------------------------------
     # Reproduce the figures from Godley and Lavoie (2007)

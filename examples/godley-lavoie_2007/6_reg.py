@@ -180,7 +180,7 @@ if __name__ == '__main__':
     #  - Equations 6.17A and 6.18A have division operations: starting from
     #    zero, this may initially generate a NaN in solution - ignore this
     #    because it should be overwritten in a later iteration
-    starting_from_zero.solve(max_iter=1500, offset=-1, errors='ignore')
+    starting_from_zero.solve(max_iter=2000, offset=-1, errors='ignore')
 
     # Take the results from the last period as the stationary state
     stationary_state = dict(zip(starting_from_zero.names,
@@ -200,7 +200,7 @@ if __name__ == '__main__':
     #     (from Section 6.5.1 of Godley and Lavoie, 2007)
     import_propensity_scenario = baseline.copy()
     import_propensity_scenario['mu_S', 1960:] = 0.20781
-    import_propensity_scenario.solve(max_iter=2000, offset=-1)
+    import_propensity_scenario.solve(max_iter=3500, offset=-1)
 
     imports_results = make_model_results(import_propensity_scenario).loc[1950:2000, :]
 
