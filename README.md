@@ -30,7 +30,9 @@ Tools for macroeconomic modelling in Python.
 
 ## Quickstart
 
-To specify and solve Model *SIM* from Chapter 3 of Godley and Lavoie (2007):
+To specify and solve Model *SIM* from Chapter 3 of Godley and Lavoie (2007)
+(also available as a file of Python code in
+[examples/_cookbook/quickstart.py](examples/_cookbook/quickstart.py)):
 
 ```python
 import fsic
