@@ -359,8 +359,19 @@ def parse_equation_terms(equation: str) -> List[Term]:
 
     left, right = equation.split('=', maxsplit=1)
 
-    lhs_terms = [replace_type(t, Type.ENDOGENOUS) for t in parse_terms(left)]
-    rhs_terms = [replace_type(t, Type.EXOGENOUS) for t in parse_terms(right)]
+    try:
+        lhs_terms = [replace_type(t, Type.ENDOGENOUS) for t in parse_terms(left)]
+    except ParserError:
+        # Catch any parser errors at a term level and raise a further exception
+        # to print the expression that failed
+        raise ParserError("Failed to parse left-hand side of: '{}'".format(equation))
+
+    try:
+        rhs_terms = [replace_type(t, Type.EXOGENOUS) for t in parse_terms(right)]
+    except ParserError:
+        # Catch any parser errors at a term level and raise a further exception
+        # to print the expression that failed
+        raise ParserError("Failed to parse right-hand side of: '{}'".format(equation))
 
     if (any(filter(lambda x: x.type == Type.KEYWORD, lhs_terms)) or
         any(filter(lambda x: x.type == Type.INVALID, rhs_terms))):

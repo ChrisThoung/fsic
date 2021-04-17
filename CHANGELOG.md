@@ -17,8 +17,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   equations, to raise a more helpful error message.
 - Added further checks to `parse_equation()` for consistency with
   `parse_model()`.
-- Added further parser checks to catch unmatched brackets and invalid index
-  expressions.
+- Added further parser checks and messages to catch unmatched brackets and
+  invalid index expressions.
 
 ### Changed
 
