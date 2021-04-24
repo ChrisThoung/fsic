@@ -1417,6 +1417,22 @@ with warnings.catch_warnings():
         self.assertAlmostEqual(model.T[-1], 20, delta=self.DELTA)
 
 
+class TestCustomOverrides(unittest.TestCase):
+
+    def test_evaluate_error(self):
+        # Check that `solve_t()` can catch errors raised in `_evaluate()`
+
+        class Model(fsic.BaseModel):
+            def _evaluate(self, t, *args, **kwargs):
+                # In base Python, this raises a `ZeroDivisionError`
+                x = 1 / 0
+
+        model = Model(range(5))
+
+        with self.assertRaises(fsic.SolutionError):
+            model.solve()
+
+
 class TestParserErrors(unittest.TestCase):
 
     def test_invalid_index(self):

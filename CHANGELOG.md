@@ -19,6 +19,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `parse_model()`.
 - Added further parser checks and messages to catch unmatched brackets and
   invalid index expressions.
+- Python implementation of `BaseModel.solve_t()` now catches evaluation errors
+  and raises a `SolutionError`.
 
 ### Changed
 

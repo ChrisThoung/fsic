@@ -1284,7 +1284,14 @@ class BaseModel(SolverMixin, ModelInterface):
 
             with warnings.catch_warnings(record=True):
                 warnings.simplefilter('always')
-                self._evaluate(t, errors=errors, iteration=iteration, **kwargs)
+
+                try:
+                    self._evaluate(t, errors=errors, iteration=iteration, **kwargs)
+                except:
+                    raise SolutionError(
+                        'Error after {} iterations(s) '
+                        'in period with label: {} (index: {})'
+                        .format(iteration, self.span[t], t))
 
             current_values = get_check_values()
 
