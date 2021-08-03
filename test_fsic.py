@@ -1433,6 +1433,189 @@ class TestCustomOverrides(unittest.TestCase):
             model.solve()
 
 
+    class RegularModel(fsic.BaseModel):
+        """Standard model setup as produced by `fsic` `parse_model()` and `build_model()`."""
+        ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
+        EXOGENOUS = ['G_bar']
+
+        PARAMETERS = ['alpha_1', 'alpha_2', 'theta']
+        ERRORS = []
+
+        NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK = ENDOGENOUS
+
+        LAGS = 1
+        LEADS = 0
+
+        def _evaluate(self, t: int, *, errors='raise', iteration=None, **kwargs):
+            # G[t] = G_bar[t]
+            self._G[t] = self._G_bar[t]
+
+            # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
+            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+
+            # YD[t] = Y[t] - T[t]
+            self._YD[t] = self._Y[t] - self._T[t]
+
+            # H[t] = H[t-1] + YD[t] - C[t]
+            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+
+            # Y[t] = C[t] + G[t]
+            self._Y[t] = self._C[t] + self._G[t]
+
+            # T[t] = theta[t] * Y[t]
+            self._T[t] = self._theta[t] * self._Y[t]
+
+    class BeforeModel(fsic.BaseModel):
+        """Variant on `RegularModel` but with an over-riding `solve_t_before()` method."""
+        ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
+        EXOGENOUS = ['G_bar']
+
+        PARAMETERS = ['alpha_1', 'alpha_2', 'theta']
+        ERRORS = []
+
+        NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK = ENDOGENOUS
+
+        LAGS = 1
+        LEADS = 0
+
+        def solve_t_before(self, t, *args, **kwargs):
+            # G[t] = G_bar[t]
+            self._G[t] = self._G_bar[t]
+
+        def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
+            # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
+            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+
+            # YD[t] = Y[t] - T[t]
+            self._YD[t] = self._Y[t] - self._T[t]
+
+            # H[t] = H[t-1] + YD[t] - C[t]
+            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+
+            # Y[t] = C[t] + G[t]
+            self._Y[t] = self._C[t] + self._G[t]
+
+            # T[t] = theta[t] * Y[t]
+            self._T[t] = self._theta[t] * self._Y[t]
+
+    class AfterModel(fsic.BaseModel):
+        """Variant on `RegularModel` but with an over-riding `solve_t_after()` method."""
+        ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
+        EXOGENOUS = ['G_bar']
+
+        PARAMETERS = ['alpha_1', 'alpha_2', 'theta']
+        ERRORS = []
+
+        NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK = ENDOGENOUS
+
+        LAGS = 1
+        LEADS = 0
+
+        def solve_t_after(self, t, *args, **kwargs):
+            # H[t] = H[t-1] + YD[t] - C[t]
+            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+
+        def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
+            # G[t] = G_bar[t]
+            self._G[t] = self._G_bar[t]
+
+            # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
+            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+
+            # YD[t] = Y[t] - T[t]
+            self._YD[t] = self._Y[t] - self._T[t]
+
+            # Y[t] = C[t] + G[t]
+            self._Y[t] = self._C[t] + self._G[t]
+
+            # T[t] = theta[t] * Y[t]
+            self._T[t] = self._theta[t] * self._Y[t]
+
+    class BeforeAndAfterModel(fsic.BaseModel):
+        """Variant on `RegularModel` but with over-riding `solve_t_before()` and `solve_t_after()` methods."""
+        ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
+        EXOGENOUS = ['G_bar']
+
+        PARAMETERS = ['alpha_1', 'alpha_2', 'theta']
+        ERRORS = []
+
+        NAMES = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK = ENDOGENOUS
+
+        LAGS = 1
+        LEADS = 0
+
+        def solve_t_before(self, t, *args, **kwargs):
+            # G[t] = G_bar[t]
+            self._G[t] = self._G_bar[t]
+
+        def solve_t_after(self, t, *args, **kwargs):
+            # H[t] = H[t-1] + YD[t] - C[t]
+            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+
+        def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
+            # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
+            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+
+            # YD[t] = Y[t] - T[t]
+            self._YD[t] = self._Y[t] - self._T[t]
+
+            # Y[t] = C[t] + G[t]
+            self._Y[t] = self._C[t] + self._G[t]
+
+            # T[t] = theta[t] * Y[t]
+            self._T[t] = self._theta[t] * self._Y[t]
+
+
+    def test_evaluate_before(self):
+        # Check that a model amended to carry out some pre-solution calculation
+        # produces the same results as the regular model
+        regular_model = self.RegularModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        regular_model.solve()
+
+        before_model = self.BeforeModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        before_model.solve()
+
+        # Quick check that results match expected results
+        self.assertAlmostEqual(regular_model.Y[-1], 100.0, places=2)
+
+        # Check model results are identical
+        self.assertTrue(np.allclose(regular_model.values, before_model.values))
+
+    def test_evaluate_after(self):
+        # Check that a model amended to carry out some post-solution calculation
+        # produces the same results as the regular model
+        regular_model = self.RegularModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        regular_model.solve()
+
+        after_model = self.AfterModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        after_model.solve()
+
+        # Quick check that results match expected results
+        self.assertAlmostEqual(regular_model.Y[-1], 100.0, places=2)
+
+        # Check model results are identical
+        self.assertTrue(np.allclose(regular_model.values, after_model.values))
+
+    def test_evaluate_before_and_after(self):
+        # Check that a model amended to carry out some pre- and post-solution
+        # calculations produces the same results as the regular model
+        regular_model = self.RegularModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        regular_model.solve()
+
+        before_after_model = self.BeforeAndAfterModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        before_after_model.solve()
+
+        # Quick check that results match expected results
+        self.assertAlmostEqual(regular_model.Y[-1], 100.0, places=2)
+
+        # Check model results are identical
+        self.assertTrue(np.allclose(regular_model.values, before_after_model.values))
+
+
 class TestParserErrors(unittest.TestCase):
 
     def test_invalid_index(self):

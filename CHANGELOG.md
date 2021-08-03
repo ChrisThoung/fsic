@@ -11,6 +11,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Implement over-rideable `solve_t_before()` and `solve_t_after()` methods in
+  `BaseModel`, following a similar pattern to those in `BaseLinker`.
 - Added further keyword arguments to pass from `solve_t()` into `_evaluate()`:
   `errors` (from the user) and `iteration` (from the solution loop).
 - Added check in `split_equations_iter()` for unnecessary leading whitespace in

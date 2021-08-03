@@ -1329,6 +1329,9 @@ class BaseModel(SolverMixin, ModelInterface):
         status = '-'
         current_values = get_check_values()
 
+        # Run any code prior to solution
+        self.solve_t_before(t, errors=errors, iteration=0, **kwargs)
+
         # Raise an exception if there are pre-existing NaNs or infinities, and
         # error checking is at its strictest ('raise')
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
@@ -1396,6 +1399,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
             diff = current_values - previous_values
             if np.all(np.abs(diff) < tol):
+                self.solve_t_after(t, errors=errors, iteration=iteration, **kwargs)
                 status = '.'
                 break
         else:
@@ -1411,6 +1415,14 @@ class BaseModel(SolverMixin, ModelInterface):
                 .format(iteration, self.span[t], t))
 
         return status == '.'
+
+    def solve_t_before(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
 
     def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
