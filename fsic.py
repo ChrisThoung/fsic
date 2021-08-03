@@ -1329,9 +1329,6 @@ class BaseModel(SolverMixin, ModelInterface):
         status = '-'
         current_values = get_check_values()
 
-        # Run any code prior to solution
-        self.solve_t_before(t, errors=errors, iteration=0, **kwargs)
-
         # Raise an exception if there are pre-existing NaNs or infinities, and
         # error checking is at its strictest ('raise')
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
@@ -1339,6 +1336,9 @@ class BaseModel(SolverMixin, ModelInterface):
                 'Pre-existing NaNs or infinities found '
                 'in period with label: {} (index: {})'
                 .format(self.span[t], t))
+
+        # Run any code prior to solution
+        self.solve_t_before(t, errors=errors, iteration=0, **kwargs)
 
         for iteration in range(1, max_iter + 1):
             previous_values = current_values.copy()
