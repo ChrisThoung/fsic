@@ -35,6 +35,9 @@ class DimensionError(FSICError):
 class DuplicateNameError(FSICError):
     pass
 
+class EvalError(FSICError):
+    pass
+
 class InitialisationError(FSICError):
     pass
 
@@ -840,6 +843,9 @@ class VectorContainer:
 
         for name, series in zip(self.index, new_values):
             self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
+
+    def eval(self) -> None:
+        raise NotImplementedError('`eval()` method (including API) not implemented yet')
 
 
 # Model interface, wrapping the core `VectorContainer` ------------------------
