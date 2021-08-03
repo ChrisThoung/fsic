@@ -528,6 +528,64 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
 # Labelled container for vector data (1D NumPy arrays) ------------------------
 
 class VectorContainer:
+    """Labelled container for vector data (1D NumPy arrays).
+
+    Examples
+    --------
+    # Initialise an object with a span that attaches labels to the vector
+    # elements; here: 11-element vectors labelled [2000, 2001, ..., 2009, 2010]
+    >>> container = VectorContainer(range(2000, 2010 + 1))
+
+    # Add some data, each with a fixed dtype (as in NumPy/pandas)
+    # `VectorContainer`s automatically broadcast scalar values to vectors of
+    # the previously specified length
+    >>> container.add_variable('A', 2)                                        # Integer
+    >>> container.add_variable('B', 3.0)                                      # Float
+    >>> container.add_variable('C', list(range(10 + 1)), dtype=float)         # Force as floats
+    >>> container.add_variable('D', [0, 1., 2, 3., 4, 5., 6, 7., 8, 9., 10])  # Cast to float
+
+    # View the data, whether by attribute or key
+    >>> container.A                                      # By attribute
+    array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+
+    >>> container['B']                                   # By key
+    array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])
+
+    >>> container.values  # Pack into a 2D array (casting to a common dtype)
+    array([[ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
+           [ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.],
+           [ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.]])
+
+    # Vector replacement preserves both length and dtype, making it more
+    # convenient than the NumPy equivalent: `container.B[:] = 4`
+    >>> container.B = 4  # Standard object behaviour would assign `4` to `B`...
+    >>> container.B      # ...but `VectorContainer`s broadcast and convert automatically
+    array([4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4.])  # Still a vector of floats
+
+    # NumPy-style indexing, whether by attribute or key (interchangeably)
+    >>> container.C[2:4]  # By attribute
+    array([2., 3.])
+
+    >>> container.B[2:4] = 5  # As above, assignment preserves original dtype
+    >>> container.B
+    array([4., 4., 5., 5., 4., 4., 4., 4., 4., 4., 4.])
+
+    >>> container['D'][3:-2]  # By key
+    array([3., 4., 5., 6., 7., 8.])
+
+    >>> container['C'][5:] = 9
+    >>> container.C  # `container['C']` also works
+    array([0., 1., 2., 3., 4., 9., 9., 9., 9., 9., 9.])
+
+    # pandas-like indexing using the span labels (must be by key, as a 2-tuple)
+    >>> container['D', 2005:2009]  # Second element (slice) refers to the labels of the object's span
+    array([5., 6., 7., 8., 9.])
+
+    >>> container['D', 2000:2008:2] = 12
+    >>> container['D']  # As previously, `container.D` also works
+    array([12.,  1., 12.,  3., 12.,  5., 12.,  7., 12.,  9., 10.])
+    """
 
     def __init__(self, span: Sequence[Hashable]) -> None:
         """Initialise model variables.
