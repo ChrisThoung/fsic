@@ -49,7 +49,11 @@ if __name__ == '__main__':
     data = pd.read_csv('data.csv', index_col=0)
 
     # Instantiate a new model object
-    model = AMI(data.index.tolist(), **dict(data.iteritems()))
+    # The `from_dataframe()` class method automatically extracts data
+    # (contents) and metadata (index) from a DataFrame, as a more convenient
+    # alternative to:
+    #   model = AMI(data.index.tolist(), **dict(data.iteritems()))
+    model = AMI.from_dataframe(data)
 
     # Solve with `errors='ignore'`, to handle missing values (NaNs) in the
     # input data
