@@ -7,11 +7,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.7.1.dev] - 2021-08-04
+
+Various additions and changes to improve consistency and checks (both parser
+and solution).
 
 ### Added
 
-- Implement over-rideable `solve_t_before()` and `solve_t_after()` methods in
+- Implemented over-rideable `solve_t_before()` and `solve_t_after()` methods in
   `BaseModel`, following a similar pattern to those in `BaseLinker`.
 - Added further keyword arguments to pass from `solve_t()` into `_evaluate()`:
   `errors` (from the user) and `iteration` (from the solution loop).
