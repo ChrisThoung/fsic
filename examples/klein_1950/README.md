@@ -8,7 +8,7 @@ This example shows how to:
 * estimate parameters for the model's equations using Kevin Sheppard's
   [`linearmodels`](https://github.com/bashtage/linearmodels) package
 * run the model with the estimated parameters
-* use `fsictools` to convert the model results to a DataFrame for inspection
+* use `fsic.tools` to convert the model results to a DataFrame for inspection
 
 
 ## Usage

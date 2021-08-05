@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-fsic_fortran
-============
+fortran
+=======
 Tools to speed up FSIC-based economic models by generating F2PY-compatible
 Fortran code.
 """
 
-# Version number keeps track with the main `fsic` module
 from fsic import __version__
 
 import itertools

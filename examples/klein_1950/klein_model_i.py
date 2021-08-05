@@ -13,7 +13,7 @@ Before running this script:
 
 While FSIC only requires NumPy, this example also uses:
 
-* `pandas`, to read the input data and, using `fsictools`, generate DataFrames
+* `pandas`, to read the input data and, using `fsic.tools`, generate DataFrames
   of model results
 * `matplotlib` to create plots of the endogenous variables
 
@@ -46,7 +46,7 @@ from pandas import DataFrame
 import pandas as pd
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 # Variable names and descriptions, adapted from Klein (1950)
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     # Dictionary to store the results from the various runs
     results = {
         # `base` holds the original (i.e. actual) data
-        'Actual': fsictools.model_to_dataframe(base)
+        'Actual': fsic.tools.model_to_dataframe(base)
     }
 
 
@@ -115,7 +115,7 @@ if __name__ == '__main__':
         #    period)
         model.solve(start=1921, max_iter=200, errors='ignore')
 
-        results[estimator] = fsictools.model_to_dataframe(model)
+        results[estimator] = fsic.tools.model_to_dataframe(model)
 
 
     # Create plots of the endogenous variables --------------------------------

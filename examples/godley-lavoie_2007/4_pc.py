@@ -12,7 +12,7 @@ step-change in the interest rate, as in Godley and Lavoie (2007).
 
 While FSIC only requires NumPy, this example also uses:
 
-* `pandas`, to generate a DataFrame of results using `fsictools`
+* `pandas`, to generate a DataFrame of results using `fsic.tools`
 * `matplotlib`, to replicate, from Godley and Lavoie (2007):
     * Figure 4.3: Evolution of the shares of bills and money balances in the
       portfolio of households, following an increase of 100 points in the rate
@@ -43,7 +43,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 # Inline comments give the corresponding equation numbers from Godley and
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     # 3. Reproduce Figures 4.3 and 4.4 of Godley and Lavoie (2007)
     #    Code copied from:
     #        https://www.christhoung.com/2018/07/08/fsic-gl2007-pc/
-    results = fsictools.model_to_dataframe(interest_rate_scenario)
+    results = fsic.tools.model_to_dataframe(interest_rate_scenario)
 
     # Calculate bills and money holdings as a share of household wealth
     results['Sb'] = results.eval('Bh / V')

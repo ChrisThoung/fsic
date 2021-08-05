@@ -5,7 +5,7 @@ fsic
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.7.1.dev'
+__version__ = '0.8.0.dev'
 
 
 import copy
@@ -911,7 +911,7 @@ class ModelInterface(VectorContainer):
         In implementation, as well as adding the data to the underlying
         container, this version of the method also extends the list of names in
         `self.names`, to keep the variable list up-to-date and for
-        compatibility with, for example, `fsictools.model_to_dataframe()`.
+        compatibility with, for example, `fsic.tools.model_to_dataframe()`.
         """
         # Optionally impose the `dtype`
         if dtype is None:

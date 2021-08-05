@@ -8,7 +8,7 @@ an economic model and why make one?').
 
 While FSIC only requires NumPy, this example also uses:
 
-* `pandas`, to read the input data and, using `fsictools`, generate a DataFrame
+* `pandas`, to read the input data and, using `fsic.tools`, generate a DataFrame
   of final results
 * `matplotlib` to replicate, more or less, the accompanying chart in Almon
   (2017)
@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 script = '''
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     model.solve(errors='ignore')
 
     # Store results to a DataFrame and print to the screen
-    results = fsictools.model_to_dataframe(model)
+    results = fsic.tools.model_to_dataframe(model)
     print(results.round(1))
 
     # Plot output (Q) as in Figure 1.1 of Almon (2017), saving to disk

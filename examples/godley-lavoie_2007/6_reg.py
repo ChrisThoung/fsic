@@ -17,7 +17,7 @@ substantially improve solution times.
 
 While FSIC only requires NumPy, this example also uses:
 
-* `pandas`, to generate a DataFrame of results using `fsictools`
+* `pandas`, to generate a DataFrame of results using `fsic.tools`
 * `matplotlib`, to replicate, from Godley and Lavoie (2007), Figures 6.1, 6.2,
   6.3, 6.4, 6.5, 6.6 and 6.7. These figures consist of four pairs of charts in
   a (4 x 2) grid that shows the results of four experiments with Model *REG*:
@@ -58,7 +58,7 @@ from pandas import DataFrame
 import pandas as pd
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 # Inline comments give the corresponding equation numbers from Godley and
@@ -112,7 +112,7 @@ REG = fsic.build_model(symbols)
 
 def make_model_results(model: fsic.BaseModel) -> DataFrame:
     """Return the model results, with supplementary variables, as a `pandas` DataFrame."""
-    results = fsictools.model_to_dataframe(model)[model.names]
+    results = fsic.tools.model_to_dataframe(model)[model.names]
 
     # Take first difference of household wealth to construct a flow measure
     results['D(V_N)'] = results['V_N'].diff()

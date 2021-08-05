@@ -4,6 +4,7 @@ Adapted from:
 https://packaging.python.org/tutorials/packaging-projects/
 """
 
+import os
 import re
 import setuptools
 
@@ -12,7 +13,7 @@ import setuptools
 # attempting to import NumPy before it gets installed). Idea from:
 # https://packaging.python.org/guides/single-sourcing-package-version/
 def get_version():
-    with open('fsic.py') as f:
+    with open(os.path.join('fsic', '__init__.py')) as f:
         for line in f:
             if line.startswith('__version__'):
                 return re.split(r'''["']''', line)[1]
@@ -30,7 +31,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/ChrisThoung/fsic',
-    py_modules=['fsic', 'fsictools', 'fsic_fortran'],
+    packages=setuptools.find_packages(include=['fsic']),
     python_requires='>=3.6',
 
     install_requires=[

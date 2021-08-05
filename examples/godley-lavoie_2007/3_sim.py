@@ -7,7 +7,7 @@ from Chapter 3 of Godley and Lavoie (2007).
 
 While FSIC only requires NumPy, this example also uses:
 
-* `pandas`, to generate a DataFrame of final results using `fsictools`
+* `pandas`, to generate a DataFrame of final results using `fsic.tools`
 * `matplotlib`, to replicate Figure 3.2 ('Disposable income and consumption
   starting from scratch') of Godley and Lavoie (2007)
 
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 # Inline comments give the corresponding equation numbers from Godley and
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     model.solve(max_iter=350)
 
     # Store results to a DataFrame and print to the screen
-    results = fsictools.model_to_dataframe(model)
+    results = fsic.tools.model_to_dataframe(model)
     print(results.round(1))
 
     # Replicate Figure 3.2 of Godley and Lavoie (2007): Disposable income and

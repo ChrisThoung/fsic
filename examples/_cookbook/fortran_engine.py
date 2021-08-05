@@ -51,7 +51,7 @@ import subprocess
 import timeit
 
 import fsic
-import fsic_fortran
+import fsic.fortran
 
 
 # -----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ SIM = fsic.build_model(symbols)
 
 # -----------------------------------------------------------------------------
 # Use the model symbols to generate equivalent Fortran code, writing to disk
-fortran_code = fsic_fortran.build_fortran_definition(symbols)
+fortran_code = fsic.fortran.build_fortran_definition(symbols)
 
 with open('sim_fortran.f95', 'w') as f:
     f.write(fortran_code)
@@ -89,7 +89,7 @@ output.check_returncode()
 #
 # The interface of this class is identical to the base Python one.
 
-class SIMFortran(fsic_fortran.FortranEngine, SIM):
+class SIMFortran(fsic.fortran.FortranEngine, SIM):
     ENGINE = importlib.import_module('sim_fortran')
 
 
@@ -105,7 +105,7 @@ class SIMFortran(fsic_fortran.FortranEngine, SIM):
 # **This is only to show how performance varies by substituting Fortran at
 #   different points.**
 
-class SIMFortran_SolveT(fsic_fortran.FortranEngine, SIM):
+class SIMFortran_SolveT(fsic.fortran.FortranEngine, SIM):
     """Use pure Python `solve()` to call Fortran version of `solve_t()`."""
     ENGINE = importlib.import_module('sim_fortran')
 
@@ -113,7 +113,7 @@ class SIMFortran_SolveT(fsic_fortran.FortranEngine, SIM):
         return SIM.solve(self, *args, **kwargs)
 
 
-class SIMFortran_Evaluate(fsic_fortran.FortranEngine, SIM):
+class SIMFortran_Evaluate(fsic.fortran.FortranEngine, SIM):
     """Use pure Python `solve()` and `solve_t()` to call Fortran version of `_evaluate()`."""
     ENGINE = importlib.import_module('sim_fortran')
 

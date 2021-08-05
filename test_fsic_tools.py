@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-test_fsictools
-==============
+test_fsic_tools
+===============
 Test suite for supporting FSIC tools.
 """
 
@@ -9,7 +9,7 @@ import unittest
 import warnings
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 pandas_installed = True
@@ -27,7 +27,7 @@ class TestPandasFunctions(unittest.TestCase):
     MODEL = fsic.build_model(SYMBOLS)
 
     def test_symbols_to_dataframe(self):
-        result = fsictools.symbols_to_dataframe(self.SYMBOLS)
+        result = fsic.tools.symbols_to_dataframe(self.SYMBOLS)
         expected = pd.DataFrame({
             'name': ['Y', 'C', 'G'],
             'type': [fsic.Type.ENDOGENOUS, fsic.Type.EXOGENOUS, fsic.Type.EXOGENOUS],
@@ -45,7 +45,7 @@ class TestPandasFunctions(unittest.TestCase):
         # Check list of names is unchanged
         self.assertEqual(model.names, model.NAMES)
 
-        result = fsictools.model_to_dataframe(model)
+        result = fsic.tools.model_to_dataframe(model)
         expected = pd.DataFrame({
             'Y': 0.0,
             'C': 0.0,
@@ -72,7 +72,7 @@ class TestPandasFunctions(unittest.TestCase):
         # Check list of names is now changed
         self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
 
-        result = fsictools.model_to_dataframe(model)
+        result = fsic.tools.model_to_dataframe(model)
         expected = pd.DataFrame({
             'Y': 0.0,
             'C': 0.0,
@@ -97,7 +97,7 @@ class TestPandasFunctions(unittest.TestCase):
         }, name='test')
         model.add_variable('D', 0.0)
 
-        results = fsictools.linker_to_dataframes(model)
+        results = fsic.tools.linker_to_dataframes(model)
 
         pd.testing.assert_frame_equal(results['test'],
                                       pd.DataFrame({'D': 0.0,
@@ -129,7 +129,7 @@ class TestNetworkXFunctions(unittest.TestCase):
     SYMBOLS = fsic.parse_model('Y = C + G')
 
     def test_symbols_to_graph(self):
-        result = fsictools.symbols_to_graph(self.SYMBOLS)
+        result = fsic.tools.symbols_to_graph(self.SYMBOLS)
 
         expected = nx.DiGraph()
         expected.add_nodes_from(['Y[t]'], equation='Y[t] = C[t] + G[t]')
@@ -152,7 +152,7 @@ except ModuleNotFoundError:
 class TestSympyFunctions(unittest.TestCase):
 
     def test_symbols_to_sympy(self):
-        result = fsictools.symbols_to_sympy(fsic.parse_model('Y = C + G'))
+        result = fsic.tools.symbols_to_sympy(fsic.parse_model('Y = C + G'))
         expected = {
             sympy.Symbol('Y'): sympy.Eq(sympy.Symbol('Y'), sympy.sympify('C + G')),
         }
@@ -162,7 +162,7 @@ class TestSympyFunctions(unittest.TestCase):
     def test_symbols_to_sympy_singleton(self):
         # Test (forced) conversion of 'S' to a SymPy Symbol (rather than a
         # Singleton)
-        result = fsictools.symbols_to_sympy(fsic.parse_model('S = YD - C'))
+        result = fsic.tools.symbols_to_sympy(fsic.parse_model('S = YD - C'))
         expected = {
             sympy.Symbol('S'): sympy.Eq(sympy.Symbol('S'), sympy.sympify('YD - C')),
         }
@@ -172,7 +172,7 @@ class TestSympyFunctions(unittest.TestCase):
     def test_symbols_to_sympy_singleton_and_imaginary(self):
         # Also test (forced) conversion of 'I' to a SymPy Symbol (rather
         # than an imaginary number)
-        result = fsictools.symbols_to_sympy(fsic.parse_model('I = S'))
+        result = fsic.tools.symbols_to_sympy(fsic.parse_model('I = S'))
         expected = {
             sympy.Symbol('I'): sympy.Eq(sympy.Symbol('I'), sympy.Symbol('S')),
         }

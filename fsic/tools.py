@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-fsictools
-=========
+tools
+=====
 Supporting tools for FSIC-based economic models. See the individual docstrings
 for dependencies additional to those of `fsic`.
 """
-
-# Version number keeps track with the main `fsic` module
-from fsic import __version__
 
 import re
 from typing import Any, Dict, Hashable, List

@@ -11,7 +11,7 @@ This example shows how to:
 * run the model with error-handling set to 'ignore', to skip over NaNs (from
   the input data) with the expectation that the model will eventually overwrite
   them with numerical values
-* use `fsictools` to convert the model results to a DataFrame for inspection
+* use `fsic.tools` to convert the model results to a DataFrame for inspection
   and plotting
 * reproduce (more or less) Figure 1.1 of Almon (2017) ('Q in simple model')
   using `matplotlib`, saving the plot to disk as 'output.png'

@@ -25,7 +25,7 @@ import unittest
 import numpy as np
 
 import fsic
-import fsic_fortran
+import fsic.fortran
 
 import test_fsic
 
@@ -56,7 +56,7 @@ class FortranTestWrapper:
     @staticmethod
     def build_model(symbols, test_module_name):
         # Write out a file of Fortran code
-        fortran_definition = fsic_fortran.build_fortran_definition(symbols)
+        fortran_definition = fsic.fortran.build_fortran_definition(symbols)
         with open('{}.f95'.format(test_module_name), 'w') as f:
             f.write(fortran_definition)
 
@@ -76,7 +76,7 @@ class FortranTestWrapper:
         # Construct the class
         PythonClass = fsic.build_model(symbols)
 
-        class FortranClass(fsic_fortran.FortranEngine, PythonClass):
+        class FortranClass(fsic.fortran.FortranEngine, PythonClass):
             ENGINE = importlib.import_module(test_module_name)
 
         return FortranClass
@@ -174,8 +174,8 @@ H = H[-1] + YD - C
     def test_initialisation_error(self):
         # Check that the Fortran class catches a missing (unlinked) Fortran
         # module
-        with self.assertRaises(fsic_fortran.InitialisationError):
-            fsic_fortran.FortranEngine(range(10))
+        with self.assertRaises(fsic.fortran.InitialisationError):
+            fsic.fortran.FortranEngine(range(10))
 
     def test_evaluate(self):
         # Check Python- and Fortran-based evaluate functions generate the same

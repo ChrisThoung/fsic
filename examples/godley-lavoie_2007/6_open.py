@@ -26,7 +26,7 @@ the user to write the necessary code.
 While FSIC only requires NumPy, this example also uses:
 
 * `pandas`, to generate DataFrames of results using
-  `fsictools.linker_to_dataframes()`
+  `fsic.tools.linker_to_dataframes()`
 * `matplotlib`, to replicate, from Godley and Lavoie (2007), Figures 6.8, 6.9,
   6.10 and 6.11
 
@@ -54,7 +54,7 @@ References:
 import matplotlib.pyplot as plt
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 # -----------------------------------------------------------------------------
@@ -197,9 +197,9 @@ if __name__ == '__main__':
 
     # -------------------------------------------------------------------------
     # Extract results as dictionaries of DataFrames
-    baseline_results = fsictools.linker_to_dataframes(baseline)
-    imports_results = fsictools.linker_to_dataframes(import_propensity_scenario)
-    savings_results = fsictools.linker_to_dataframes(saving_propensity_scenario)
+    baseline_results = fsic.tools.linker_to_dataframes(baseline)
+    imports_results = fsic.tools.linker_to_dataframes(import_propensity_scenario)
+    savings_results = fsic.tools.linker_to_dataframes(saving_propensity_scenario)
 
     # -------------------------------------------------------------------------
     # Reproduce figures from Godley and Lavoie (2007)

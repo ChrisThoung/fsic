@@ -89,10 +89,10 @@ model.solve(max_iter=350)
 #
 # If you've installed [`pandas`](https://pandas.pydata.org/), you can convert the
 # contents of the model to a DataFrame for inspection, using
-# `model_to_dataframe()`, from the `fsictools` module:
+# `model_to_dataframe()`, from the `fsic.tools` module:
 
-import fsictools
+import fsic.tools
 
-results = fsictools.model_to_dataframe(model)
+results = fsic.tools.model_to_dataframe(model)
 
 print(results.round(2))

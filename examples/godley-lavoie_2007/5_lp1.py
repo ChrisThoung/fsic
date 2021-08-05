@@ -19,7 +19,7 @@ new in FSIC version 0.5.0.dev and an alternative to handling NaNs using the
 
 While FSIC only requires NumPy, this example also uses:
 
-* `pandas`, to generate a DataFrame of results using `fsictools`
+* `pandas`, to generate a DataFrame of results using `fsic.tools`
 * `matplotlib`, to replicate, from Godley and Lavoie (2007):
     * Figure 5.2: Evolution of the wealth to disposable income ratio, following
                   an increase in both the short-term and long-term interest
@@ -55,7 +55,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import fsic
-import fsictools
+import fsic.tools
 
 
 # Inline comments give the corresponding equation numbers from Godley and
@@ -150,7 +150,7 @@ if __name__ == '__main__':
 
 
     # 3. Reproduce Figures 5.2, 5.3 and 5.4 of Godley and Lavoie (2007)
-    results = fsictools.model_to_dataframe(interest_rate_scenario)
+    results = fsic.tools.model_to_dataframe(interest_rate_scenario)
 
     # Construct ratios for graphing
     results['V:YD'] = results.eval('V / YDr')

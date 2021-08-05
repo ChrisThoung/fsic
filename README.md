@@ -5,18 +5,9 @@
 Tools for macroeconomic modelling in Python.
 
 
-## Contents
-
-| Module                             | Description                                                                         | Dependencies                                                                                                                                                           | Test suite                                   |
-| ---------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| [fsic.py](fsic.py)                 | Core module: Parser and base classes for modelling                                  | [`NumPy`](https://numpy.org/)                                                                                                                                          | [test_fsic.py](test_fsic.py)                 |
-| [fsic_fortran.py](fsic_fortran.py) | Supporting module: Functions and classes to accelerate model solution using Fortran | [`NumPy`](https://numpy.org/) with [`F2PY`](https://numpy.org/doc/stable/f2py/)                                                                                        | [test_fsic_fortran.py](test_fsic_fortran.py) |
-| [fsictools.py](fsictools.py)       | Utilities: Tools to analyse models and model results                                | Optionally, depending on desired features: [`pandas`](https://pandas.pydata.org/), [`NetworkX`](https://networkx.org/), [`SymPy`](https://www.sympy.org/en/index.html) | [test_fsictools.py](test_fsictools.py)       |
-
-
 ## How to...
 
-* install the Python modules: run either:  
+* install the package: run either:  
   `$ python setup.py install`  
   or: `$ pip install .`
 * see more examples of how to use FSIC: view the contents of the
@@ -109,12 +100,12 @@ which each item of the:
 
 If you've installed [`pandas`](https://pandas.pydata.org/), you can convert the
 contents of the model to a DataFrame for inspection, using
-`model_to_dataframe()`, from the `fsictools` module:
+`model_to_dataframe()`, from the `fsic.tools` module:
 
 ```python
-import fsictools
+import fsic.tools
 
-results = fsictools.model_to_dataframe(model)
+results = fsic.tools.model_to_dataframe(model)
 
 print(results.round(2))
 ```
