@@ -16,13 +16,9 @@ from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from fsic import FSICError, InitialisationError, NonConvergenceError, SolutionError
+from .exceptions import FortranEngineError, InitialisationError, NonConvergenceError, SolutionError
 from fsic import Symbol, Type
 from fsic import BaseModel
-
-
-class FortranEngineError(FSICError):
-    pass
 
 
 # Class implementing interface to Fortran code --------------------------------
