@@ -13,6 +13,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Reorganised source files into a Python package (`fsic`):
     - Split original `fsic` module into:
+        - `core`
+        - `parser`
         - `exceptions`
     - `fsic_fortran` is now `fsic.fortran`
     - `fsictools` is now `fsic.tools`
