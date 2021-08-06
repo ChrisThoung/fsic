@@ -9,8 +9,8 @@ for dependencies additional to those of `fsic`.
 import re
 from typing import Any, Dict, Hashable, List
 
-from fsic import Symbol, BaseModel, BaseLinker
-import fsic
+from .core import BaseModel, BaseLinker
+from .parser import Symbol, term_re
 
 
 def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':
@@ -28,8 +28,8 @@ def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
     equations = [s.equation for s in symbols if s.equation is not None]
     for e in equations:
         lhs, rhs = e.split('=', maxsplit=1)
-        endogenous = [m.group(0) for m in fsic.term_re.finditer(lhs)]
-        exogenous =  [m.group(0) for m in fsic.term_re.finditer(rhs)]
+        endogenous = [m.group(0) for m in term_re.finditer(lhs)]
+        exogenous =  [m.group(0) for m in term_re.finditer(rhs)]
 
         # Add the equations as node properties
         G.add_nodes_from(endogenous, equation=e)

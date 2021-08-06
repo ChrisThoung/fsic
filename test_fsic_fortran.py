@@ -25,6 +25,7 @@ import unittest
 import numpy as np
 
 import fsic
+import fsic.exceptions
 import fsic.fortran
 
 import test_fsic
@@ -252,7 +253,7 @@ H = H[-1] + YD - C
         self.model_python.C[2] = np.NaN
 
         # Solution should halt because of the pre-existing NaN
-        with self.assertRaises(fsic.SolutionError):
+        with self.assertRaises(fsic.exceptions.SolutionError):
             self.model_python.solve()
 
         self.model_python.solve(errors='ignore')
@@ -263,7 +264,7 @@ H = H[-1] + YD - C
         self.model_fortran.C[2] = np.NaN
 
         # Solution should halt because of the pre-existing NaN
-        with self.assertRaises(fsic.SolutionError):
+        with self.assertRaises(fsic.exceptions.SolutionError):
             self.model_fortran.solve()
 
         self.model_fortran.solve(errors='ignore')
@@ -320,14 +321,14 @@ H = H[-1] + YD - C
         self.model_python.G = 20
         self.model_python.theta = 0.2
 
-        with self.assertRaises(fsic.NonConvergenceError):
+        with self.assertRaises(fsic.exceptions.NonConvergenceError):
             self.model_python.solve(max_iter=5)
 
         # Fortran
         self.model_fortran.G = 20
         self.model_fortran.theta = 0.2
 
-        with self.assertRaises(fsic.NonConvergenceError):
+        with self.assertRaises(fsic.exceptions.NonConvergenceError):
             self.model_fortran.solve(max_iter=5)
 
         # Comparison

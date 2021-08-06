@@ -30,6 +30,9 @@ import sys
 import numpy as np
 
 import fsic
+import fsic.core
+import fsic.exceptions
+import fsic.parser
 
 
 pandas_installed = True
@@ -65,16 +68,16 @@ H = (
             'H = (\n     H[-1] + YD - C\n)',
         ]
 
-        self.assertEqual(fsic.equation_re.findall(script), expected)
+        self.assertEqual(fsic.parser.equation_re.findall(script), expected)
 
 
 class TestTerm(unittest.TestCase):
 
     def test_str(self):
         # Check that `str` representations are as expected
-        self.assertEqual(str(fsic.Term('C', fsic.Type.VARIABLE, -1)), 'C[t-1]')
-        self.assertEqual(str(fsic.Term('C', fsic.Type.VARIABLE,  0)), 'C[t]')
-        self.assertEqual(str(fsic.Term('C', fsic.Type.VARIABLE,  1)), 'C[t+1]')
+        self.assertEqual(str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE, -1)), 'C[t-1]')
+        self.assertEqual(str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE,  0)), 'C[t]')
+        self.assertEqual(str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE,  1)), 'C[t+1]')
 
 
 class TestParsers(unittest.TestCase):
@@ -111,85 +114,85 @@ H = (H[-1] +
             'H = (H[-1] +\n     YD) - C',
         ]
 
-        self.assertEqual(fsic.split_equations(script), expected)
+        self.assertEqual(fsic.parser.split_equations(script), expected)
 
     def test_parse_terms(self):
         # Test that `parse_terms()` correctly identifies individual terms in an
         # expression
         expression = 'C = exp({alpha_1} * log(YD) + {alpha_2} * log(H[-1]) + <epsilon>)'
         expected = [
-            fsic.Term(name='C', type=fsic.Type.VARIABLE, index_=0),
-            fsic.Term(name='exp', type=fsic.Type.FUNCTION, index_=None),
-            fsic.Term(name='alpha_1', type=fsic.Type.PARAMETER, index_=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
-            fsic.Term(name='YD', type=fsic.Type.VARIABLE, index_=0),
-            fsic.Term(name='alpha_2', type=fsic.Type.PARAMETER, index_=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
-            fsic.Term(name='H', type=fsic.Type.VARIABLE, index_=-1),
-            fsic.Term(name='epsilon', type=fsic.Type.ERROR, index_=0),
+            fsic.parser.Term(name='C', type=fsic.parser.Type.VARIABLE, index_=0),
+            fsic.parser.Term(name='exp', type=fsic.parser.Type.FUNCTION, index_=None),
+            fsic.parser.Term(name='alpha_1', type=fsic.parser.Type.PARAMETER, index_=0),
+            fsic.parser.Term(name='log', type=fsic.parser.Type.FUNCTION, index_=None),
+            fsic.parser.Term(name='YD', type=fsic.parser.Type.VARIABLE, index_=0),
+            fsic.parser.Term(name='alpha_2', type=fsic.parser.Type.PARAMETER, index_=0),
+            fsic.parser.Term(name='log', type=fsic.parser.Type.FUNCTION, index_=None),
+            fsic.parser.Term(name='H', type=fsic.parser.Type.VARIABLE, index_=-1),
+            fsic.parser.Term(name='epsilon', type=fsic.parser.Type.ERROR, index_=0),
         ]
 
-        self.assertEqual(fsic.parse_terms(expression), expected)
+        self.assertEqual(fsic.parser.parse_terms(expression), expected)
 
     def test_parse_equation_terms(self):
         # Test that `parse_equation_terms()` correctly identifies individual
         # terms in an equation
         equation = 'C = exp({alpha_1} * log(YD) + {alpha_2} * log(H[-1]) + <epsilon>)'
         expected = [
-            fsic.Term(name='C', type=fsic.Type.ENDOGENOUS, index_=0),
-            fsic.Term(name='exp', type=fsic.Type.FUNCTION, index_=None),
-            fsic.Term(name='alpha_1', type=fsic.Type.PARAMETER, index_=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
-            fsic.Term(name='YD', type=fsic.Type.EXOGENOUS, index_=0),
-            fsic.Term(name='alpha_2', type=fsic.Type.PARAMETER, index_=0),
-            fsic.Term(name='log', type=fsic.Type.FUNCTION, index_=None),
-            fsic.Term(name='H', type=fsic.Type.EXOGENOUS, index_=-1),
-            fsic.Term(name='epsilon', type=fsic.Type.ERROR, index_=0),
+            fsic.parser.Term(name='C', type=fsic.parser.Type.ENDOGENOUS, index_=0),
+            fsic.parser.Term(name='exp', type=fsic.parser.Type.FUNCTION, index_=None),
+            fsic.parser.Term(name='alpha_1', type=fsic.parser.Type.PARAMETER, index_=0),
+            fsic.parser.Term(name='log', type=fsic.parser.Type.FUNCTION, index_=None),
+            fsic.parser.Term(name='YD', type=fsic.parser.Type.EXOGENOUS, index_=0),
+            fsic.parser.Term(name='alpha_2', type=fsic.parser.Type.PARAMETER, index_=0),
+            fsic.parser.Term(name='log', type=fsic.parser.Type.FUNCTION, index_=None),
+            fsic.parser.Term(name='H', type=fsic.parser.Type.EXOGENOUS, index_=-1),
+            fsic.parser.Term(name='epsilon', type=fsic.parser.Type.ERROR, index_=0),
         ]
 
-        self.assertEqual(fsic.parse_equation_terms(equation), expected)
+        self.assertEqual(fsic.parser.parse_equation_terms(equation), expected)
 
     def test_parse_equation(self):
         # Test that `parse_equation()` correctly identifies the symbols that
         # make up an equation
         equation = 'C = exp({alpha_1} * log(YD) + {alpha_2} * log(H[-1]) + <epsilon>)'
         expected = [
-            fsic.Symbol(name='C', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+            fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
                         equation='C[t] = exp(alpha_1[t] * log(YD[t]) + '
                                             'alpha_2[t] * log(H[t-1]) + '
                                             'epsilon[t])',
                         code='self._C[t] = np.exp(self._alpha_1[t] * np.log(self._YD[t]) + '
                                                  'self._alpha_2[t] * np.log(self._H[t-1]) + '
                                                  'self._epsilon[t])'),
-            fsic.Symbol(name='exp', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.Symbol(name='alpha_1', type=fsic.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.Symbol(name='log', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.Symbol(name='YD', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
-            fsic.Symbol(name='alpha_2', type=fsic.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.Symbol(name='H', type=fsic.Type.EXOGENOUS, lags=-1, leads=0, equation=None, code=None),
-            fsic.Symbol(name='epsilon', type=fsic.Type.ERROR, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='exp', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.parser.Symbol(name='alpha_1', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='log', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.parser.Symbol(name='YD', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='alpha_2', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='H', type=fsic.parser.Type.EXOGENOUS, lags=-1, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='epsilon', type=fsic.parser.Type.ERROR, lags=0, leads=0, equation=None, code=None),
         ]
 
-        self.assertEqual(fsic.parse_equation(equation), expected)
+        self.assertEqual(fsic.parser.parse_equation(equation), expected)
 
     def test_parse_equation_empty(self):
         # Check that `parse_equation()` returns an empty list if the equation
         # string is empty
-        self.assertEqual(fsic.parse_equation(''), [])
-        self.assertEqual(fsic.parse_equation(' '), [])
+        self.assertEqual(fsic.parser.parse_equation(''), [])
+        self.assertEqual(fsic.parser.parse_equation(' '), [])
 
     def test_parse_equation_multiple_equations_error(self):
         # Check that `parse_equation()` raises a `ParserError` if a string
         # doesn't define a single equation
-        with self.assertRaises(fsic.ParserError):
-            fsic.parse_equation('A = B\nC = D')
+        with self.assertRaises(fsic.exceptions.ParserError):
+            fsic.parser.parse_equation('A = B\nC = D')
 
     def test_parse_equation_indentation_error(self):
         # Check that `parse_equation()` behaves identically to `parse_model()`
         # and raises an `IndentationError` if there's any leading whitespace in
         # an equation string
         with self.assertRaises(IndentationError):
-            fsic.parse_equation(' Y = C + G')
+            fsic.parser.parse_equation(' Y = C + G')
 
     def test_parse_equation_function_replacement(self):
         # Check that function replacement only applies to functions explicitly
@@ -198,30 +201,30 @@ H = (H[-1] +
         #  - np.log -> np.log  (unchanged)
         equation = 'C = log(A) + np.log(B)'
         expected = [
-            fsic.Symbol(name='C', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+            fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
                         equation='C[t] = log(A[t]) + np.log(B[t])',
                         code='self._C[t] = np.log(self._A[t]) + np.log(self._B[t])'),
-            fsic.Symbol(name='log', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.Symbol(name='A', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
-            fsic.Symbol(name='np.log', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.Symbol(name='B', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='log', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.parser.Symbol(name='A', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='np.log', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.parser.Symbol(name='B', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
         ]
 
-        self.assertEqual(fsic.parse_equation(equation), expected)
+        self.assertEqual(fsic.parser.parse_equation(equation), expected)
 
     def test_parse_equation_namespace_functions(self):
         # Check that functions in namespaces (below, `mean` in `np` [NumPy])
         # are left unchanged
         equation = 'Y = np.mean(X)'
         expected = [
-            fsic.Symbol(name='Y', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+            fsic.parser.Symbol(name='Y', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
                         equation='Y[t] = np.mean(X[t])',
                         code='self._Y[t] = np.mean(self._X[t])'),
-            fsic.Symbol(name='np.mean', type=fsic.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.Symbol(name='X', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='np.mean', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
+            fsic.parser.Symbol(name='X', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
         ]
 
-        self.assertEqual(fsic.parse_equation(equation), expected)
+        self.assertEqual(fsic.parser.parse_equation(equation), expected)
 
     def test_parse_model(self):
         # Test that `parse_model()` correctly identifies the symbols that make
@@ -234,25 +237,25 @@ T = {theta} * Y
 H = H[-1] + YD - C
 '''
         expected = [
-            fsic.Symbol(name='C', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+            fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
                         equation='C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]',
                         code='self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]'),
-            fsic.Symbol(name='alpha_1', type=fsic.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.Symbol(name='YD', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+            fsic.parser.Symbol(name='alpha_1', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='YD', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
                         equation='YD[t] = Y[t] - T[t]',
                         code='self._YD[t] = self._Y[t] - self._T[t]'),
-            fsic.Symbol(name='alpha_2', type=fsic.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.Symbol(name='H', type=fsic.Type.ENDOGENOUS, lags=-1, leads=0,
+            fsic.parser.Symbol(name='alpha_2', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='H', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0,
                         equation='H[t] = H[t-1] + YD[t] - C[t]',
                         code='self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]'),
-            fsic.Symbol(name='Y', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+            fsic.parser.Symbol(name='Y', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
                         equation='Y[t] = C[t] + G[t]',
                         code='self._Y[t] = self._C[t] + self._G[t]'),
-            fsic.Symbol(name='T', type=fsic.Type.ENDOGENOUS, lags=0, leads=0,
+            fsic.parser.Symbol(name='T', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
                         equation='T[t] = theta[t] * Y[t]',
                         code='self._T[t] = self._theta[t] * self._Y[t]'),
-            fsic.Symbol(name='G', type=fsic.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
-            fsic.Symbol(name='theta', type=fsic.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='G', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(name='theta', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
         ]
 
         self.assertEqual(fsic.parse_model(model), expected)
@@ -260,37 +263,37 @@ H = H[-1] + YD - C
     def test_parser_no_lhs(self):
         # Check that invalid equations (missing a left-hand side expression)
         # lead to a `ParserError`
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('A + B + C')
 
     def test_accidental_int_call(self):
         # Check that a missing operator between an integer and a variable is
         # caught properly
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('3(A)')
 
     def test_accidental_float_call(self):
         # Check that a missing operator between a float and a variable is
         # caught properly
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('3.0(A)')
 
     def test_missing_operator_int(self):
         # Check that a missing operator between an integer and a variable is
         # caught properly
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('3A')
 
     def test_missing_operator_float(self):
         # Check that a missing operator between a float and a variable is
         # caught properly
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('3.0A')
 
     def test_inconsistent_variable_type_left(self):
         # Check for an error if a variable is defined in multiple ways e.g. as
         # both an endogenous/exogenous variable and a parameter
-        with self.assertRaises(fsic.SymbolError):
+        with self.assertRaises(fsic.exceptions.SymbolError):
             fsic.parse_model('''
 A = f(B, {C})  # C is a parameter
 B = f(C, D)    # But here, C is an exogenous variable
@@ -299,7 +302,7 @@ B = f(C, D)    # But here, C is an exogenous variable
     def test_inconsistent_variable_type_right(self):
         # Check for an error if a variable is defined in multiple ways e.g. as
         # both an endogenous/exogenous variable and a parameter
-        with self.assertRaises(fsic.SymbolError):
+        with self.assertRaises(fsic.exceptions.SymbolError):
             fsic.parse_model('''
 A = f(B, C, D)  # C is an exogenous variable
 B = f(<C>, D)   # But here, C is an error
@@ -316,7 +319,7 @@ class TestVectorContainer(unittest.TestCase):
 
     def test_replace(self):
         # Check multiple-replacement method
-        container = fsic.VectorContainer(range(-10, 10))
+        container = fsic.core.VectorContainer(range(-10, 10))
         for i, a in enumerate('ABC'):
             container.add_variable(a, i)
 
@@ -375,7 +378,7 @@ H = H[-1] + YD - C
             ])))
 
     def test_init_dimension_error(self):
-        with self.assertRaises(fsic.DimensionError):
+        with self.assertRaises(fsic.exceptions.DimensionError):
             # C is invalid because it has the wrong shape
             self.Model(range(10), C=[0, 0])
 
@@ -456,7 +459,7 @@ H = H[-1] + YD - C
         # Check that `iterations` assignment errors are as expected
         model = self.Model(range(10))
 
-        with self.assertRaises(fsic.DimensionError):
+        with self.assertRaises(fsic.exceptions.DimensionError):
             model.iterations = [0, 1]  # Incompatible dimensions
 
     def test_modify_status(self):
@@ -486,7 +489,7 @@ H = H[-1] + YD - C
         # Check that `status` assignment errors are as expected
         model = self.Model(range(10))
 
-        with self.assertRaises(fsic.DimensionError):
+        with self.assertRaises(fsic.exceptions.DimensionError):
             model.status = ['-', '.']  # Incompatible dimensions
 
     def test_iter_periods(self):
@@ -694,7 +697,7 @@ class TestModelContainerMethods(unittest.TestCase):
                                  for q in range(1, 4 + 1)])
         model.YD = np.arange(len(model.span))
 
-        with self.assertRaises(fsic.DimensionError):
+        with self.assertRaises(fsic.exceptions.DimensionError):
             model.C = [0, 0]
 
     def test_contains(self):
@@ -737,7 +740,7 @@ class TestBuild(unittest.TestCase):
         # Delete the symbol for the endogenous variable
         del symbols[0]
 
-        code = fsic.build_model_definition(symbols)
+        code = fsic.parser.build_model_definition(symbols)
         self.assertEqual(code, expected)
 
     def test_no_type_hints(self):
@@ -761,7 +764,7 @@ class TestBuild(unittest.TestCase):
         self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]'''
 
         symbols = fsic.parse_model('Y = C + I + G + X - M')
-        code = fsic.build_model_definition(symbols, with_type_hints=False)
+        code = fsic.parser.build_model_definition(symbols, with_type_hints=False)
 
     def test_no_symbols(self):
         # Test that empty input generates an empty model template
@@ -782,7 +785,7 @@ class TestBuild(unittest.TestCase):
         pass'''
 
         symbols = fsic.parse_model('')
-        code = fsic.build_model_definition(symbols)
+        code = fsic.parser.build_model_definition(symbols)
         self.assertEqual(code, expected)
 
     def test_conditional_expression(self):
@@ -1291,7 +1294,7 @@ with warnings.catch_warnings():
             self.status[t] = 'E'
             self.iterations[t] = iteration
 
-            raise SolutionError(
+            raise fsic.exceptions.SolutionError(
                 'Numerical solution error after {{}} iterations(s) '
                 'in period with label: {{}} (index: {{}})'
                 .format(iteration, self.span[t], t))
@@ -1318,7 +1321,7 @@ with warnings.catch_warnings():
         model = self.Model(range(1945, 2010 + 1),
                            alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
 
-        with self.assertRaises(fsic.SolutionError):
+        with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
 
         # `s` should have generated a NaN
@@ -1429,7 +1432,7 @@ class TestCustomOverrides(unittest.TestCase):
 
         model = Model(range(5))
 
-        with self.assertRaises(fsic.SolutionError):
+        with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
 
 
@@ -1620,34 +1623,34 @@ class TestParserErrors(unittest.TestCase):
 
     def test_invalid_index(self):
         # Check that the parser can detect an invalid index
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             # In the index, '1' and '-' are the wrong way around
             fsic.parse_model('A = A[1-]')
 
     def test_missing_closing_bracket(self):
         # Check that the parser can detect a missing closing bracket
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             # Missing closing bracket at the end of the string below
             fsic.parse_model('Y = C + I + G + (X - M')
 
     def test_misplaced_closing_bracket(self):
         # Check that the parser can detect a closing bracket without an
         # accompanying prior open bracket
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('Y = C + I + G +)X - M')
 
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('Y = C + I + G +)X - M)')
 
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('Y = C + I + G +)X - M(')
 
     def test_extra_equals_single_equation(self):
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('Y = C + I + G = X - M')
 
     def test_extra_equals_multiple_equations(self):
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('''
 Y = C + I + G = X - M
 Z = C + I + G = X - M
@@ -1655,7 +1658,7 @@ Z = C + I + G = X - M
 
     def test_double_definition(self):
         # Check test for endogenous variables that are set twice
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('''
 Y = C + I + G + X - M
 Y = GVA + TSP
@@ -1666,7 +1669,7 @@ Y = GVA + TSP
     def test_accidental_float_call(self):
         # Check that something like 'A = 0.5(B)' (missing * operator) raises a
         # `ParserError`
-        with self.assertRaises(fsic.ParserError):
+        with self.assertRaises(fsic.exceptions.ParserError):
             fsic.parse_model('A = 0.5(B)')
 
     def test_keywords_as_variables_lhs(self):
@@ -1674,7 +1677,7 @@ Y = GVA + TSP
         # keywords as endogenous variable names in a model
         for name in keyword.kwlist:
             with self.subTest(name=name):
-                with self.assertRaises(fsic.ParserError):
+                with self.assertRaises(fsic.exceptions.ParserError):
                     fsic.parse_model('{} = 0'.format(name))
 
     def test_keywords_as_variables_rhs(self):
@@ -1682,7 +1685,7 @@ Y = GVA + TSP
         # keywords as exogenous variable names in a model
         for name in keyword.kwlist:
             with self.subTest(name=name):
-                with self.assertRaises(fsic.ParserError):
+                with self.assertRaises(fsic.exceptions.ParserError):
                     fsic.parse_model('X = {}[-1]'.format(name))
 
 
@@ -1690,7 +1693,7 @@ class TestBuildErrors(unittest.TestCase):
 
     def test_extra_equals(self):
         symbols = fsic.parse_model('Y = C + I + G = X - M', check_syntax=False)
-        with self.assertRaises(fsic.BuildError):
+        with self.assertRaises(fsic.exceptions.BuildError):
             Model = fsic.build_model(symbols)
 
 
@@ -1711,7 +1714,7 @@ g = log(G)  # Use to test for infinity with log(0)
         # Model should halt on first period
         model = self.Model(range(10), G=20)
 
-        with self.assertRaises(fsic.SolutionError):
+        with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
 
         self.assertTrue(np.isnan(model.s[0]))
@@ -1724,7 +1727,7 @@ g = log(G)  # Use to test for infinity with log(0)
         # Model should halt if pre-existing NaNs detected
         model = self.Model(range(10), s=np.nan)
 
-        with self.assertRaises(fsic.SolutionError):
+        with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
 
     def test_skip_solve(self):
@@ -1891,7 +1894,7 @@ g = log(G)  # Use to test for infinity with log(0)
         # Model should halt on first period because of log(0)
         model = self.Model(range(10), c0=10, C=10, Y=10)
 
-        with self.assertRaises(fsic.SolutionError):
+        with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
 
         self.assertTrue(np.isinf(model.g[0]))
@@ -1964,7 +1967,7 @@ H = H[-1] + YD - C
 
         # Second period (with limited number of iterations) should fail to
         # solve
-        with self.assertRaises(fsic.NonConvergenceError):
+        with self.assertRaises(fsic.exceptions.NonConvergenceError):
             model.solve_t(2, max_iter=5)
 
         self.assertTrue(np.all(model.status ==
@@ -2043,7 +2046,7 @@ class TestLinkerInit(unittest.TestCase):
 
     def test_init_different_spans_error(self):
         # Check for an error if the submodel spans differ
-        with self.assertRaises(fsic.InitialisationError):
+        with self.assertRaises(fsic.exceptions.InitialisationError):
             linker = fsic.BaseLinker({
                 'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
                 'B': self.SubmodelNoLags(range(1991, 2005 + 1)),  # Start is 1990 for 'A'
@@ -2189,7 +2192,7 @@ M = {mu} * Y''')
         })
 
         # Too few iterations to solve: Should raise an error
-        with self.assertRaises(fsic.NonConvergenceError):
+        with self.assertRaises(fsic.exceptions.NonConvergenceError):
             linker.solve(max_iter=1)
 
     def test_solve_nonconvergence_continue(self):

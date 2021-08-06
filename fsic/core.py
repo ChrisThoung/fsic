@@ -4,6 +4,14 @@ core
 ====
 """
 
+import copy
+from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
+import warnings
+
+import numpy as np
+
+from .exceptions import DimensionError, DuplicateNameError, EvalError, InitialisationError, NonConvergenceError, SolutionError
+
 
 # Labelled container for vector data (1D NumPy arrays) ------------------------
 

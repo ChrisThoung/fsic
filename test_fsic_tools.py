@@ -9,6 +9,7 @@ import unittest
 import warnings
 
 import fsic
+import fsic.parser
 import fsic.tools
 
 
@@ -30,7 +31,7 @@ class TestPandasFunctions(unittest.TestCase):
         result = fsic.tools.symbols_to_dataframe(self.SYMBOLS)
         expected = pd.DataFrame({
             'name': ['Y', 'C', 'G'],
-            'type': [fsic.Type.ENDOGENOUS, fsic.Type.EXOGENOUS, fsic.Type.EXOGENOUS],
+            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.EXOGENOUS],
             'lags': 0,
             'leads': 0,
             'equation': ['Y[t] = C[t] + G[t]', None, None],

@@ -16,9 +16,9 @@ from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+from .core import BaseModel
 from .exceptions import FortranEngineError, InitialisationError, NonConvergenceError, SolutionError
-from fsic import Symbol, Type
-from fsic import BaseModel
+from .parser import Symbol, Type
 
 
 # Class implementing interface to Fortran code --------------------------------
