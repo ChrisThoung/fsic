@@ -51,7 +51,6 @@ import subprocess
 import timeit
 
 import fsic
-import fsic.fortran
 
 
 # -----------------------------------------------------------------------------

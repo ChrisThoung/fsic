@@ -9,8 +9,6 @@ import unittest
 import warnings
 
 import fsic
-import fsic.parser
-import fsic.tools
 
 
 pandas_installed = True

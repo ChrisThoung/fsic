@@ -43,7 +43,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import fsic
-import fsic.tools
 
 
 # Inline comments give the corresponding equation numbers from Godley and

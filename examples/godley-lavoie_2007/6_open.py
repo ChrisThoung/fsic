@@ -54,7 +54,6 @@ References:
 import matplotlib.pyplot as plt
 
 import fsic
-import fsic.tools
 
 
 # -----------------------------------------------------------------------------

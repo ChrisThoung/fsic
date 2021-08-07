@@ -30,9 +30,6 @@ import sys
 import numpy as np
 
 import fsic
-import fsic.core
-import fsic.exceptions
-import fsic.parser
 
 
 pandas_installed = True

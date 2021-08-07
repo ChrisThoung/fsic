@@ -25,8 +25,6 @@ import unittest
 import numpy as np
 
 import fsic
-import fsic.exceptions
-import fsic.fortran
 
 import test_fsic
 

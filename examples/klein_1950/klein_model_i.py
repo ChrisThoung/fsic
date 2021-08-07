@@ -46,7 +46,6 @@ from pandas import DataFrame
 import pandas as pd
 
 import fsic
-import fsic.tools
 
 
 # Variable names and descriptions, adapted from Klein (1950)

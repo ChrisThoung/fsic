@@ -25,7 +25,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import fsic
-import fsic.tools
 
 
 script = '''

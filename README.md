@@ -103,8 +103,6 @@ contents of the model to a DataFrame for inspection, using
 `model_to_dataframe()`, from the `fsic.tools` module:
 
 ```python
-import fsic.tools
-
 results = fsic.tools.model_to_dataframe(model)
 
 print(results.round(2))

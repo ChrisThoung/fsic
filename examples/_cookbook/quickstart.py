@@ -91,8 +91,6 @@ model.solve(max_iter=350)
 # contents of the model to a DataFrame for inspection, using
 # `model_to_dataframe()`, from the `fsic.tools` module:
 
-import fsic.tools
-
 results = fsic.tools.model_to_dataframe(model)
 
 print(results.round(2))
