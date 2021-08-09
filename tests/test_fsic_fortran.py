@@ -26,7 +26,7 @@ import numpy as np
 
 import fsic
 
-import test_fsic
+from . import test_fsic
 
 
 class FortranTestWrapper:
@@ -46,14 +46,19 @@ class FortranTestWrapper:
             return
 
         # Delete intermediate and compiled files
-        files_to_delete = (glob.glob('{}*.f95'.format(self.TEST_MODULE_NAME)) +
-                           glob.glob('{}*.*.so'.format(self.TEST_MODULE_NAME)))
+        files_to_delete = (glob.glob(os.path.join(os.path.split(__file__)[0], '{}*.f95').format(self.TEST_MODULE_NAME)) +
+                           glob.glob(os.path.join(os.path.split(__file__)[0], '{}*.*.so').format(self.TEST_MODULE_NAME)))
 
         for path in files_to_delete:
             os.remove(path)
 
     @staticmethod
     def build_model(symbols, test_module_name):
+        # Switch the working directory to the same one that contains this test
+        # script
+        original_working_directory = os.getcwd()
+        os.chdir(os.path.split(__file__)[0])
+
         # Write out a file of Fortran code
         fortran_definition = fsic.fortran.build_fortran_definition(symbols)
         with open('{}.f95'.format(test_module_name), 'w') as f:
@@ -76,7 +81,11 @@ class FortranTestWrapper:
         PythonClass = fsic.build_model(symbols)
 
         class FortranClass(fsic.fortran.FortranEngine, PythonClass):
-            ENGINE = importlib.import_module(test_module_name)
+            ENGINE = importlib.import_module('.{}'.format(test_module_name),
+                                             os.path.split(os.path.split(__file__)[0])[1])
+
+        # Switch back to the original directory
+        os.chdir(original_working_directory)
 
         return FortranClass
 
