@@ -27,8 +27,8 @@ With *this folder* as the current working directory:
    various sets of parameter estimates and generates 'results.png', which plots
    the results against the actual data.
 
-(Having downloaded the data by Step [1], the accompanying
-['makefile'](makefile) can automatically run Steps [2-4].)
+Alternatively, use the accompanying ['makefile'](makefile) to run the above
+steps.
 
 
 ## Notes
