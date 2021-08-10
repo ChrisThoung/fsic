@@ -9,6 +9,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+**Version 0.8.0 is the first release of FSIC as a Python package, rather than a
+  set of individual Python modules.**
+
+### Added
+
+- Added `to_dataframe``(s)``()` methods to `BaseModel` and `BaseLinker`,
+  calling the corresponding functions in `fsic.tools`.
+
 ### Changed
 
 - Reorganised source files into a Python package (`fsic`):
@@ -24,6 +32,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 Various additions and changes to improve consistency and checks (both parser
 and solution).
+
+**Versions 0.7.x are the last releases to take the form of a set of individual
+  Python modules. Version 0.8.0 onwards implements FSIC as a Python package.**
 
 ### Added
 
@@ -60,6 +71,9 @@ linked multi-entity model e.g. for multiple countries or regions connected by
 trade.
 
 Various other changes and fixes.
+
+**Versions 0.7.x are the last releases to take the form of a set of individual
+  Python modules. Version 0.8.0 onwards implements FSIC as a Python package.**
 
 ### Added
 

@@ -11,6 +11,8 @@ import warnings
 import numpy as np
 
 from .exceptions import DimensionError, DuplicateNameError, EvalError, InitialisationError, NonConvergenceError, SolutionError
+from .tools import model_to_dataframe as _model_to_dataframe
+from .tools import linker_to_dataframes as _linker_to_dataframes
 
 
 # Labelled container for vector data (1D NumPy arrays) ------------------------
@@ -723,6 +725,10 @@ class BaseModel(SolverMixin, ModelInterface):
                    **{k: v.values for k, v in data.items()},
                    **kwargs)
 
+    def to_dataframe(self) -> 'DataFrame':
+        """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
+        return _model_to_dataframe(self)
+
     def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
@@ -1044,6 +1050,10 @@ Spans of submodels differ:
 
     def __deepcopy__(self, *args, **kwargs) -> 'BaseLinker':
         return self.copy()
+
+    def to_dataframes(self) -> Dict[Hashable, 'pandas.DataFrame']:
+        """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames. **Requires `pandas`**."""
+        return _linker_to_dataframes(self)
 
     def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, submodels: Optional[Sequence[Hashable]] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the linker and its constituent submodels. Use default periods if none provided.

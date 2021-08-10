@@ -86,6 +86,54 @@ class TestPandasFunctions(unittest.TestCase):
 
         pd.testing.assert_frame_equal(result, expected)
 
+    def test_model_to_dataframe_core(self):
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        result = model.to_dataframe()
+        expected = pd.DataFrame({
+            'Y': 0.0,
+            'C': 0.0,
+            'G': 0.0,
+            'status': '-',
+            'iterations': -1
+        }, index=range(5))
+
+        pd.testing.assert_frame_equal(result, expected)
+
+    def test_model_to_dataframe_additional_variables_core(self):
+        # Check that extending the model with extra variables carries through
+        # to the results DataFrame (including preserving variable types)
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        model.add_variable('I', 0, dtype=int)
+        model.add_variable('J', 0)
+        model.add_variable('K', 0, dtype=float)
+        model.add_variable('L', False, dtype=bool)
+
+        # Check list of names is now changed
+        self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
+
+        result = model.to_dataframe()
+        expected = pd.DataFrame({
+            'Y': 0.0,
+            'C': 0.0,
+            'G': 0.0,
+            'I': 0,      # int
+            'J': 0.0,    # float
+            'K': 0.0,    # float (forced)
+            'L': False,  # bool
+            'status': '-',
+            'iterations': -1
+        }, index=range(5))
+
+        pd.testing.assert_frame_equal(result, expected)
+
     def test_linker_to_dataframes(self):
         Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
 
@@ -97,6 +145,33 @@ class TestPandasFunctions(unittest.TestCase):
         model.add_variable('D', 0.0)
 
         results = fsic.tools.linker_to_dataframes(model)
+
+        pd.testing.assert_frame_equal(results['test'],
+                                      pd.DataFrame({'D': 0.0,
+                                                    'status': '-',
+                                                    'iterations': -1, },
+                                                   index=range(1990, 2005 + 1)))
+
+        expected = pd.DataFrame({x: 0.0 for x in 'YCIGXM'},
+                                index=range(1990, 2005 + 1))
+        expected['status'] = '-'
+        expected['iterations'] = -1
+
+        for name, submodel in model.submodels.items():
+            with self.subTest(submodel=name):
+                pd.testing.assert_frame_equal(results[name], expected)
+
+    def test_linker_to_dataframes_core(self):
+        Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
+
+        model = fsic.BaseLinker({
+            'A': Submodel(range(1990, 2005 + 1)),
+            'B': Submodel(range(1990, 2005 + 1)),
+            'C': Submodel(range(1990, 2005 + 1)),
+        }, name='test')
+        model.add_variable('D', 0.0)
+
+        results = model.to_dataframes()
 
         pd.testing.assert_frame_equal(results['test'],
                                       pd.DataFrame({'D': 0.0,

@@ -14,7 +14,6 @@ import warnings
 
 import numpy as np
 
-from .core import BaseModel
 from .exceptions import BuildError, ParserError, SymbolError
 
 
@@ -739,6 +738,8 @@ def build_model(symbols: List[Symbol], *, converter: Optional[Callable[[Symbol],
     then raises a `BuildError`, printing any `Symbol`s that failed to
     `exec`ute.
     """
+    from .core import BaseModel
+
     # Construct the class definition
     model_definition_string = build_model_definition(symbols,
                                                      converter=converter,

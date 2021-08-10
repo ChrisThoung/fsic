@@ -9,7 +9,6 @@ for dependencies additional to those of `fsic`.
 import re
 from typing import Any, Dict, Hashable, List
 
-from .core import BaseModel, BaseLinker
 from .parser import Symbol, term_re
 
 
@@ -75,7 +74,7 @@ def symbols_to_sympy(symbols: List[Symbol]) -> Dict['sympy.Symbol', 'sympy.Eq']:
 
     return system
 
-def model_to_dataframe(model: BaseModel) -> 'pandas.DataFrame':
+def model_to_dataframe(model: 'BaseModel') -> 'pandas.DataFrame':
     """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
     from pandas import DataFrame
 
@@ -85,7 +84,7 @@ def model_to_dataframe(model: BaseModel) -> 'pandas.DataFrame':
 
     return df
 
-def linker_to_dataframes(linker: BaseLinker) -> Dict[Hashable, 'pandas.DataFrame']:
+def linker_to_dataframes(linker: 'BaseLinker') -> Dict[Hashable, 'pandas.DataFrame']:
     """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames. **Requires `pandas`**."""
     from pandas import DataFrame
 
