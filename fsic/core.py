@@ -334,6 +334,9 @@ class VectorContainer:
     def eval(self) -> None:
         raise NotImplementedError('`eval()` method (including API) not implemented yet')
 
+    def exec(self) -> None:
+        raise NotImplementedError('`exec()` method (including API) not implemented yet')
+
 
 # Model interface, wrapping the core `VectorContainer` ------------------------
 
