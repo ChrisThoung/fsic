@@ -342,6 +342,40 @@ class TestVectorContainer(unittest.TestCase):
                       [12] * 20,
                       [-1] * 20])))
 
+    @unittest.expectedFailure
+    def test_eval(self):
+        # Check `eval()` method
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', 0, dtype=float)
+        container.add_variable('Y', 1, dtype=float)
+        container.add_variable('Z', 2, dtype=float)
+
+        self.assertTrue(np.allclose(container.X, 0))
+        self.assertTrue(np.allclose(container.Y, 1))
+        self.assertTrue(np.allclose(container.Z, 2))
+
+        self.assertTrue(np.allclose(container.eval('X + Y + Z')), 3)
+        self.assertTrue(np.allclose(container.X, 0))
+        self.assertTrue(np.allclose(container.Y, 1))
+        self.assertTrue(np.allclose(container.Z, 2))
+
+    @unittest.expectedFailure
+    def test_exec(self):
+        # Check `exec()` method
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', 0, dtype=float)
+        container.add_variable('Y', 1, dtype=float)
+        container.add_variable('Z', 2, dtype=float)
+
+        self.assertTrue(np.allclose(container.X, 0))
+        self.assertTrue(np.allclose(container.Y, 1))
+        self.assertTrue(np.allclose(container.Z, 2))
+
+        container.exec('Z = X * Y')
+        self.assertTrue(np.allclose(container.X, 0))
+        self.assertTrue(np.allclose(container.Y, 1))
+        self.assertTrue(np.allclose(container.Z, 0))
+
 
 class TestInit(unittest.TestCase):
 

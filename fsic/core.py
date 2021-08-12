@@ -331,11 +331,11 @@ class VectorContainer:
         for name, series in zip(self.index, new_values):
             self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
 
-    def eval(self) -> None:
-        raise NotImplementedError('`eval()` method (including API) not implemented yet')
+    def eval(self, expression: str) -> np.ndarray:
+        raise NotImplementedError('`eval()` method not implemented yet')
 
-    def exec(self) -> None:
-        raise NotImplementedError('`exec()` method (including API) not implemented yet')
+    def exec(self, expression: str) -> None:
+        raise NotImplementedError('`exec()` method not implemented yet')
 
 
 # Model interface, wrapping the core `VectorContainer` ------------------------
