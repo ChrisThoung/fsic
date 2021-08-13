@@ -38,6 +38,31 @@ class TestPandasFunctions(unittest.TestCase):
 
         pd.testing.assert_frame_equal(result, expected)
 
+    def test_dataframe_to_symbols(self):
+        # Check by way of a roundtrip: symbols -> DataFrame -> symbols
+        result = fsic.tools.symbols_to_dataframe(self.SYMBOLS)
+        expected = pd.DataFrame({
+            'name': ['Y', 'C', 'G'],
+            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.EXOGENOUS],
+            'lags': 0,
+            'leads': 0,
+            'equation': ['Y[t] = C[t] + G[t]', None, None],
+            'code': ['self._Y[t] = self._C[t] + self._G[t]', None, None],
+        })
+
+        # Initial (i.e. pre-)check only
+        pd.testing.assert_frame_equal(result, expected)
+
+        # Check by value
+        self.assertEqual(fsic.tools.dataframe_to_symbols(result), self.SYMBOLS)
+        self.assertEqual(fsic.tools.dataframe_to_symbols(expected), self.SYMBOLS)
+
+        # Check by string representation
+        for before, after in zip(self.SYMBOLS, fsic.tools.dataframe_to_symbols(result)):
+            with self.subTest(symbol=before):
+                self.assertEqual(str(before), str(after))
+                self.assertEqual(repr(before), repr(after))
+
     def test_model_to_dataframe(self):
         model = self.MODEL(range(5))
 

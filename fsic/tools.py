@@ -9,14 +9,36 @@ for dependencies additional to those of `fsic`.
 import re
 from typing import Any, Dict, Hashable, List
 
-from .parser import Symbol, term_re
+from .parser import Symbol, Type
+from .parser import term_re
 
 
 def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':
-    """Convert the list of symbols to a `pandas` DataFrame. **Requires `pandas`**."""
+    """Convert the list of symbols to a `pandas` DataFrame. **Requires `pandas`**.
+
+    See also
+    --------
+    fsic.tools.dataframe_to_symbols()
+    """
     from pandas import DataFrame
 
     return DataFrame([s._asdict() for s in symbols])
+
+def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:
+    """Convert a `pandas` DataFrame to a list of symbols, reversing the operation of `symbols_to_dataframe()`. **Requires `pandas`**.
+
+    See also
+    --------
+    fsic.tools.symbols_to_dataframe()
+    """
+    symbols = []
+
+    for _, row in table.iterrows():
+        entry = dict(row)
+        entry['type'] = Type(entry['type'])  # Convert to `enum`erated variable type
+        symbols.append(Symbol(**entry))
+
+    return symbols
 
 def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
     """Convert the list of symbols to a NetworkX DiGraph. **Requires `networkx`."""

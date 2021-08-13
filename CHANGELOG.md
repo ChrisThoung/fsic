@@ -16,6 +16,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Added `to_dataframe``(s)``()` methods to `BaseModel` and `BaseLinker`,
   calling the corresponding functions in `fsic.tools`.
+- Added new `dataframe_to_symbols()` function to `fsic.tools`, reversing
+  `symbols_to_dataframe()` and permitting a roundtrip.
 
 ### Changed
 
