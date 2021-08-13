@@ -70,7 +70,7 @@ WB_s = W * N_s                                          # 7.13
 N_d = Y / pr                                            # 7.14
 
 # Equation below only divides by `N_d` if positive, to avoid a NaN propagating
-# through the solution (NB `fsic_fortran` can't handle this)
+# through the solution (NB `fsic.fortran` can't handle this)
 W = WB_d / (N_d if N_d > 0 else 1)                      # 7.15B
 
 C_d = {alpha_0} + {alpha_1} * YD + {alpha_2} * M_h[-1]  # 7.16

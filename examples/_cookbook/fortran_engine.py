@@ -22,7 +22,7 @@ The solution of a model can be divided into:
    model implementation.
 
 In the core implementation, all three are written in Python, operating on NumPy
-arrays. The `fsic_fortran` module provides tools to generate Fortran
+arrays. The `fsic.fortran` module provides tools to generate Fortran
 equivalents. The Fortran implementations are then wrapped in Python methods
 with identical interfaces to the original Python code. This way, the user
 doesn't need to make any changes to how they call the code while benefitting
