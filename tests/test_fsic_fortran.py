@@ -26,7 +26,12 @@ import numpy as np
 
 import fsic
 
-from . import test_fsic
+try:
+    from . import test_fsic
+    imported_as_package = True
+except ImportError:
+    import test_fsic
+    imported_as_package = False
 
 
 class FortranTestWrapper:
@@ -81,8 +86,11 @@ class FortranTestWrapper:
         PythonClass = fsic.build_model(symbols)
 
         class FortranClass(fsic.fortran.FortranEngine, PythonClass):
-            ENGINE = importlib.import_module('.{}'.format(test_module_name),
-                                             os.path.split(os.path.split(__file__)[0])[1])
+            if imported_as_package:
+                ENGINE = importlib.import_module('.{}'.format(test_module_name),
+                                                 os.path.split(os.path.split(__file__)[0])[1])
+            else:
+                ENGINE = importlib.import_module(test_module_name)
 
         # Switch back to the original directory
         os.chdir(original_working_directory)
