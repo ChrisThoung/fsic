@@ -88,9 +88,9 @@ model.solve(max_iter=350)
 #   `model.span`
 #
 # If you've installed [`pandas`](https://pandas.pydata.org/), you can convert the
-# contents of the model to a DataFrame for inspection, using
-# `model_to_dataframe()`, from the `fsic.tools` module:
+# contents of the model to a DataFrame for inspection, using the object's
+# `to_dataframe()` method (which wraps `fsic.tools.model_to_dataframe()`).
 
-results = fsic.tools.model_to_dataframe(model)
+results = model.to_dataframe()
 
 print(results.round(2))
