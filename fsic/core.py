@@ -77,16 +77,21 @@ class VectorContainer:
     array([12.,  1., 12.,  3., 12.,  5., 12.,  7., 12.,  9., 10.])
     """
 
-    def __init__(self, span: Sequence[Hashable]) -> None:
-        """Initialise model variables.
+    def __init__(self, span: Sequence[Hashable], *, strict: bool = False) -> None:
+        """Initialise the container with a defined and labelled `span`.
 
         Parameter
         ---------
         span : iterable
-            Sequence of periods that defines the timespan of the model
+            Sequence of labels that defines the span of the object's variables
+        strict : bool
+            If `True`, the only way to add attributes to the object is with
+            `add_variable()` i.e. as new container variables. Ad hoc attributes
+            are expressly blocked.
         """
         self.__dict__['span'] = span
         self.__dict__['index'] = []
+        self.__dict__['_strict'] = strict
 
     def add_variable(self, name: str, value: Union[Any, Sequence[Any]], *, dtype: Any = None) -> None:
         """Initialise a new variable in the container, forcing a `dtype` if needed.
@@ -135,6 +140,10 @@ class VectorContainer:
             return super().__getattribute__(name)
 
     def __setattr__(self, name: str, value: Union[Any, Sequence[Any]]) -> None:
+        # Error on attempt to add an attribute if `strict=True`
+        if name != 'strict' and self.__dict__['_strict'] and name not in self.__dict__['index']:
+            raise AttributeError("Unable to add new attribute '{}' with `strict=True`".format(name))
+
         if name not in self.__dict__['index']:
             super.__setattr__(self, name, value)
             return
@@ -305,6 +314,15 @@ class VectorContainer:
         return self.__dict__['index']
 
     @property
+    def strict(self) -> bool:
+        """If `True`, the only way to add attributes to the object is as a variable, using `add_variable()`."""
+        return self.__dict__['_strict']
+
+    @strict.setter
+    def strict(self, value: bool) -> None:
+        self.__dict__['_strict'] = bool(value)
+
+    @property
     def values(self) -> np.ndarray:
         """Container contents as a 2D (index x span) array."""
         return np.array([
@@ -344,13 +362,17 @@ class ModelInterface(VectorContainer):
 
     NAMES: List[str] = []
 
-    def __init__(self, span: Sequence[Hashable], *, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+    def __init__(self, span: Sequence[Hashable], *, strict: bool = False, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise model variables.
 
         Parameters
         ----------
         span : iterable
             Sequence of periods that defines the timespan of the model
+        strict : bool
+            If `True`, the only way to add attributes to the object is with
+            `add_variable()` i.e. as new container variables. Ad hoc attributes
+            are expressly blocked.
         dtype : variable type
             Default data type to impose on model variables (in NumPy arrays)
         default_value : number
@@ -359,7 +381,7 @@ class ModelInterface(VectorContainer):
             Values with which to initialise specific named model variables
         """
         # Set up data container
-        super().__init__(span)
+        super().__init__(span, strict=strict)
 
         # Store the `dtype` as the default for future values e.g. using
         # `add_variable()` after initialisation
@@ -686,7 +708,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
     CODE: Optional[str] = None
 
-    def __init__(self, span: Sequence[Hashable], *, engine: str = 'python', dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+    def __init__(self, span: Sequence[Hashable], *, engine: str = 'python', strict: bool = False, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise model variables.
 
         Parameters
@@ -695,6 +717,10 @@ class BaseModel(SolverMixin, ModelInterface):
             Sequence of periods that defines the timespan of the model
         engine : str
             Signal of the (expected) underlying solution method/implementation
+        strict : bool
+            If `True`, the only way to add attributes to the object is with
+            `add_variable()` i.e. as new container variables. Ad hoc attributes
+            are expressly blocked.
         dtype : variable type
             Data type to impose on model variables (in NumPy arrays)
         default_value : number
@@ -705,6 +731,7 @@ class BaseModel(SolverMixin, ModelInterface):
         self.__dict__['engine'] = engine
 
         super().__init__(span=span,
+                         strict=strict,
                          dtype=dtype,
                          default_value=default_value,
                          **initial_values)

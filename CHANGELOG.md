@@ -14,6 +14,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Added new `strict` attribute (and `__init__()` keyword argument) to
+  `VectorContainer` (and, in turn, `BaseModel` and `BaseLinker`) to optionally
+  guard against adding non-variable attributes. If `strict=True`, only
+  `add_variable()` can expand the object.
 - Added `to_dataframe``(s)``()` methods to `BaseModel` and `BaseLinker`,
   calling the corresponding functions in `fsic.tools`.
 - Added new `dataframe_to_symbols()` function to `fsic.tools`, reversing

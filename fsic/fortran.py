@@ -40,7 +40,7 @@ class FortranEngine(BaseModel):
         'replace': 3,
     }
 
-    def __init__(self, span: Sequence[Hashable], *, engine: str = 'fortran', dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+    def __init__(self, span: Sequence[Hashable], *, engine: str = 'fortran', strict: bool = False, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
         """Initialise model variables.
 
         Parameters
@@ -49,6 +49,10 @@ class FortranEngine(BaseModel):
             Sequence of periods that defines the timespan of the model
         engine : str
             Signal of the (expected) underlying solution method/implementation
+        strict : bool
+            If `True`, the only way to add attributes to the object is with
+            `add_variable()` i.e. as new container variables. Ad hoc attributes
+            are expressly blocked.
         dtype : variable type
             Data type to impose on model variables (in NumPy arrays)
         default_value : number
@@ -64,7 +68,10 @@ class FortranEngine(BaseModel):
 
         super().__init__(span=span,
                          engine=engine,
-                         dtype=dtype, default_value=default_value, **initial_values)
+                         strict=strict,
+                         dtype=dtype,
+                         default_value=default_value,
+                         **initial_values)
 
     def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.

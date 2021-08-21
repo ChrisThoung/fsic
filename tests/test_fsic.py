@@ -342,6 +342,48 @@ class TestVectorContainer(unittest.TestCase):
                       [12] * 20,
                       [-1] * 20])))
 
+    def test_strict(self):
+        # Check that a `VectorContainer` object raises an exception if
+        # attempting to add a new non-variable attribute with `strict=True`
+
+        # Set up a container
+        container = fsic.core.VectorContainer(range(10))
+
+        container.add_variable('A', 0, dtype=int)
+        container.add_variable('B', 1, dtype=int)
+        container.add_variable('C', 2, dtype=int)
+
+        self.assertEqual(container.values.shape, (3, 10))
+
+        # By default, adding new attributes should work fine...
+        container.D = 'This should work fine'
+        self.assertEqual(container.D, 'This should work fine')
+
+        # ...but won't expand the contents of the container
+        self.assertEqual(container.values.shape, (3, 10))
+
+        # With `strict=True`, the object should now block attempts to add new
+        # attributes that aren't new container variables
+        container.strict = True
+
+        # This should still work
+        container.add_variable('E', 4, dtype=int)
+
+        # Contents expand accordingly
+        self.assertEqual(container.values.shape, (4, 10))
+
+        # But this should now raise an error
+        with self.assertRaises(AttributeError):
+            container.F = 5
+
+        # Undo `strict=True` and now attempt to add the attribute
+        container.strict = False
+
+        container.G = 'This should work fine'
+        self.assertEqual(container.G, 'This should work fine')
+
+        self.assertEqual(container.values.shape, (4, 10))
+
     @unittest.expectedFailure
     def test_eval(self):
         # Check `eval()` method
@@ -592,6 +634,46 @@ class TestModelContainerMethods(unittest.TestCase):
 
         self.assertEqual(model.L.dtype, bool)
         self.assertEqual(model['L'].dtype, bool)
+
+    def test_add_variable_strict(self):
+        # Check that `add_variable()` extends the model object's store (both
+        # values and the accompanying key) while applying the correct type,
+        # whether default or explicitly specified
+        # This version augmented to test for `strict=True`
+        model = self.Model(range(10), strict=True)
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2'])
+
+        self.assertEqual(model.values.shape, (5, 10))
+
+        # Add new variables of various types
+        model.add_variable('I', 0, dtype=int)       # Impose int
+        model.add_variable('J', 0)                  # float, by default
+        model.add_variable('K', 0, dtype=float)     # Impose float
+        model.add_variable('L', False, dtype=bool)  # Import bool
+
+        # Check list of names is now changed
+        self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
+        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L'])
+
+        self.assertEqual(model.values.shape, (9, 10))
+
+        self.assertEqual(model.I.dtype, int)
+        self.assertEqual(model['I'].dtype, int)
+
+        self.assertEqual(model.J.dtype, float)
+        self.assertEqual(model['J'].dtype, float)
+
+        self.assertEqual(model.K.dtype, float)
+        self.assertEqual(model['K'].dtype, float)
+
+        self.assertEqual(model.L.dtype, bool)
+        self.assertEqual(model['L'].dtype, bool)
+
+        with self.assertRaises(AttributeError):
+            model.M = 'Should raise an `AttributeError`'
 
     def test_getitem_by_name(self):
         # Test variable access by name
@@ -2340,6 +2422,29 @@ class TestLinkerCopy(unittest.TestCase):
             with self.subTest(submodel=k):
                 self.assertEqual(v.values.shape, (6, 16))
                 self.assertTrue(np.allclose(v.values, 1))
+
+
+class TestLinkerMisc(unittest.TestCase):
+
+    def test_strict(self):
+        # Check that `strict=True` works for linkers as it does for base
+        # `VectorContainer`s
+        linker = fsic.BaseLinker({'A': fsic.BaseModel(range(10))})
+
+        linker.add_variable('X', 0)
+        self.assertEqual(linker.values.shape, (1, 10))
+
+        linker.Y = 'This should work fine'
+        self.assertEqual(linker.Y, 'This should work fine')
+
+        linker.Y = 'This should still work fine'
+        self.assertEqual(linker.Y, 'This should still work fine')
+
+        linker.strict = True
+        with self.assertRaises(AttributeError):
+            linker.Z = "This shouldn't work"
+
+        self.assertEqual(linker.values.shape, (1, 10))
 
 
 if __name__ == '__main__':
