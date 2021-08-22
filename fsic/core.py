@@ -737,7 +737,7 @@ class BaseModel(SolverMixin, ModelInterface):
                          **initial_values)
 
     @classmethod
-    def from_dataframe(cls: 'BaseModel', data: 'DataFrame', *args, **kwargs) -> 'BaseModel':
+    def from_dataframe(cls: 'BaseModel', data: 'pandas.DataFrame', *args, **kwargs) -> 'BaseModel':
         """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
 
         Parameters
@@ -755,7 +755,7 @@ class BaseModel(SolverMixin, ModelInterface):
                    **{k: v.values for k, v in data.items()},
                    **kwargs)
 
-    def to_dataframe(self) -> 'DataFrame':
+    def to_dataframe(self) -> 'pandas.DataFrame':
         """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
         return _model_to_dataframe(self)
 
