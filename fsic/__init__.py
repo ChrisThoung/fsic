@@ -14,4 +14,4 @@ from fsic import parser
 from fsic import tools
 
 from .core import BaseModel, BaseLinker
-from .parser import parse_model, build_model
+from .parser import parse_model, build_model, build_model_definition
