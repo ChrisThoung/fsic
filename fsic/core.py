@@ -870,7 +870,7 @@ class BaseModel(SolverMixin, ModelInterface):
         for iteration in range(1, max_iter + 1):
             previous_values = current_values.copy()
 
-            with warnings.catch_warnings(record=True):
+            with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter('always')
 
                 try:
