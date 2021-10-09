@@ -314,6 +314,23 @@ B = f(<C>, D)   # But here, C is an error
 
 class TestVectorContainer(unittest.TestCase):
 
+    def test_size(self):
+        # Check that `size` returns the total number of array elements
+        container = fsic.core.VectorContainer(range(20, 30))
+        for i, a in enumerate('ABC'):
+            container.add_variable(a, i, dtype=float)
+
+        self.assertEqual(container.size, 30)
+
+    def test_nbytes(self):
+        # Check that `nbytes` returns the total bytes consumed by the array
+        # elements
+        container = fsic.core.VectorContainer(range(20, 30))
+        for i, a in enumerate('ABC'):
+            container.add_variable(a, i, dtype=float)
+
+        self.assertEqual(container.nbytes, 30 * 8)
+
     def test_replace(self):
         # Check multiple-replacement method
         container = fsic.core.VectorContainer(range(-10, 10))
@@ -598,6 +615,23 @@ class TestModelContainerMethods(unittest.TestCase):
 
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
+
+    def test_size(self):
+        # Check that `size` returns the total number of array elements,
+        # excluding `status` and `iterations`
+        model = self.Model(range(20, 30))
+
+        self.assertNotEqual(model.size, 70)  # If `status` and `iterations` were included
+        self.assertEqual(model.size, 50)
+
+    def test_nbytes(self):
+        # Check that `nbytes` returns the total bytes consumed by the array
+        # elements
+        model = self.Model(range(20, 30))
+        self.assertEqual(model.nbytes,
+                         (50 * 8) +  # Array elements
+                         (10 * 8) +  # Iterations
+                         (10 * 4))   # Status
 
     def test_add_variable(self):
         # Check that `add_variable()` extends the model object's store (both
@@ -2425,6 +2459,63 @@ class TestLinkerCopy(unittest.TestCase):
 
 
 class TestLinkerMisc(unittest.TestCase):
+
+    def test_size(self):
+        # Check that `size` returns the total number of array elements across
+        # the linker and its constituent models
+        a = fsic.BaseModel(range(10))
+        a.add_variable('A', 0)
+
+        b = a.copy()
+        b.add_variable('B', 1)
+
+        c = b.copy()
+        c.add_variable('C', 2)
+
+        linker = fsic.BaseLinker({'A': a, 'B': b, 'C': c})
+        for i, a in enumerate('XYZ'):
+            linker.add_variable(a, i)
+
+        self.assertEqual(linker.size, 90)
+
+    def test_sizes(self):
+        # Check that `sizes` returns, as a dictionary, the number of array
+        # elements in the linker and each of its constituent models
+        a = fsic.BaseModel(range(10))
+        a.add_variable('A', 0)
+
+        b = a.copy()
+        b.add_variable('B', 1)
+
+        c = b.copy()
+        c.add_variable('C', 2)
+
+        linker = fsic.BaseLinker({'A': a, 'B': b, 'C': c})
+        for i, a in enumerate('XYZ'):
+            linker.add_variable(a, i)
+
+        self.assertEqual(linker.sizes, {'_': 30, 'A': 10, 'B': 20, 'C': 30, })
+
+    def test_nbytes(self):
+        # Check that `nbytes` returns the total bytes consumed by the array
+        # elements
+        a = fsic.BaseModel(range(10))
+        a.add_variable('A', 0)
+
+        b = a.copy()
+        b.add_variable('B', 1)
+
+        c = b.copy()
+        c.add_variable('C', 2)
+
+        linker = fsic.BaseLinker({'A': a, 'B': b, 'C': c})
+        for i, a in enumerate('XYZ'):
+            linker.add_variable(a, i)
+
+        self.assertEqual(linker.nbytes,
+                         (90 * 8) +      # Array elements
+                         (10 * 8 * 4) +  # Iterations
+                         (10 * 4 * 4))   # Statuses
 
     def test_strict(self):
         # Check that `strict=True` works for linkers as it does for base

@@ -133,6 +133,16 @@ class VectorContainer:
         self.__dict__['_' + name] = value_as_array
         self.__dict__['index'].append(name)
 
+    @property
+    def size(self) -> int:
+        """Number of elements in the object's vector arrays."""
+        return len(self.__dict__['index']) * len(self.__dict__['span'])
+
+    @property
+    def nbytes(self) -> int:
+        """Total bytes consumed by the elements in the object's vector arrays."""
+        return sum(self[k].nbytes for k in self.__dict__['index'])
+
     def __getattr__(self, name: str) -> Any:
         if name in self.__dict__['index']:
             return self.__dict__['_' + name]
@@ -431,6 +441,11 @@ class ModelInterface(VectorContainer):
 
         super().add_variable(name, value, dtype=dtype)
         self.__dict__['names'] += name
+
+    @property
+    def size(self) -> int:
+        """Number of elements in the model's vector arrays."""
+        return len(self.__dict__['names']) * len(self.__dict__['span'])
 
     def __contains__(self, key: str) -> bool:
         return key in self.__dict__['names']
@@ -1050,6 +1065,27 @@ Spans of submodels differ:
                          dtype=dtype,
                          default_value=default_value,
                          **initial_values)
+
+    @property
+    def sizes(self) -> Dict[Hashable, int]:
+        """Dictionary of the number of elements in the linker and each model's vector arrays."""
+        return dict(
+            **{self.__dict__['name']: super().size},
+            **{k: v.size for k, v in self.__dict__['submodels'].items()},
+        )
+
+    @property
+    def size(self) -> int:
+        """Total number of elements in the linker and each model's vector arrays."""
+        return sum(self.sizes.values())
+
+    @property
+    def nbytes(self) -> int:
+        """Total bytes consumed by the elements in the linker and each model's vector arrays."""
+        return sum(
+            [super().nbytes] +
+            [v.nbytes for v in self.__dict__['submodels'].values()]
+        )
 
     @property
     def LAGS(self) -> int:

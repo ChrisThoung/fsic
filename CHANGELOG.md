@@ -18,6 +18,14 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `VectorContainer` (and, in turn, `BaseModel` and `BaseLinker`) to optionally
   guard against adding non-variable attributes. If `strict=True`, only
   `add_variable()` can expand the object.
+- Added new `size` property to `VectorContainer` and `ModelInterface` (and, in
+  turn, `BaseModel`), as well as `BaseLinker`, to report the number of elements
+  in the objects' arrays.
+- Added new `sizes` property to `BaseLinker` to report the number of elements
+  in each of: the linker and its constituent submodels.
+- Added new `nbytes` property to `VectorContainer` (and, in turn, `BaseModel`)
+  and `BaseLinker` to report the total bytes consumed by the elements in the
+  objects' arrays.
 - Added `to_dataframe``(s)``()` methods to `BaseModel` and `BaseLinker`,
   calling the corresponding functions in `fsic.tools`.
 - Added new `dataframe_to_symbols()` function to `fsic.tools`, reversing
