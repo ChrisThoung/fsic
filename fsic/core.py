@@ -2,6 +2,15 @@
 """
 core
 ====
+Core `fsic` classes for defining and solving economic models. Economic models
+are implemented as derived classes of those in this module, inheriting the
+necessary attributes and methods that make up the API.
+
+Base classes:
+
+* `BaseModel`, for a single economic model
+* `BaseLinker`, to store and solve multiple model instances i.e. as a
+  multi-region/entity model
 """
 
 import copy
@@ -736,6 +745,8 @@ class BaseModel(SolverMixin, ModelInterface):
             If `True`, the only way to add attributes to the object is with
             `add_variable()` i.e. as new container variables. Ad hoc attributes
             are expressly blocked.
+            If `False`, further attributes can be added ad hoc at runtime in
+            the usual way for Python objects e.g. `model.A = ...`.
         dtype : variable type
             Data type to impose on model variables (in NumPy arrays)
         default_value : number

@@ -2,6 +2,102 @@
 """
 parser
 ======
+Tools to generate a model class (which derives from `fsic.BaseModel`) from a
+Python-like model script that describes the equations.
+
+Key functions:
+
+* `parse_model()` to convert a model script (string) to an intermediate
+  representation: a list of `fsic` `Symbol` objects
+    - the `fsic.tools` module includes functions to analyse these objects
+* `build_model_definition()` to convert the list of `Symbol`s to a string of
+  Python code
+* `build_model()`, a convenience function to call `build_model_definition()`
+  and `exec()` the code, returning an immediately useable working class
+  definition
+
+The parser provides a convenient way to specify a model as something like (a
+string):
+
+    'Y = C + I + G'
+
+and convert it to the corresponding Python code:
+
+    class Model(BaseModel):
+        ENDOGENOUS: List[str] = ['Y']
+        EXOGENOUS: List[str] = ['C', 'I', 'G']
+
+        PARAMETERS: List[str] = []
+        ERRORS: List[str] = []
+
+        NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK: List[str] = ENDOGENOUS
+
+        LAGS: int = 0
+        LEADS: int = 0
+
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+            # Y[t] = C[t] + I[t] + G[t]
+            self._Y[t] = self._C[t] + self._I[t] + self._G[t]
+
+The parser identifies:
+
+* variables, both endogenous and exogenous
+* parameters, as variables enclosed in braces e.g. '{alpha_1}'
+* errors/residuals, as variables enclosed in angled brackets e.g. '<e>'
+* the longest lags and leads in the system of equations, to prevent any
+  attempts to solve for an infeasible period
+
+and generates the necessary code for the `_evaluate()` method (as above).
+
+Typical usage is to convert the string into a list of `fsic` `Symbol` objects
+using `parse_model()`:
+
+    >>> import fsic
+
+    >>> symbols = fsic.parse_model('Y = C + I + G')
+    >>> print(symbols)
+
+    [Symbol(name='Y', type=<Type.ENDOGENOUS: 3>, lags=0, leads=0, equation='Y[t] = C[t] + I[t] + G[t]', code='self._Y[t] = self._C[t] + self._I[t] + self._G[t]'),
+     Symbol(name='C', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None),
+     Symbol(name='I', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None),
+     Symbol(name='G', type=<Type.EXOGENOUS: 2>, lags=0, leads=0, equation=None, code=None)]
+
+and to then convert those symbols into the final class definition, whether:
+
+* directly, by returning a class definition, using `build_model()`
+* by returning the Python code as a string using `build_model_definition()`
+  e.g. to `exec()` manually or to print to a text file
+
+    # Use `build_model()` to return a class definition
+    >>> Model = fsic.build_model(symbols)     # Return the model class definition
+    >>> model = Model(range(1945, 2010 + 1))  # Instantiate a model instance
+
+    # Use `build_model_definition()` to return the code that defines the class
+    # definition
+    >>> model_definition = fsic.build_model_definition(symbols)
+    >>> print(model_definition)
+
+    class Model(BaseModel):
+        ENDOGENOUS: List[str] = ['Y']
+        EXOGENOUS: List[str] = ['C', 'I', 'G']
+
+        PARAMETERS: List[str] = []
+        ERRORS: List[str] = []
+
+        NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+        CHECK: List[str] = ENDOGENOUS
+
+        LAGS: int = 0
+        LEADS: int = 0
+
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+            # Y[t] = C[t] + I[t] + G[t]
+            self._Y[t] = self._C[t] + self._I[t] + self._G[t]
+
+If using `build_model()` to generate and `exec()` the class definition, the
+original code is accessible using the `CODE` attribute
+(e.g. `Model.CODE`). Otherwise, the attribute is `None`.
 """
 
 import enum
@@ -420,7 +516,28 @@ def parse_equation(equation: str) -> List[Symbol]:
     return list(symbols.values())
 
 def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
-    """Return the symbols of `model` as a list of Symbol objects."""
+    """Return the symbols of `model` as a list of Symbol objects.
+
+    Notes
+    -----
+    A list of `Symbol` objects is an intermediate representation of a system of
+    equations, identifying the constituent terms.
+
+    `build_model()` and `build_model_definition()` convert these symbols to
+    working Python code.
+
+    The `fsic.tools` module provides functions to analyse the system from these
+    symbols.
+
+    See also
+    --------
+    fsic.build_model()
+    fsic.build_model_definition()
+
+    fsic.tools.symbols_to_dataframe()
+    fsic.tools.symbols_to_graph()
+    fsic.tools.symbols_to_sympy()
+    """
     # Symbols: one list per model equation
     symbols_by_equation: List[List[Symbol]] = []
 
