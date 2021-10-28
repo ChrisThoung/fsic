@@ -40,6 +40,17 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
         - `exceptions`
     - `fsic_fortran` is now `fsic.fortran`
     - `fsictools` is now `fsic.tools`
+- Changed handling of numerical solution errors when
+  `errors='raise'`. Previously (before version 0.8.0), any numerical solution
+  error would lead to an exception after evaluating all equations during a
+  single iteration. This propagated NaNs/Infs through the solution (for
+  inspection) but gave no indication as to which equation caused the original
+  problem. The default behaviour now is to catch the first error and raise an
+  exception at that point, to identify the problem statement. This involves a
+  new keyword argument in the `solve_()` methods: `catch_first_error`. By
+  default, `catch_first_error` is `True`, leading to the new
+  behaviour. Pre-0.8.0 behaviour can be recovered with
+  `catch_first_error=False`.
 
 
 ## [0.7.1.dev] - 2021-08-04

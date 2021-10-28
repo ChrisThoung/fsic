@@ -547,7 +547,7 @@ class SolverMixin:
 
         return PeriodIter(indexes, self.span[indexes.start:indexes.stop])
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', catch_first_error: bool = True, **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
         Parameters
@@ -587,6 +587,15 @@ class SolverMixin:
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
         kwargs :
             Further keyword arguments to pass on to other methods:
              - `iter_periods()`
@@ -602,6 +611,51 @@ class SolverMixin:
            span
          - bools, one per period: `True` if the period solved successfully;
            `False` otherwise
+
+        Notes
+        -----
+        Before version 0.8.0, error handling worked as follows during solution:
+
+          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
+             suppressing all warnings (numerical solution errors). Results
+             arising from warnings (NaNs, Infs) enter the solution at this
+             point and propagate if these results feed into other equations
+             during the iteration.
+          2. If any warnings came up during the call to `_evaluate()`, handle
+             according to the value of `errors`:
+              - 'raise':   raise an exception (`SolutionError`)
+              - 'skip':    move immediately to the next period, retaining the
+                           NaNs/Infs
+              - 'ignore':  proceed to the next iteration (in the hope that
+                           NaNs/Infs are eventually replaced with finite
+                           values)
+              - 'replace': replace NaNs/Infs with zeroes before proceeding to
+                           the next iteration (in the hope that this is enough
+                           to eventually generate finite values throughout the
+                           solution)
+
+        However, this behaviour (even if straightforward to replicate in
+        Fortran) comes at the expense of knowing which equation(s) led to an
+        error. All we can see is how non-finite values propagated through the
+        solution from a single pass/iteration. Moreover, by allowing the entire
+        system to run through each time, there's no guarantee that 'ignore' or
+        'replace' will help to solve the model, should the same pattern of NaNs
+        and Infs repeat each iteration.
+
+        Consequently, the above treatment is no longer the default behaviour in
+        version 0.8.0, which introduces the keyword argument
+        `catch_first_error` (default `True`).
+
+        With `catch_first_error=True` and `errors='raise'`, solution
+        immediately halts on the first error, throwing an exception up the call
+        stack. This identifies the problem statement in the stack trace (which
+        is helpful for debugging) but also prevents a NaN/Inf entering the
+        solution (which may be useful for inspection) and, were there a
+        NaN/Inf, from it being propagated (it's not immediately obvious if this
+        has any use, though).
+
+        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
+        treatment.
         """
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
@@ -619,11 +673,11 @@ class SolverMixin:
             indexes[i] = t
             labels[i] = period
             solved[i] = self.solve_t(t, min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset,
-                                     failures=failures, errors=errors, **kwargs)
+                                     failures=failures, errors=errors, catch_first_error=catch_first_error, **kwargs)
 
         return labels, indexes, solved
 
-    def solve_period(self, period: Hashable, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_period(self, period: Hashable, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', catch_first_error: bool = True, **kwargs: Dict[str, Any]) -> bool:
         """Solve a single period.
 
         Parameters
@@ -659,17 +713,71 @@ class SolverMixin:
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
         kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
         -------
         `True` if the model solved for the current period; `False` otherwise.
+
+        Notes
+        -----
+        Before version 0.8.0, error handling worked as follows during solution:
+
+          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
+             suppressing all warnings (numerical solution errors). Results
+             arising from warnings (NaNs, Infs) enter the solution at this
+             point and propagate if these results feed into other equations
+             during the iteration.
+          2. If any warnings came up during the call to `_evaluate()`, handle
+             according to the value of `errors`:
+              - 'raise':   raise an exception (`SolutionError`)
+              - 'skip':    move immediately to the next period, retaining the
+                           NaNs/Infs
+              - 'ignore':  proceed to the next iteration (in the hope that
+                           NaNs/Infs are eventually replaced with finite
+                           values)
+              - 'replace': replace NaNs/Infs with zeroes before proceeding to
+                           the next iteration (in the hope that this is enough
+                           to eventually generate finite values throughout the
+                           solution)
+
+        However, this behaviour (even if straightforward to replicate in
+        Fortran) comes at the expense of knowing which equation(s) led to an
+        error. All we can see is how non-finite values propagated through the
+        solution from a single pass/iteration. Moreover, by allowing the entire
+        system to run through each time, there's no guarantee that 'ignore' or
+        'replace' will help to solve the model, should the same pattern of NaNs
+        and Infs repeat each iteration.
+
+        Consequently, the above treatment is no longer the default behaviour in
+        version 0.8.0, which introduces the keyword argument
+        `catch_first_error` (default `True`).
+
+        With `catch_first_error=True` and `errors='raise'`, solution
+        immediately halts on the first error, throwing an exception up the call
+        stack. This identifies the problem statement in the stack trace (which
+        is helpful for debugging) but also prevents a NaN/Inf entering the
+        solution (which may be useful for inspection) and, were there a
+        NaN/Inf, from it being propagated (it's not immediately obvious if this
+        has any use, though).
+
+        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
+        treatment.
         """
         t = self.span.index(period)
-        return self.solve_t(t, min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, **kwargs)
+        return self.solve_t(t, min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, catch_first_error=catch_first_error, **kwargs)
 
-    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', catch_first_error: bool = True, **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -704,12 +812,66 @@ class SolverMixin:
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
         kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
         -------
         `True` if the model solved for the current period; `False` otherwise.
+
+        Notes
+        -----
+        Before version 0.8.0, error handling worked as follows during solution:
+
+          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
+             suppressing all warnings (numerical solution errors). Results
+             arising from warnings (NaNs, Infs) enter the solution at this
+             point and propagate if these results feed into other equations
+             during the iteration.
+          2. If any warnings came up during the call to `_evaluate()`, handle
+             according to the value of `errors`:
+              - 'raise':   raise an exception (`SolutionError`)
+              - 'skip':    move immediately to the next period, retaining the
+                           NaNs/Infs
+              - 'ignore':  proceed to the next iteration (in the hope that
+                           NaNs/Infs are eventually replaced with finite
+                           values)
+              - 'replace': replace NaNs/Infs with zeroes before proceeding to
+                           the next iteration (in the hope that this is enough
+                           to eventually generate finite values throughout the
+                           solution)
+
+        However, this behaviour (even if straightforward to replicate in
+        Fortran) comes at the expense of knowing which equation(s) led to an
+        error. All we can see is how non-finite values propagated through the
+        solution from a single pass/iteration. Moreover, by allowing the entire
+        system to run through each time, there's no guarantee that 'ignore' or
+        'replace' will help to solve the model, should the same pattern of NaNs
+        and Infs repeat each iteration.
+
+        Consequently, the above treatment is no longer the default behaviour in
+        version 0.8.0, which introduces the keyword argument
+        `catch_first_error` (default `True`).
+
+        With `catch_first_error=True` and `errors='raise'`, solution
+        immediately halts on the first error, throwing an exception up the call
+        stack. This identifies the problem statement in the stack trace (which
+        is helpful for debugging) but also prevents a NaN/Inf entering the
+        solution (which may be useful for inspection) and, were there a
+        NaN/Inf, from it being propagated (it's not immediately obvious if this
+        has any use, though).
+
+        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
+        treatment.
         """
         raise NotImplementedError('Method must be over-ridden by a child class')
 
@@ -785,7 +947,7 @@ class BaseModel(SolverMixin, ModelInterface):
         """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
         return _model_to_dataframe(self)
 
-    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', catch_first_error: bool = True, **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -820,6 +982,15 @@ class BaseModel(SolverMixin, ModelInterface):
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
         kwargs :
             Further keyword arguments to pass to the solution routines
 
@@ -841,6 +1012,50 @@ class BaseModel(SolverMixin, ModelInterface):
 
         The `solve_t()` method now catches such operations (after a full pass
         through / iteration over the system of equations).
+
+
+        Before version 0.8.0, error handling worked as follows during solution:
+
+          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
+             suppressing all warnings (numerical solution errors). Results
+             arising from warnings (NaNs, Infs) enter the solution at this
+             point and propagate if these results feed into other equations
+             during the iteration.
+          2. If any warnings came up during the call to `_evaluate()`, handle
+             according to the value of `errors`:
+              - 'raise':   raise an exception (`SolutionError`)
+              - 'skip':    move immediately to the next period, retaining the
+                           NaNs/Infs
+              - 'ignore':  proceed to the next iteration (in the hope that
+                           NaNs/Infs are eventually replaced with finite
+                           values)
+              - 'replace': replace NaNs/Infs with zeroes before proceeding to
+                           the next iteration (in the hope that this is enough
+                           to eventually generate finite values throughout the
+                           solution)
+
+        However, this behaviour (even if straightforward to replicate in
+        Fortran) comes at the expense of knowing which equation(s) led to an
+        error. All we can see is how non-finite values propagated through the
+        solution from a single pass/iteration. Moreover, by allowing the entire
+        system to run through each time, there's no guarantee that 'ignore' or
+        'replace' will help to solve the model, should the same pattern of NaNs
+        and Infs repeat each iteration.
+
+        Consequently, the above treatment is no longer the default behaviour in
+        version 0.8.0, which introduces the keyword argument
+        `catch_first_error` (default `True`).
+
+        With `catch_first_error=True` and `errors='raise'`, solution
+        immediately halts on the first error, throwing an exception up the call
+        stack. This identifies the problem statement in the stack trace (which
+        is helpful for debugging) but also prevents a NaN/Inf entering the
+        solution (which may be useful for inspection) and, were there a
+        NaN/Inf, from it being propagated (it's not immediately obvious if this
+        has any use, though).
+
+        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
+        treatment.
         """
         def get_check_values() -> np.ndarray:
             """Return a 1D NumPy array of variable values for checking in the current period."""
@@ -891,17 +1106,27 @@ class BaseModel(SolverMixin, ModelInterface):
                 .format(self.span[t], t))
 
         # Run any code prior to solution
-        self.solve_t_before(t, errors=errors, iteration=0, **kwargs)
+        self.solve_t_before(t, errors=errors, catch_first_error=catch_first_error, iteration=0, **kwargs)
 
         for iteration in range(1, max_iter + 1):
             previous_values = current_values.copy()
 
             with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter('always')
+                if errors == 'raise' and catch_first_error:
+                    # New in version 0.8.0:
+                    # Immediately raise an exception in the event of a
+                    # numerical solution error
+                    warnings.simplefilter('error')
+                else:
+                    warnings.simplefilter('always')
 
                 try:
-                    self._evaluate(t, errors=errors, iteration=iteration, **kwargs)
+                    self._evaluate(t, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
                 except:
+                    if errors == 'raise':
+                        self.status[t] = 'E'
+                        self.iterations[t] = iteration
+
                     raise SolutionError(
                         'Error after {} iterations(s) '
                         'in period with label: {} (index: {})'
@@ -952,7 +1177,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
             diff = current_values - previous_values
             if np.all(np.abs(diff) < tol):
-                self.solve_t_after(t, errors=errors, iteration=iteration, **kwargs)
+                self.solve_t_after(t, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
                 status = '.'
                 break
         else:
@@ -969,15 +1194,15 @@ class BaseModel(SolverMixin, ModelInterface):
 
         return status == '.'
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -988,6 +1213,15 @@ class BaseModel(SolverMixin, ModelInterface):
             User-specified treatment on encountering numerical solution
             errors. Note that it is up to the user's over-riding code to decide
             how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
         iteration : int
             The current iteration count. This is not guaranteed to take a
             non-`None` value if the user has over-ridden the default calling
@@ -1132,7 +1366,7 @@ Spans of submodels differ:
         """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames. **Requires `pandas`**."""
         return _linker_to_dataframes(self)
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, submodels: Optional[Sequence[Hashable]] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
+    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, submodels: Optional[Sequence[Hashable]] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', catch_first_error: bool = True, **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the linker and its constituent submodels. Use default periods if none provided.
 
         Parameters
@@ -1174,6 +1408,15 @@ Spans of submodels differ:
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
         kwargs :
             Further keyword arguments to pass on to other methods:
              - `iter_periods()`
@@ -1189,6 +1432,51 @@ Spans of submodels differ:
            span
          - bools, one per period: `True` if the period solved successfully;
            `False` otherwise
+
+        Notes
+        -----
+        Before version 0.8.0, error handling worked as follows during solution:
+
+          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
+             suppressing all warnings (numerical solution errors). Results
+             arising from warnings (NaNs, Infs) enter the solution at this
+             point and propagate if these results feed into other equations
+             during the iteration.
+          2. If any warnings came up during the call to `_evaluate()`, handle
+             according to the value of `errors`:
+              - 'raise':   raise an exception (`SolutionError`)
+              - 'skip':    move immediately to the next period, retaining the
+                           NaNs/Infs
+              - 'ignore':  proceed to the next iteration (in the hope that
+                           NaNs/Infs are eventually replaced with finite
+                           values)
+              - 'replace': replace NaNs/Infs with zeroes before proceeding to
+                           the next iteration (in the hope that this is enough
+                           to eventually generate finite values throughout the
+                           solution)
+
+        However, this behaviour (even if straightforward to replicate in
+        Fortran) comes at the expense of knowing which equation(s) led to an
+        error. All we can see is how non-finite values propagated through the
+        solution from a single pass/iteration. Moreover, by allowing the entire
+        system to run through each time, there's no guarantee that 'ignore' or
+        'replace' will help to solve the model, should the same pattern of NaNs
+        and Infs repeat each iteration.
+
+        Consequently, the above treatment is no longer the default behaviour in
+        version 0.8.0, which introduces the keyword argument
+        `catch_first_error` (default `True`).
+
+        With `catch_first_error=True` and `errors='raise'`, solution
+        immediately halts on the first error, throwing an exception up the call
+        stack. This identifies the problem statement in the stack trace (which
+        is helpful for debugging) but also prevents a NaN/Inf entering the
+        solution (which may be useful for inspection) and, were there a
+        NaN/Inf, from it being propagated (it's not immediately obvious if this
+        has any use, though).
+
+        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
+        treatment.
         """
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
@@ -1208,11 +1496,11 @@ Spans of submodels differ:
             solved[i] = self.solve_t(t,
                                      submodels=submodels,
                                      min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset,
-                                     failures=failures, errors=errors, **kwargs)
+                                     failures=failures, errors=errors, catch_first_error=catch_first_error, **kwargs)
 
         return labels, indexes, solved
 
-    def solve_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', catch_first_error: bool = True, **kwargs: Dict[str, Any]) -> bool:
         """Solve for the period at integer position `t` in the linker's `span`.
 
         Parameters
@@ -1249,12 +1537,66 @@ Spans of submodels differ:
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
         kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
         -------
         `True` if the linker solved for the current period; `False` otherwise.
+
+        Notes
+        -----
+        Before version 0.8.0, error handling worked as follows during solution:
+
+          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
+             suppressing all warnings (numerical solution errors). Results
+             arising from warnings (NaNs, Infs) enter the solution at this
+             point and propagate if these results feed into other equations
+             during the iteration.
+          2. If any warnings came up during the call to `_evaluate()`, handle
+             according to the value of `errors`:
+              - 'raise':   raise an exception (`SolutionError`)
+              - 'skip':    move immediately to the next period, retaining the
+                           NaNs/Infs
+              - 'ignore':  proceed to the next iteration (in the hope that
+                           NaNs/Infs are eventually replaced with finite
+                           values)
+              - 'replace': replace NaNs/Infs with zeroes before proceeding to
+                           the next iteration (in the hope that this is enough
+                           to eventually generate finite values throughout the
+                           solution)
+
+        However, this behaviour (even if straightforward to replicate in
+        Fortran) comes at the expense of knowing which equation(s) led to an
+        error. All we can see is how non-finite values propagated through the
+        solution from a single pass/iteration. Moreover, by allowing the entire
+        system to run through each time, there's no guarantee that 'ignore' or
+        'replace' will help to solve the model, should the same pattern of NaNs
+        and Infs repeat each iteration.
+
+        Consequently, the above treatment is no longer the default behaviour in
+        version 0.8.0, which introduces the keyword argument
+        `catch_first_error` (default `True`).
+
+        With `catch_first_error=True` and `errors='raise'`, solution
+        immediately halts on the first error, throwing an exception up the call
+        stack. This identifies the problem statement in the stack trace (which
+        is helpful for debugging) but also prevents a NaN/Inf entering the
+        solution (which may be useful for inspection) and, were there a
+        NaN/Inf, from it being propagated (it's not immediately obvious if this
+        has any use, though).
+
+        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
+        treatment.
         """
         if submodels is None:
             submodels = list(self.__dict__['submodels'].keys())
@@ -1287,14 +1629,14 @@ Spans of submodels differ:
             submodel.iterations[t] = 0
 
         # Run any code prior to solution
-        self.solve_t_before(t, submodels=submodels, errors=errors, iteration=0, **kwargs)
+        self.solve_t_before(t, submodels=submodels, errors=errors, catch_first_error=catch_first_error, iteration=0, **kwargs)
 
         for iteration in range(1, max_iter + 1):
             previous_values = copy.deepcopy(current_values)
 
-            self.evaluate_t_before(t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
-            self.evaluate_t(       t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
-            self.evaluate_t_after( t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
+            self.evaluate_t_before(t, submodels=submodels, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
+            self.evaluate_t(       t, submodels=submodels, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
+            self.evaluate_t_after( t, submodels=submodels, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
 
             current_values = get_check_values()
 
@@ -1307,7 +1649,7 @@ Spans of submodels differ:
 
             if all(np.all(v < tol) for v in diff_squared.values()):
                 status = '.'
-                self.solve_t_after(t, submodels=submodels, errors=errors, iteration=iteration, **kwargs)
+                self.solve_t_after(t, submodels=submodels, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
                 break
 
         else:
@@ -1328,7 +1670,7 @@ Spans of submodels differ:
 
         return status == '.'
 
-    def evaluate_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def evaluate_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the linker's `span`.
 
         Parameters
@@ -1340,13 +1682,66 @@ Spans of submodels differ:
         errors : str
             User-specified treatment on encountering numerical solution
             errors, as passed to the individual submodels.
-        iteration : int
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.        iteration : int
             The current iteration count. This is not guaranteed to take a
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the individual submodels'
             over-riding code to decide how to handle this.
         kwargs :
             Further keyword arguments for solution
+
+        Notes
+        -----
+        Before version 0.8.0, error handling worked as follows during solution:
+
+          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
+             suppressing all warnings (numerical solution errors). Results
+             arising from warnings (NaNs, Infs) enter the solution at this
+             point and propagate if these results feed into other equations
+             during the iteration.
+          2. If any warnings came up during the call to `_evaluate()`, handle
+             according to the value of `errors`:
+              - 'raise':   raise an exception (`SolutionError`)
+              - 'skip':    move immediately to the next period, retaining the
+                           NaNs/Infs
+              - 'ignore':  proceed to the next iteration (in the hope that
+                           NaNs/Infs are eventually replaced with finite
+                           values)
+              - 'replace': replace NaNs/Infs with zeroes before proceeding to
+                           the next iteration (in the hope that this is enough
+                           to eventually generate finite values throughout the
+                           solution)
+
+        However, this behaviour (even if straightforward to replicate in
+        Fortran) comes at the expense of knowing which equation(s) led to an
+        error. All we can see is how non-finite values propagated through the
+        solution from a single pass/iteration. Moreover, by allowing the entire
+        system to run through each time, there's no guarantee that 'ignore' or
+        'replace' will help to solve the model, should the same pattern of NaNs
+        and Infs repeat each iteration.
+
+        Consequently, the above treatment is no longer the default behaviour in
+        version 0.8.0, which introduces the keyword argument
+        `catch_first_error` (default `True`).
+
+        With `catch_first_error=True` and `errors='raise'`, solution
+        immediately halts on the first error, throwing an exception up the call
+        stack. This identifies the problem statement in the stack trace (which
+        is helpful for debugging) but also prevents a NaN/Inf entering the
+        solution (which may be useful for inspection) and, were there a
+        NaN/Inf, from it being propagated (it's not immediately obvious if this
+        has any use, though).
+
+        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
+        treatment.
         """
         if submodels is None:
             submodels = list(self.__dict__['submodels'].keys())
@@ -1356,22 +1751,25 @@ Spans of submodels differ:
 
             with warnings.catch_warnings(record=True):
                 warnings.simplefilter('always')
-                submodel._evaluate(t, errors=errors, iteration=iteration, **kwargs)
+                submodel._evaluate(t,
+                                   errors=errors, catch_first_error=catch_first_error,
+                                   iteration=iteration,
+                                   **kwargs)
 
             submodel.iterations[t] += 1
 
-    def solve_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom linker behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom linker behaviour."""
         pass
 
-    def evaluate_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def evaluate_t_before(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate any linker equations before solving the individual submodels. Over-ride to implement custom linker behaviour."""
         pass
 
-    def evaluate_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def evaluate_t_after(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate any linker equations after solving the individual submodels. Over-ride to implement custom linker behaviour."""
         pass

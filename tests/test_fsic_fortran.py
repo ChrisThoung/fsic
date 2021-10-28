@@ -120,8 +120,18 @@ class TestCopy(FortranTestWrapper, test_fsic.TestCopy):
 class TestSolve(FortranTestWrapper, test_fsic.TestSolve):
     TEST_MODULE_NAME = 'fsic_test_fortran_testsolve'
 
+
 class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorHandling):
     TEST_MODULE_NAME = 'fsic_test_fortran_testsolutionerrorhandling'
+
+    @unittest.skip('Version 0.8.0 behaviour not yet implemented in Fortran')
+    def test_raise_nans(self):
+        super().test_raise_nans()
+
+    @unittest.skip('Version 0.8.0 behaviour not yet implemented in Fortran')
+    def test_raise_infinities(self):
+        super().test_raise_infinities()
+
 
 class TestNonConvergenceError(FortranTestWrapper, test_fsic.TestNonConvergenceError):
     TEST_MODULE_NAME = 'fsic_test_fortran_testnonconvergenceerror'

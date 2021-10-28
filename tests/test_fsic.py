@@ -1864,6 +1864,19 @@ g = log(G)  # Use to test for infinity with log(0)
         with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
 
+        # `catch_first_error=True` rolls back non-finite values
+        self.assertTrue(np.allclose(model.s, 0))
+
+        self.assertTrue(np.all(model.status == np.array(['E'] + ['-'] * 9)))
+        self.assertTrue(np.all(model.iterations == np.array([1] + [-1] * 9)))
+
+    def test_raise_nans_old(self):  # Pre-0.8.0 behaviour
+        # Model should halt on first period
+        model = self.Model(range(10), G=20)
+
+        with self.assertRaises(fsic.exceptions.SolutionError):
+            model.solve(catch_first_error=False)
+
         self.assertTrue(np.isnan(model.s[0]))
         self.assertTrue(np.allclose(model.s[1:], 0))
 
@@ -2043,6 +2056,26 @@ g = log(G)  # Use to test for infinity with log(0)
 
         with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
+
+        # `catch_first_error=True` rolls back non-finite values
+        self.assertTrue(np.allclose(model.g, 0))
+
+        self.assertTrue(np.allclose(model.s, 0))
+        self.assertTrue(np.allclose(model.C, 10))
+        self.assertTrue(np.allclose(model.Y, 10))
+        self.assertTrue(np.allclose(model.G, 0))
+        self.assertTrue(np.allclose(model.c0, 10))
+        self.assertTrue(np.allclose(model.c1, 0))
+
+        self.assertTrue(np.all(model.status == np.array(['E'] + ['-'] * 9)))
+        self.assertTrue(np.all(model.iterations == np.array([1] + [-1] * 9)))
+
+    def test_raise_infinities_old(self):  # Pre-0.8.0 behaviour
+        # Model should halt on first period because of log(0)
+        model = self.Model(range(10), c0=10, C=10, Y=10)
+
+        with self.assertRaises(fsic.exceptions.SolutionError):
+            model.solve(catch_first_error=False)
 
         self.assertTrue(np.isinf(model.g[0]))
         self.assertTrue(np.allclose(model.g[1:], 0))
