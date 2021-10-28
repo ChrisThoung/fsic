@@ -15,8 +15,7 @@ Tools for macroeconomic modelling in Python.
   [examples](examples/) folder
 * run the test suite, in any of the following ways:
     * run any of the individual 'test_*.py' files in the [tests](tests/) folder
-      e.g. `python tests/test_fsic.py` (not currently working for
-      [tests/test_fsic_fortran.py](tests/test_fsic_fortran.py))
+      e.g. `python tests/test_fsic.py`
     * with [`unittest`](https://docs.python.org/3/library/unittest.html)
       e.g. `python -m unittest discover .`
     * with a `unittest`-compatible test framework like
