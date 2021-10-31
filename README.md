@@ -32,7 +32,10 @@ Tools for macroeconomic modelling in Python.
       e.g. `python -m unittest discover .`
     * with a `unittest`-compatible test framework like
       [`pytest`](https://docs.pytest.org/en/stable/) e.g. `pytest`
-    * with the [makefile](makefile): `$ make test`
+    * with the [makefile](makefile), which expects `pytest` and `pytest-cov` to
+      be installed (see
+      [requirements/development.txt](requirements/development.txt)): `$ make
+      test`
 
 
 ## Quickstart
