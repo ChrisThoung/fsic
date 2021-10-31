@@ -45,10 +45,12 @@ References:
     Palgrave Macmillan
 """
 
+import functools
 import importlib
 import statistics
 import subprocess
 import timeit
+from typing import List, Tuple
 
 import fsic
 
@@ -135,13 +137,19 @@ if __name__ == '__main__':
     repeat = 15
     number = 3
 
-    python_times           = timeit.repeat('run(SIM)',                 repeat=repeat, number=number, globals=globals())
-    fortran_times          = timeit.repeat('run(SIMFortran)',          repeat=repeat, number=number, globals=globals())
-    fortran_solve_t_times  = timeit.repeat('run(SIMFortran_SolveT)',   repeat=repeat, number=number, globals=globals())
-    fortran_evaluate_times = timeit.repeat('run(SIMFortran_Evaluate)', repeat=repeat, number=number, globals=globals())
+    performance_test = functools.partial(timeit.repeat, repeat=repeat, number=number)
 
-    print('Means and standard deviations of solution times:')
-    print(' - Python:                       {:.4f}s [{:.4f}s]'.format(statistics.mean(python_times), statistics.stdev(python_times)))
-    print(' - Fortran (complete):           {:.4f}s [{:.4f}s]'.format(statistics.mean(fortran_times), statistics.stdev(fortran_times)))
-    print(' - Fortran (`solve_t()` only):   {:.4f}s [{:.4f}s]'.format(statistics.mean(fortran_solve_t_times), statistics.stdev(fortran_solve_t_times)))
-    print(' - Fortran (`_evaluate()` only): {:.4f}s [{:.4f}s]'.format(statistics.mean(fortran_evaluate_times), statistics.stdev(fortran_evaluate_times)))
+    def run_and_summarise(times: List[float]) -> Tuple[float]:
+        """Return the mean and standard deviation of the `times`."""
+        return statistics.mean(times), statistics.stdev(times)
+
+    python_times           = run_and_summarise(performance_test('run(SIM)',                 globals=globals()))
+    fortran_times          = run_and_summarise(performance_test('run(SIMFortran)',          globals=globals()))
+    fortran_solve_t_times  = run_and_summarise(performance_test('run(SIMFortran_SolveT)',   globals=globals()))
+    fortran_evaluate_times = run_and_summarise(performance_test('run(SIMFortran_Evaluate)', globals=globals()))
+
+    print('Means, [standard deviations] and (speed gains relative to Python) of solution times:')
+    print(' - Python:                       {:.4f}s [{:.4f}s] (x{:.1f})'.format(*python_times,           python_times[0] / python_times[0]))
+    print(' - Fortran (complete):           {:.4f}s [{:.4f}s] (x{:.1f})'.format(*fortran_times,          python_times[0] / fortran_times[0]))
+    print(' - Fortran (`solve_t()` only):   {:.4f}s [{:.4f}s] (x{:.1f})'.format(*fortran_solve_t_times,  python_times[0] / fortran_solve_t_times[0]))
+    print(' - Fortran (`_evaluate()` only): {:.4f}s [{:.4f}s] (x{:.1f})'.format(*fortran_evaluate_times, python_times[0] / fortran_evaluate_times[0]))
