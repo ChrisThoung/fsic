@@ -23,6 +23,8 @@ Tools for macroeconomic modelling in Python.
       requirements/examples.txt`
 * see more examples of how to use FSIC: view the contents of the
   [examples](examples/) folder
+    * the [makefile](makefile) can run all the examples in sequence: `$ make
+      examples`
 * run the test suite, in any of the following ways:
     * run any of the individual 'test_*.py' files in the [tests](tests/) folder
       e.g. `python tests/test_fsic.py`
