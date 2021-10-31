@@ -11,6 +11,16 @@ Tools for macroeconomic modelling in Python.
     * `$ python setup.py install`
     * `$ pip install .`
     * `$ make install`
+* install dependencies, using the requirements files in the
+  [requirements](requirements) folder:
+    * minimum requirements (for completeness only: handled automatically by
+      installing the package): `pip install -r requirements/minimum.txt`
+    * optional requirements (to use all feature of `fsic.tools`): `pip install
+      -r requirements/optional.txt`
+    * development requirements (to run the test suite as recommended e.g. as in
+      the [makefile](makefile)): `pip install -r requirements/development.txt`
+    * dependencies to run the examples: `pip install -r
+      requirements/examples.txt`
 * see more examples of how to use FSIC: view the contents of the
   [examples](examples/) folder
 * run the test suite, in any of the following ways:
