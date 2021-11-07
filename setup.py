@@ -4,6 +4,8 @@ Adapted from:
 https://packaging.python.org/tutorials/packaging-projects/
 """
 
+import itertools
+import glob
 import os
 import re
 import setuptools
@@ -19,8 +21,16 @@ def get_version():
                 return re.split(r'''["']''', line)[1]
 
 
-with open('README.md') as f:
-    long_description = f.read()
+# Assemble requirements files into sets of optional dependencies
+extra_requirements = {}
+
+for path in glob.glob(os.path.join('requirements', '*.txt')):
+    name = os.path.splitext(os.path.split(path)[1])[0]
+    extra_requirements[name] = list(map(str.strip, open(path)))
+
+extra_requirements['all'] = list(set(
+    itertools.chain(*extra_requirements.values())))
+
 
 setuptools.setup(
     name='fsic',
@@ -28,15 +38,14 @@ setuptools.setup(
     author='Chris Thoung',
     author_email='chris.thoung@gmail.com',
     description='Tools for macroeconomic modelling in Python',
-    long_description=long_description,
+    long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/ChrisThoung/fsic',
     packages=setuptools.find_packages(include=['fsic']),
     python_requires='>=3.6',
 
-    install_requires=[
-        'numpy',
-    ],
+    install_requires=extra_requirements['minimal'],
+    extras_require=extra_requirements,
 
     classifiers=[
         'Development Status :: 3 - Alpha',

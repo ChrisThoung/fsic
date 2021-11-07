@@ -14,11 +14,11 @@ Tools for macroeconomic modelling in Python.
 * install dependencies, using the requirements files in the
   [requirements](requirements) folder:
     * minimum requirements (for completeness only: handled automatically by
-      installing the package): `pip install -r requirements/minimum.txt`
-    * optional requirements (to use all feature of `fsic.tools`): `pip install
+      installing the package): `pip install -r requirements/minimal.txt`
+    * optional requirements (to use all features of `fsic.tools`): `pip install
       -r requirements/optional.txt`
     * development requirements (to run the test suite as recommended e.g. as in
-      the [makefile](makefile)): `pip install -r requirements/development.txt`
+      the [makefile](makefile)): `pip install -r requirements/test.txt`
     * dependencies to run the examples: `pip install -r
       requirements/examples.txt`
 * see more examples of how to use FSIC: view the contents of the
@@ -35,7 +35,7 @@ Tools for macroeconomic modelling in Python.
       [`pytest`](https://docs.pytest.org/en/stable/) e.g. `pytest`
     * with the [makefile](makefile), which expects `pytest` and `pytest-cov` to
       be installed (see
-      [requirements/development.txt](requirements/development.txt)): `$ make
+      [requirements/test.txt](requirements/test.txt)): `$ make
       test`
 
 
