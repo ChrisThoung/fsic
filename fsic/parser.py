@@ -130,6 +130,8 @@ from .exceptions import BuildError, ParserError, SymbolError
 
 equation_re = re.compile(
     r'''
+        (?: ^ [`]{3,}\n .*? [`]{3,} $ )|  # Three backticks enclose code to be inserted verbatim
+
         (?: ^ \( .*?      [=]        .*? \) (?= \s* ) $ )|  # Brackets beginning on the left-hand side
         (?: ^    \S+? \s* [=] \s* \( .*? \) (?= \s* ) $ )|  # Brackets beginning on the right-hand side
         (?: ^    \S+? \s* [=] \s*    .*?    (?= \s* ) $ )   # Equation on a single line

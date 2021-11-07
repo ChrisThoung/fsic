@@ -56,6 +56,19 @@ T = {theta} * Y
 H = (
      H[-1] + YD - C
 )
+
+`self.Y[t] = self.C[t] + self.G[t]`
+`self._Y[t] = self._C[t] + self._G[t]`
+
+```
+self.Y[t] = (self.C[t] +
+             self.G[t])
+```
+
+```
+self._Y[t] = (self._C[t] +
+              self._G[t])
+```
 '''
         expected = [
             '(C =\n     {alpha_1} * YD +\n     {alpha_2} * H[-1])',
@@ -63,6 +76,18 @@ H = (
             'Y = C + G',
             'T = {theta} * Y',
             'H = (\n     H[-1] + YD - C\n)',
+
+            '`self.Y[t] = self.C[t] + self.G[t]`',
+            '`self._Y[t] = self._C[t] + self._G[t]`',
+
+            '''```
+self.Y[t] = (self.C[t] +
+             self.G[t])
+```''',
+            '''```
+self._Y[t] = (self._C[t] +
+              self._G[t])
+```''',
         ]
 
         self.assertEqual(fsic.parser.equation_re.findall(script), expected)
