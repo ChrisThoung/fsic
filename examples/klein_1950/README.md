@@ -33,8 +33,8 @@ steps.
 
 ## Notes
 
-Broadly, the notation follows Greene (2012) which, in turn, varies slightly
-from the original in Klein (1950). See the `descriptions` variable in
+Broadly, the notation follows Greene (2012) which varies slightly from the
+original in Klein (1950). See the `descriptions` variable in
 ['klein_model_i.py'](klein_model_i.py) for details of the variables.
 
 
