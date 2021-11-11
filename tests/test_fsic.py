@@ -90,7 +90,8 @@ self._Y[t] = (self._C[t] +
 ```''',
         ]
 
-        self.assertEqual(fsic.parser.equation_re.findall(script), expected)
+        self.assertEqual([match.group(0) for match in fsic.parser.equation_re.finditer(script)],
+                         expected)
 
 
 class TestTerm(unittest.TestCase):
