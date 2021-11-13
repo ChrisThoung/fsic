@@ -198,6 +198,18 @@ H = (H[-1] +
 
         self.assertEqual(fsic.parser.parse_equation(equation), expected)
 
+    def test_parse_equation_verbatim_single_line(self):
+        # Check that `parse_equation()` correctly handles a single-line piece
+        # of verbatim code
+        equation = '`self.Y[t] = self.C[t] + self.G[t]`'
+        expected = [
+            fsic.parser.Symbol(name=None, type=fsic.parser.Type.VERBATIM, lags=None, leads=None,
+                               equation='`self.Y[t] = self.C[t] + self.G[t]`',
+                               code='self.Y[t] = self.C[t] + self.G[t]')
+        ]
+
+        self.assertEqual(fsic.parser.parse_equation(equation), expected)
+
     def test_parse_equation_empty(self):
         # Check that `parse_equation()` returns an empty list if the equation
         # string is empty

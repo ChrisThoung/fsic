@@ -189,6 +189,7 @@ class Type(enum.IntEnum):
     FUNCTION = enum.auto()
     KEYWORD = enum.auto()
 
+    VERBATIM = enum.auto()
     INVALID = enum.auto()
 
 
@@ -242,7 +243,7 @@ class Term(NamedTuple):
 
 class Symbol(NamedTuple):
     """Container for information about a single symbol of an equation or model."""
-    name: str
+    name: Optional[str]
     type: Type
     lags: Optional[int]
     leads: Optional[int]
@@ -460,6 +461,17 @@ def parse_equation(equation: str) -> List[Symbol]:
         raise ParserError(
             '`parse_equation()` expects a string that defines a single equation '
             'but found {} instead'.format(len(equations)))
+
+    # Insert single-line verbatim code straight into a Symbol object and return
+    if equation.startswith('`') and equation.endswith('`'):
+        return [
+            Symbol(name=None,
+                   type=Type.VERBATIM,
+                   lags=None,
+                   leads=None,
+                   equation=equation,
+                   code=equation[1:-1])
+        ]
 
     terms = parse_equation_terms(equation)
 
