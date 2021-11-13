@@ -555,9 +555,9 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
         equation_symbols = parse_equation(statement)
 
         if check_syntax:
-            equations = [s.equation for s in equation_symbols if s.equation is not None]
+            equation_code = [s.code for s in equation_symbols if s.code is not None]
 
-            for e in equations:
+            for e in equation_code:
                 with warnings.catch_warnings(record=True) as w:
                     warnings.simplefilter('always')
 
