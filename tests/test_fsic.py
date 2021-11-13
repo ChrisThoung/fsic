@@ -996,6 +996,38 @@ class TestBuild(unittest.TestCase):
         code = fsic.build_model(symbols).CODE
         self.assertEqual(code, expected)
 
+    def test_multiple_verbatim_statements(self):
+        # Check that the parser can generate code from a block that includes
+        # verbatim code
+        # Test multiple statements to check that the code doesn't incorrectly
+        # raise collisions/duplicates
+        expected = '''class Model(BaseModel):
+    ENDOGENOUS: List[str] = []
+    EXOGENOUS: List[str] = []
+
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
+
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
+
+    LAGS: int = 0
+    LEADS: int = 0
+
+    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        # `self.Y[t] = self.C[t] + self.G[t]`
+        self.Y[t] = self.C[t] + self.G[t]
+
+        # `self.T[t] = self.theta[t] * self.Y[t]`
+        self.T[t] = self.theta[t] * self.Y[t]'''
+
+        symbols = fsic.parse_model('''
+`self.Y[t] = self.C[t] + self.G[t]`
+`self.T[t] = self.theta[t] * self.Y[t]`
+''')
+        code = fsic.build_model(symbols).CODE
+        self.assertEqual(code, expected)
+
     def test_custom_converter(self):
         # Test that a custom function can be passed into the model builder
         expected = '''class Model(BaseModel):

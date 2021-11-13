@@ -14,6 +14,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Added support in the parser for user-written Python code (enclosed in
+  backticks) to be inserted unmodified (verbatim).
 - Added new `strict` attribute (and `__init__()` keyword argument) to
   `VectorContainer` (and, in turn, `BaseModel` and `BaseLinker`) to optionally
   guard against adding non-variable attributes. If `strict=True`, only

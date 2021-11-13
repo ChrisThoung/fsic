@@ -613,14 +613,21 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
             'Failed to parse the following {} statement(s):\n'.format(len(lines)) +
             '\n'.join(lines))
 
-    # Store combined symbols to a dictionary, successively combining in the
-    # loop below
+    # Store combined symbols to a:
+    #  - dictionary for regular symbols (to track replacements)
+    #  - list for verbatim code
     symbols: Dict[str, Symbol] = {}
+    verbatim: List[str] = []
+
     for symbol in itertools.chain(*symbols_by_equation):
         name = symbol.name
-        symbols[name] = symbols.get(name, symbol).combine(symbol)
 
-    return list(symbols.values())
+        if name is None:
+            verbatim.append(symbol)
+        else:
+            symbols[name] = symbols.get(name, symbol).combine(symbol)
+
+    return list(symbols.values()) + verbatim
 
 
 # Model class generator -------------------------------------------------------
@@ -810,7 +817,7 @@ if _ > 0:  # Ignore negative values
 
     # Set longest lag and lead
     non_indexed_symbols = [s for s in symbols
-                           if s.type not in (Type.FUNCTION, Type.KEYWORD)]
+                           if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)]
 
     if len(non_indexed_symbols) > 0:
         lags =  abs(min(s.lags  for s in non_indexed_symbols))
@@ -819,7 +826,7 @@ if _ > 0:  # Ignore negative values
         lags = leads = 0
 
     # Generate code block of equations
-    expressions = [converter(s) for s in symbols if s.type == Type.ENDOGENOUS]
+    expressions = [converter(s) for s in symbols if s.type in (Type.ENDOGENOUS, Type.VERBATIM)]
     equations = '\n\n'.join(textwrap.indent(e, '        ') for e in expressions)
 
     # If there are no equations, insert `pass` instead
