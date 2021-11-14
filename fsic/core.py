@@ -13,6 +13,7 @@ Base classes:
   multi-region/entity model
 """
 
+from collections import Counter
 import copy
 from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
 import warnings
@@ -414,8 +415,18 @@ class ModelInterface(VectorContainer):
         super().add_variable('status', '-')
         super().add_variable('iterations', -1)
 
+        # Check for duplicate names
+        names = copy.deepcopy(self.NAMES)
+
+        if len(set(names)) != len(names):
+            duplicates = [k for k, v in Counter(names).items() if v > 1]
+            raise DuplicateNameError(
+                'Found multiple instances of the following variable(s) in `NAMES`: {}'
+                .format(', '.join(duplicates)))
+
         # Add model variables
-        self.__dict__['names'] = copy.deepcopy(self.NAMES)
+        self.__dict__['names'] = names
+
         for name in self.__dict__['names']:
             super().add_variable(name,
                                  initial_values.get(name, default_value),

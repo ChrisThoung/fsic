@@ -488,6 +488,14 @@ H = H[-1] + YD - C
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
+    def test_init_with_duplicate_names_error(self):
+        # Check for a `DuplicateNameError` if the model repeats any variable
+        # names in its `NAMES` attribute
+        self.Model.NAMES += ['G']  # Add in a second instance of 'G'
+
+        with self.assertRaises(fsic.exceptions.DuplicateNameError):
+            self.Model(range(5))
+
     def test_init_with_arrays(self):
         model = self.Model(range(5), G=np.arange(0, 10, 2), alpha_1=[0.6] * 5)
         self.assertEqual(model.values.shape, (9, 5))
