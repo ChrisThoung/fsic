@@ -98,6 +98,8 @@ class VectorContainer:
             If `True`, the only way to add attributes to the object is with
             `add_variable()` i.e. as new container variables. Ad hoc attributes
             are expressly blocked.
+            If `False`, further attributes can be added ad hoc at runtime in
+            the usual way for Python objects e.g. `model.A = ...`.
         """
         self.__dict__['span'] = span
         self.__dict__['index'] = []
@@ -393,6 +395,11 @@ class ModelInterface(VectorContainer):
             If `True`, the only way to add attributes to the object is with
             `add_variable()` i.e. as new container variables. Ad hoc attributes
             are expressly blocked.
+            If `False`, further attributes can be added ad hoc at runtime in
+            the usual way for Python objects e.g. `model.A = ...`.
+            On instantiation, `strict=True` also checks that any variables set
+            with `initial_values` are in the class's `NAMES` attribute, raising
+            an `InitialisationError` if not.
         dtype : variable type
             Default data type to impose on model variables (in NumPy arrays)
         default_value : number
@@ -423,6 +430,20 @@ class ModelInterface(VectorContainer):
             raise DuplicateNameError(
                 'Found multiple instances of the following variable(s) in `NAMES`: {}'
                 .format(', '.join(duplicates)))
+
+        # If `strict`, check that any variables set via `initial_values` match
+        # an entry in `names` (which is itself a copy of the class's `NAMES`
+        # attribute)
+        if strict:
+            permitted_names = set(names)
+            passed_names = set(initial_values.keys())
+            invalid_names = passed_names - permitted_names
+
+            if len(invalid_names) > 0:
+                raise InitialisationError(
+                    'Cannot add unlisted variables (i.e. variables not in `NAMES`) '
+                    'when `strict=True` - found {} instance(s): {}'
+                    .format(len(invalid_names), ', '.join(invalid_names)))
 
         # Add model variables
         self.__dict__['names'] = names
@@ -920,6 +941,9 @@ class BaseModel(SolverMixin, ModelInterface):
             are expressly blocked.
             If `False`, further attributes can be added ad hoc at runtime in
             the usual way for Python objects e.g. `model.A = ...`.
+            On instantiation, `strict=True` also checks that any variables set
+            with `initial_values` are in the class's `NAMES` attribute, raising
+            an `InitialisationError` if not.
         dtype : variable type
             Data type to impose on model variables (in NumPy arrays)
         default_value : number

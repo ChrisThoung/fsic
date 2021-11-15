@@ -518,6 +518,12 @@ H = H[-1] + YD - C
             # C is invalid because it has the wrong shape
             self.Model(range(10), C=[0, 0])
 
+    def test_init_strict(self):
+        # Check that `strict=True` raises an exception on passing a variable
+        # not listed in the model's `NAMES` attribute
+        with self.assertRaises(fsic.exceptions.InitialisationError):
+            self.Model(range(5), strict=True, A=5)
+
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_from_dataframe(self):
         # Test instantiation from a `pandas` DataFrame (if installed)

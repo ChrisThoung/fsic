@@ -18,8 +18,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   backticks) to be inserted unmodified (verbatim).
 - Added new `strict` attribute (and `__init__()` keyword argument) to
   `VectorContainer` (and, in turn, `BaseModel` and `BaseLinker`) to optionally
-  guard against adding non-variable attributes. If `strict=True`, only
-  `add_variable()` can expand the object.
+  guard against adding non-variable attributes. If `strict=True`:
+    - at instantiation, attempts to add unrecognised/unlisted variables
+      (i.e. any not in the object's `NAMES` attribute) lead to an
+      `InitialisationError`
+    - only `add_variable()` can expand the object
 - Added new `size` property to `VectorContainer` and `ModelInterface` (and, in
   turn, `BaseModel`), as well as `BaseLinker`, to report the number of elements
   in the objects' arrays.
