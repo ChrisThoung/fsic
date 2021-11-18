@@ -932,7 +932,42 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
+        kwargs :
+            Further keyword arguments for solution
+        """
         pass'''
 
         symbols = fsic.parse_model('Y = C + G')
@@ -958,7 +993,42 @@ class TestBuild(unittest.TestCase):
     LAGS = 0
     LEADS = 0
 
-    def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
+    def solve_t_before(self, t, *, errors='raise', catch_first_error=True, iteration=None, **kwargs):
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t, *, errors='raise', catch_first_error=True, iteration=None, **kwargs):
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def _evaluate(self, t, *, errors='raise', catch_first_error=True, iteration=None, **kwargs):
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
+        kwargs :
+            Further keyword arguments for solution
+        """
         # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
         self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]'''
 
@@ -981,7 +1051,42 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
+        kwargs :
+            Further keyword arguments for solution
+        """
         pass'''
 
         symbols = fsic.parse_model('')
@@ -1003,7 +1108,42 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
+        kwargs :
+            Further keyword arguments for solution
+        """
         # Y[t] = X[t] if X[t] > Z[t] else Z[t]
         self._Y[t] = self._X[t] if self._X[t] > self._Z[t] else self._Z[t]'''
 
@@ -1029,7 +1169,42 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
+        kwargs :
+            Further keyword arguments for solution
+        """
         # `self.Y[t] = self.C[t] + self.G[t]`
         self.Y[t] = self.C[t] + self.G[t]
 
@@ -1058,7 +1233,42 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
+        kwargs :
+            Further keyword arguments for solution
+        """
         # Y[t] = X[t]
         _ = self._X[t]
         if np.isfinite(_):
