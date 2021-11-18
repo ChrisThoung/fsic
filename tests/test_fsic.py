@@ -964,6 +964,7 @@ class TestBuild(unittest.TestCase):
 
         symbols = fsic.parse_model('Y = C + I + G + X - M')
         code = fsic.parser.build_model_definition(symbols, with_type_hints=False)
+        self.assertEqual(code, expected)
 
     def test_no_symbols(self):
         # Test that empty input generates an empty model template
