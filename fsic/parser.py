@@ -318,14 +318,30 @@ def split_equations_iter(model: str) -> Iterator[str]:
         else:
             return line[:hash_position].rstrip()
 
+    # Conditions for extracting a complete set of statements:
+    #  - unmatched_parentheses = 0 : no incomplete bracket pairs (typically for continuation lines)
+    #  - complete_verbatim_block = True : no incomplete pairs of fences for verbatim code
+
     # Counter: Increment for every opening bracket and decrement for every
     # closing one. When zero, all pairs have been matched
     unmatched_parentheses = 0
+
+    # If we encounter a fenced code block (three or more backticks), set
+    # `complete_verbatim_block` to `False` until we find the corresponding
+    # closing backticks
+    complete_verbatim_block = True
 
     buffer = []
 
     for line in map(strip_comments, model.splitlines()):
         buffer.append(line)
+
+        if line.startswith('```'):
+            if len(buffer) == 1:  # Opening code fence
+                complete_verbatim_block = False
+                continue
+            else:  # Closing code fence
+                complete_verbatim_block = True
 
         # Count unmatched parentheses
         for char in line:
@@ -339,7 +355,7 @@ def split_equations_iter(model: str) -> Iterator[str]:
                                   'while attempting to read the following: {}'.format('\n'.join(buffer)))
 
         # If complete, combine and yield
-        if unmatched_parentheses == 0:
+        if unmatched_parentheses == 0 and complete_verbatim_block:
             # Combine into a single string
             equation = '\n'.join(buffer)
 
@@ -462,7 +478,7 @@ def parse_equation(equation: str) -> List[Symbol]:
             '`parse_equation()` expects a string that defines a single equation '
             'but found {} instead'.format(len(equations)))
 
-    # Insert single-line verbatim code straight into a Symbol object and return
+    # Insert verbatim code straight into a Symbol object and return
     if equation.startswith('`') and equation.endswith('`'):
         return [
             Symbol(name=None,
@@ -470,7 +486,7 @@ def parse_equation(equation: str) -> List[Symbol]:
                    lags=None,
                    leads=None,
                    equation=equation,
-                   code=equation[1:-1])
+                   code=equation.strip('`\r\n'))
         ]
 
     terms = parse_equation_terms(equation)

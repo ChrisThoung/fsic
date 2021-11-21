@@ -295,6 +295,22 @@ H = H[-1] + YD - C
 
         self.assertEqual(fsic.parse_model(model), expected)
 
+    def test_parse_model_verbatim(self):
+        # Check that the parser can extract a block of verbatim code from a
+        # string
+        script = '''
+```
+self.T[t] = self.theta[t] * self.Y[t]
+```
+'''
+        self.assertEqual(fsic.parse_model(script),
+                         [fsic.parser.Symbol(
+                             name=None, type=fsic.parser.Type.VERBATIM, lags=None, leads=None,
+                             equation='''```
+self.T[t] = self.theta[t] * self.Y[t]
+```''',
+                             code='self.T[t] = self.theta[t] * self.Y[t]')])
+
     def test_parser_no_lhs(self):
         # Check that invalid equations (missing a left-hand side expression)
         # lead to a `ParserError`
