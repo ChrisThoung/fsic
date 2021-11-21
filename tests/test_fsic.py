@@ -1234,6 +1234,71 @@ class TestBuild(unittest.TestCase):
         code = fsic.build_model(symbols).CODE
         self.assertEqual(code, expected)
 
+    def test_verbatim_block(self):
+        # Check that a verbatim block is correctly inserted into the model
+        # template
+        expected = '''class Model(BaseModel):
+    ENDOGENOUS: List[str] = []
+    EXOGENOUS: List[str] = []
+
+    PARAMETERS: List[str] = []
+    ERRORS: List[str] = []
+
+    NAMES: List[str] = ENDOGENOUS + EXOGENOUS + PARAMETERS + ERRORS
+    CHECK: List[str] = ENDOGENOUS
+
+    LAGS: int = 0
+    LEADS: int = 0
+
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
+        pass
+
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
+
+        Parameters
+        ----------
+        t : int
+            Position in `span` of the period to solve
+        errors : str
+            User-specified treatment on encountering numerical solution
+            errors. Note that it is up to the user's over-riding code to decide
+            how to handle this.
+        catch_first_error : bool
+            If `True` (default) and `errors='raise'`, raise an exception
+            (`SolutionError`) on the first numerical error/warning during
+            solution. This identifies the problem statement in the stack trace
+            without modifying any values at this point.
+            If `False`, only check for errors after completing an iteration,
+            raising an exception (`SolutionError`) after the fact. This allows
+            numerical errors (NaNs, Infs) to propagate through the solution
+            before raising the exception.
+        iteration : int
+            The current iteration count. This is not guaranteed to take a
+            non-`None` value if the user has over-ridden the default calling
+            `solve_t()` method. Note that it is up to the user's over-riding
+            code to decide how to handle this.
+        kwargs :
+            Further keyword arguments for solution
+        """
+        # ```
+        # self.T[t] = self.theta[t] * self.Y[t]
+        # ```
+        self.T[t] = self.theta[t] * self.Y[t]'''
+
+        symbols = fsic.parse_model('''
+```
+self.T[t] = self.theta[t] * self.Y[t]
+```
+''')
+        code = fsic.build_model_definition(symbols)
+        self.assertEqual(code, expected)
+
     def test_custom_converter(self):
         # Test that a custom function can be passed into the model builder
         expected = '''class Model(BaseModel):

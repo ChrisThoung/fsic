@@ -884,8 +884,8 @@ if _ > 0:  # Ignore negative values
     def default_converter(symbol: Symbol) -> str:
         """Return Python code for the current equation as an `exec`utable string."""
         return '''\
-# {}
-{}'''.format(symbol.equation, symbol.code)
+{}
+{}'''.format('\n'.join('# ' + x for x in symbol.equation.splitlines()), symbol.code)
 
     if converter is None:
         converter = default_converter
