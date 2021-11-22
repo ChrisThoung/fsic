@@ -210,6 +210,20 @@ H = (H[-1] +
 
         self.assertEqual(fsic.parser.parse_equation(equation), expected)
 
+    def test_parse_equation_verbatim_partial(self):
+        # Check that `parse_equation()` correctly leaves a verbatim excerpt of
+        # code unchanged in an equation
+        equation = "Cp = C / `self['C', 1960]`"
+        expected = [
+            fsic.parser.Symbol(name='Cp', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
+                               equation="Cp[t] = C[t] / `self['C', 1960]`",
+                               code="self._Cp[t] = self._C[t] / self['C', 1960]"),
+            fsic.parser.Symbol(name='C', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0,
+                               equation=None, code=None),
+        ]
+
+        self.assertEqual(fsic.parser.parse_equation(equation), expected)
+
     def test_parse_equation_empty(self):
         # Check that `parse_equation()` returns an empty list if the equation
         # string is empty

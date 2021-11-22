@@ -153,6 +153,9 @@ equation_re = re.compile(
 # and errors in angle brackets: <epsilon>
 
 term_re = re.compile(
+    # Match verbatim code enclosed in backticks
+    r'(?: (?P<_VERBATIM> [`] (.+?) [`]) )|'
+
     # Match attempts to use reserved Python keywords as variable names (to be
     # raised as errors elsewhere)
     r'(?: (?P<_INVALID> (?: {}) \s* \[ .*? \]) )|'.format('|'.join(keyword.kwlist)) +
@@ -211,8 +214,8 @@ class Term(NamedTuple):
         """Standardised representation of the term."""
         expression = self.name
 
-        # If neither a function nor a keyword, add the index
-        if self.type not in (Type.FUNCTION, Type.KEYWORD):
+        # If neither a function, keyword or verbatim block, add the index
+        if self.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM):
             assert self.index_ is not None
 
             if self.index_ > 0:
@@ -235,6 +238,12 @@ class Term(NamedTuple):
         # object attribute
         if self.type in (Type.FUNCTION, Type.KEYWORD):
             code = replacement_function_names.get(code, code)
+
+        # If a block of verbatim code, drop the enclosing backticks
+        elif self.type in (Type.VERBATIM, ):
+            code = code.strip('`')
+
+        # Otherwise, access as a regular internal variable
         else:
             code = 'self._' + code
 
@@ -517,6 +526,11 @@ def parse_equation(equation: str) -> List[Symbol]:
     functions: Dict[str, Symbol] = {}
 
     for term in terms:
+        # Skip verbatim terms: these shouldn't be converted to individual
+        # symbols
+        if term.type == Type.VERBATIM:
+            continue
+
         symbol = Symbol(name=term.name,
                         type=term.type,
                         lags=term.index_,
