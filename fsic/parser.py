@@ -914,6 +914,8 @@ if _ > 0:  # Ignore negative values
     # Generate code block of equations
     expressions = [converter(s)
                    for s in symbols
+                   # Only convert symbols that are endogenous or verbatim *and*
+                   # include the corresponding code
                    if s.type in (Type.ENDOGENOUS, Type.VERBATIM) and s.equation is not None and s.code is not None]
     equations = '\n\n'.join(textwrap.indent(e, '        ') for e in expressions)
 
