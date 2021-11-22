@@ -1368,6 +1368,24 @@ if np.isfinite(_):
         code = fsic.build_model(symbols, converter=converter).CODE
         self.assertEqual(code, expected)
 
+    def test_empty_endogenous_symbols(self):
+        # Check that `build_model()` can generate a model from an endogenous
+        # symbol with no accompanying equation
+        Model = fsic.build_model([fsic.parser.Symbol(
+            # Note how `equation` and `code` are `None`
+            name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0, equation=None, code=None)])
+
+        self.assertEqual(Model.ENDOGENOUS, ['C'])
+        self.assertEqual(Model.EXOGENOUS, [])
+        self.assertEqual(Model.PARAMETERS, [])
+        self.assertEqual(Model.ERRORS, [])
+
+        self.assertEqual(Model.NAMES, ['C'])
+        self.assertEqual(Model.CHECK, ['C'])
+
+        self.assertEqual(Model.LAGS, 0)
+        self.assertEqual(Model.LEADS, 0)
+
 
 class TestBuildAndSolve(unittest.TestCase):
 

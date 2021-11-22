@@ -912,7 +912,9 @@ if _ > 0:  # Ignore negative values
         lags = leads = 0
 
     # Generate code block of equations
-    expressions = [converter(s) for s in symbols if s.type in (Type.ENDOGENOUS, Type.VERBATIM)]
+    expressions = [converter(s)
+                   for s in symbols
+                   if s.type in (Type.ENDOGENOUS, Type.VERBATIM) and s.equation is not None and s.code is not None]
     equations = '\n\n'.join(textwrap.indent(e, '        ') for e in expressions)
 
     # If there are no equations, insert `pass` instead
