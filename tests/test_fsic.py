@@ -469,6 +469,55 @@ class TestVectorContainer(unittest.TestCase):
 
         self.assertEqual(container.values.shape, (4, 10))
 
+    def test_values_replacement_array(self):
+        # Check that the `values` property can be replaced by an array of
+        # identical shape
+        container = fsic.core.VectorContainer(range(10))
+        container.add_variable('A', 0.0)
+        container.add_variable('B', 1.0)
+        container.add_variable('C', 2.0)
+
+        self.assertTrue(np.allclose(container.A, 0))
+        self.assertTrue(np.allclose(container.B, 1))
+        self.assertTrue(np.allclose(container.C, 2))
+
+        container.values = np.full((3, 10), 3)
+
+        self.assertTrue(np.allclose(container.A, 3))
+        self.assertTrue(np.allclose(container.B, 3))
+        self.assertTrue(np.allclose(container.C, 3))
+
+        self.assertTrue(np.allclose(container.values, 3))
+
+    def test_values_replacement_single_value(self):
+        # Check that the `values` property can be replaced by a single value
+        container = fsic.core.VectorContainer(range(10))
+        container.add_variable('A', 0.0)
+        container.add_variable('B', 1.0)
+        container.add_variable('C', 2.0)
+
+        self.assertTrue(np.allclose(container.A, 0))
+        self.assertTrue(np.allclose(container.B, 1))
+        self.assertTrue(np.allclose(container.C, 2))
+
+        container.values = 3
+
+        self.assertTrue(np.allclose(container.A, 3))
+        self.assertTrue(np.allclose(container.B, 3))
+        self.assertTrue(np.allclose(container.C, 3))
+
+        self.assertTrue(np.allclose(container.values, 3))
+
+    def test_values_replacement_dimension_error(self):
+        # Check that dimension mismatches raise a `DimensionError`
+        container = fsic.core.VectorContainer(range(10))
+        container.add_variable('A', 0.0)
+        container.add_variable('B', 1.0)
+        container.add_variable('C', 2.0)
+
+        with self.assertRaises(fsic.exceptions.DimensionError):
+            container.values = np.zeros((3, 4))
+
     @unittest.expectedFailure
     def test_eval(self):
         # Check `eval()` method
@@ -942,6 +991,48 @@ class TestModelContainerMethods(unittest.TestCase):
 
         self.assertNotIn('status', model)
         self.assertNotIn('iterations', model)
+
+    def test_values_replacement_array(self):
+        # Check that the `values` property can be replaced by an array of
+        # identical shape
+        model = self.Model(range(10))
+
+        self.assertTrue(np.allclose(model.values, 0))
+
+        model.values = np.full((5, 10), 1)
+
+        self.assertTrue(np.allclose(model.C, 1))
+        self.assertTrue(np.allclose(model.alpha_1, 1))
+        self.assertTrue(np.allclose(model.YD, 1))
+        self.assertTrue(np.allclose(model.alpha_2, 1))
+        self.assertTrue(np.allclose(model.H, 1))
+
+        self.assertTrue(np.allclose(model.values, 1))
+
+    def test_values_replacement_single_value(self):
+        # Check that the `values` property can be replaced by a single value
+        model = self.Model(range(10))
+
+        self.assertTrue(np.allclose(model.values, 0))
+
+        model.values = 1
+
+        self.assertTrue(np.allclose(model.C, 1))
+        self.assertTrue(np.allclose(model.alpha_1, 1))
+        self.assertTrue(np.allclose(model.YD, 1))
+        self.assertTrue(np.allclose(model.alpha_2, 1))
+        self.assertTrue(np.allclose(model.H, 1))
+
+        self.assertTrue(np.allclose(model.values, 1))
+
+    def test_values_replacement_dimension_error(self):
+        # Check that dimension mismatches raise a `DimensionError`
+        model = self.Model(range(10))
+
+        self.assertTrue(np.allclose(model.values, 0))
+
+        with self.assertRaises(fsic.exceptions.DimensionError):
+            model.values = np.zeros((3, 4))
 
 
 class TestBuild(unittest.TestCase):

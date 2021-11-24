@@ -25,6 +25,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
       (i.e. any not in the object's `NAMES` attribute) lead to an
       `InitialisationError`
     - only `add_variable()` can expand the object
+- Added support for single value replacement in `VectorContainer` and
+  `ModelInterface` (and, in turn, `BaseModel`).
 - Added new `size` property to `VectorContainer` and `ModelInterface` (and, in
   turn, `BaseModel`), as well as `BaseLinker`, to report the number of elements
   in the objects' arrays.

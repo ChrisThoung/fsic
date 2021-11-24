@@ -352,24 +352,32 @@ class VectorContainer:
         ])
 
     @values.setter
-    def values(self, new_values: np.ndarray) -> None:
+    def values(self, new_values: Union[np.ndarray, Any]) -> None:
         """Replace all values (effectively, element-by-element), preserving the original data types in the container.
 
         Notes
         -----
-        The replacement array must be 2D and have identical dimensions to
-        `values`, and in the right order: (index x span).
+        The replacement must be either:
+         - a 2D array with identical dimensions to `values`, and in the right
+           order: (index x span)
+         - a scalar to replace all array elements
 
         The method coerces each row to the data type of the corresponding item
         in the container.
         """
-        if new_values.shape != self.values.shape:
-            raise DimensionError(
-                'Replacement array is of shape {} but expected shape is {}'
-                .format(new_values.shape, self.values.shape))
+        if isinstance(new_values, np.ndarray):
+            if new_values.shape != self.values.shape:
+                raise DimensionError(
+                    'Replacement array is of shape {} but expected shape is {}'
+                    .format(new_values.shape, self.values.shape))
 
-        for name, series in zip(self.index, new_values):
-            self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
+            for name, series in zip(self.index, new_values):
+                self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
+
+        else:
+             for name in self.index:
+                 series = self.__getattribute__('_' + name)
+                 self.__setattr__(name, np.full(series.shape, new_values, dtype=series.dtype))
 
     def eval(self, expression: str) -> np.ndarray:
         raise NotImplementedError('`eval()` method not implemented yet')
@@ -502,24 +510,32 @@ class ModelInterface(VectorContainer):
         ])
 
     @values.setter
-    def values(self, new_values: np.ndarray) -> None:
+    def values(self, new_values: Union[np.ndarray, Any]) -> None:
         """Replace all values (effectively, element-by-element), preserving the original data types in the container.
 
         Notes
         -----
-        The replacement array must be 2D and have identical dimensions to
-        `values`, and in the right order: (names x span).
+        The replacement must be either:
+         - a 2D array with identical dimensions to `values`, and in the right
+           order: (index x span)
+         - a scalar to replace all array elements
 
         The method coerces each row to the data type of the corresponding item
         in the container.
         """
-        if new_values.shape != self.values.shape:
-            raise DimensionError(
-                'Replacement array is of shape {} but expected shape is {}'
-                .format(new_values.shape, self.values.shape))
+        if isinstance(new_values, np.ndarray):
+            if new_values.shape != self.values.shape:
+                raise DimensionError(
+                    'Replacement array is of shape {} but expected shape is {}'
+                    .format(new_values.shape, self.values.shape))
 
-        for name, series in zip(self.names, new_values):
-            self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
+            for name, series in zip(self.names, new_values):
+                self.__setattr__(name, series.astype(self.__getattribute__('_' + name).dtype))
+
+        else:
+            for name in self.names:
+                series = self.__getattribute__('_' + name)
+                self.__setattr__(name, np.full(series.shape, new_values, dtype=series.dtype))
 
 
 # Mixin to define (but not fully implement) solver behaviour ------------------
