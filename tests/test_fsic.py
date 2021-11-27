@@ -1491,6 +1491,94 @@ if np.isfinite(_):
         self.assertEqual(Model.LAGS, 0)
         self.assertEqual(Model.LEADS, 0)
 
+    def test_lags(self):
+        # Check that the `lags` keyword argument imposes a lag length on the
+        # final model
+
+        # No symbols: Take specified lag length
+        self.assertEqual(
+            fsic.build_model([],
+                             lags=2).LAGS,
+            2)
+
+        # Symbol with lag of 1: Take specified lag length (impose 2)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0, equation=None, code=None)],
+                             lags=2).LAGS,
+            2)
+
+        # Symbol with lag of 3: Take specified lag length (impose 2)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-3, leads=0, equation=None, code=None)],
+                             lags=2).LAGS,
+            2)
+
+    def test_leads(self):
+        # Check that the `leads` keyword argument imposes a lead length on the
+        # final model
+
+        # No symbols: Take specified lead length
+        self.assertEqual(
+            fsic.build_model([],
+                             leads=2).LEADS,
+            2)
+
+        # Symbol with lead of 1: Take specified lead length (impose 2)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=1, equation=None, code=None)],
+                             leads=2).LEADS,
+            2)
+
+        # Symbol with lead of 3: Take specified lead length (impose 2)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=3, equation=None, code=None)],
+                             leads=2).LEADS,
+            2)
+
+    def test_min_lags(self):
+        # Check that the `min_lags` keyword argument ensures a minimum lag
+        # length
+
+        # No symbols: Take specified minimum lag length
+        self.assertEqual(
+            fsic.build_model([],
+                             min_lags=2).LAGS,
+            2)
+
+        # Symbol with lag of 1: Take minimum lag length (impose 2)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0, equation=None, code=None)],
+                             min_lags=2).LAGS,
+            2)
+
+        # Symbol with lag of 3: Ignore minimum lag length (set to 3)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-3, leads=0, equation=None, code=None)],
+                             min_lags=2).LAGS,
+            3)
+
+    def test_min_leads(self):
+        # Check that the `min_leads` keyword argument ensures a minimum lead
+        # length
+
+        # No symbols: Take specified minimum lead length
+        self.assertEqual(
+            fsic.build_model([],
+                             min_leads=2).LEADS,
+            2)
+
+        # Symbol with lead of 1: Take minimum lead length (impose 2)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=-1, equation=None, code=None)],
+                             min_leads=2).LEADS,
+            2)
+
+        # Symbol with lead of 3: Ignore minimum lead length (set to 3)
+        self.assertEqual(
+            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=-3, equation=None, code=None)],
+                             min_leads=2).LEADS,
+            3)
+
 
 class TestBuildAndSolve(unittest.TestCase):
 

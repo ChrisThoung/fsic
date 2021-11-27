@@ -830,8 +830,21 @@ subroutine solve(initial_values, indexes,                                       
 end subroutine solve
 '''
 
-def build_fortran_definition(symbols: List[Symbol], *, wrap_width: int = 100) -> str:
-    """Return a string of Fortran code that embeds the equations in `symbols`."""
+def build_fortran_definition(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Optional[int] = None, min_lags: int = 0, min_leads: int = 0, wrap_width: int = 100) -> str:
+    """Return a string of Fortran code that embeds the equations in `symbols`.
+
+    Parameters
+    ----------
+    symbols : list of fsic Symbol objects
+        Constituent symbols of the model
+    lags, leads : int, default `None`
+        If passed (i.e. not `None`), impose the specified number of lags or
+        leads on the model
+    min_lags, min_leads : int, default 0
+        Set the minimum lag or lead length on the model
+    wrap_width : int
+        Wrap lines to be at most `wrap_width` characters in length
+    """
     # Separate variable names according to variable type
     endogenous = [s.name for s in symbols if s.type == Type.ENDOGENOUS]
     exogenous  = [s.name for s in symbols if s.type == Type.EXOGENOUS]
@@ -839,13 +852,24 @@ def build_fortran_definition(symbols: List[Symbol], *, wrap_width: int = 100) ->
     errors     = [s.name for s in symbols if s.type == Type.ERROR]
 
     # Set longest lag and lead
-    non_function_symbols = [s for s in symbols if s.type != Type.FUNCTION]
+    non_indexed_symbols = [s for s in symbols
+                           if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)]
 
-    if len(non_function_symbols):
-        lags =  abs(min(s.lags  for s in non_function_symbols))
-        leads = abs(max(s.leads for s in non_function_symbols))
-    else:
-        lags = leads = 0
+    if lags is None:
+        if len(non_indexed_symbols) > 0:
+            lags =  abs(min(s.lags  for s in non_indexed_symbols))
+        else:
+            lags = 0
+
+        lags = max(lags, min_lags)
+
+    if leads is None:
+        if len(non_indexed_symbols) > 0:
+            leads = abs(max(s.leads for s in non_indexed_symbols))
+        else:
+            leads = 0
+
+        leads = max(leads, min_leads)
 
     # Map variable names to numbers (index positions)
     variables_to_numbers = {

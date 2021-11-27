@@ -171,6 +171,100 @@ class TestCompile(FortranTestWrapper, unittest.TestCase):
         pass
 
 
+class TestBuild(unittest.TestCase):
+
+    def test_lags(self):
+        # Check that the `lags` keyword argument imposes a lag length on the
+        # final model
+
+        # No symbols: Take specified lag length
+        self.assertIn(
+            'integer :: lags = 2, leads = 0',
+            fsic.fortran.build_fortran_definition([],
+                             lags=2))
+
+        # Symbol with lag of 1: Take specified lag length (impose 2)
+        self.assertIn(
+            'integer :: lags = 2, leads = 0',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0, equation=None, code=None)],
+                             lags=2))
+
+        # Symbol with lag of 3: Take specified lag length (impose 2)
+        self.assertIn(
+            'integer :: lags = 2, leads = 0',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-3, leads=0, equation=None, code=None)],
+                             lags=2))
+
+    def test_leads(self):
+        # Check that the `leads` keyword argument imposes a lead length on the
+        # final model
+
+        # No symbols: Take specified lead length
+        self.assertIn(
+            'integer :: lags = 0, leads = 2',
+            fsic.fortran.build_fortran_definition([],
+                             leads=2),
+            2)
+
+        # Symbol with lead of 1: Take specified lead length (impose 2)
+        self.assertIn(
+            'integer :: lags = 0, leads = 2',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=1, equation=None, code=None)],
+                             leads=2),
+            2)
+
+        # Symbol with lead of 3: Take specified lead length (impose 2)
+        self.assertIn(
+            'integer :: lags = 0, leads = 2',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=3, equation=None, code=None)],
+                             leads=2),
+            2)
+
+    def test_min_lags(self):
+        # Check that the `min_lags` keyword argument ensures a minimum lag
+        # length
+
+        # No symbols: Take specified minimum lag length
+        self.assertIn(
+            'integer :: lags = 2, leads = 0',
+            fsic.fortran.build_fortran_definition([],
+                             min_lags=2))
+
+        # Symbol with lag of 1: Take minimum lag length (impose 2)
+        self.assertIn(
+            'integer :: lags = 2, leads = 0',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0, equation=None, code=None)],
+                             min_lags=2))
+
+        # Symbol with lag of 3: Ignore minimum lag length (set to 3)
+        self.assertIn(
+            'integer :: lags = 3, leads = 0',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-3, leads=0, equation=None, code=None)],
+                             min_lags=2))
+
+    def test_min_leads(self):
+        # Check that the `min_leads` keyword argument ensures a minimum lead
+        # length
+
+        # No symbols: Take specified minimum lead length
+        self.assertIn(
+            'integer :: lags = 0, leads = 2',
+            fsic.fortran.build_fortran_definition([],
+                             min_leads=2))
+
+        # Symbol with lead of 1: Take minimum lead length (impose 2)
+        self.assertIn(
+            'integer :: lags = 0, leads = 2',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=-1, equation=None, code=None)],
+                             min_leads=2))
+
+        # Symbol with lead of 3: Ignore minimum lead length (set to 3)
+        self.assertIn(
+            'integer :: lags = 0, leads = 3',
+            fsic.fortran.build_fortran_definition([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=-3, equation=None, code=None)],
+                             min_leads=2))
+
+
 class TestBuildAndSolve(FortranTestWrapper, unittest.TestCase):
 
     TEST_MODULE_NAME = 'fsic_test_fortran_testbuildandsolve'

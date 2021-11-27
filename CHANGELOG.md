@@ -16,8 +16,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Added support in the parser for user-written Python code (enclosed in
   backticks) to be inserted unmodified (verbatim).
+- Added parser support for user-specified lag and lead lengths, and for
+  user-specified minimum lag and lead lengths.
 - Added support for Symbols of endogenous variables but no accompanying
-  equation e.g. because of a separate Symbol of verbatim code
+  equation e.g. because of a separate Symbol of verbatim code.
 - Added new `strict` attribute (and `__init__()` keyword argument) to
   `VectorContainer` (and, in turn, `BaseModel` and `BaseLinker`) to optionally
   guard against adding non-variable attributes. If `strict=True`:

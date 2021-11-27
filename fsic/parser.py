@@ -768,13 +768,18 @@ class Model(BaseModel):
 {equations}\
 '''
 
-def build_model_definition(symbols: List[Symbol], *, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> str:
+def build_model_definition(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Optional[int] = None, min_lags: int = 0, min_leads: int = 0, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> str:
     """Return a model class definition string from the contents of `symbols` (with type hints, by default).
 
     Parameters
     ----------
     symbols : list of fsic Symbol objects
         Constituent symbols of the model
+    lags, leads : int, default `None`
+        If passed (i.e. not `None`), impose the specified number of lags or
+        leads on the model
+    min_lags, min_leads : int, default 0
+        Set the minimum lag or lead length on the model
     converter : (optional) callable, default `None`
         Mechanism for customising the Python code generator. If `None`,
         generates the equation as a comment followed by the equivalent Python
@@ -919,11 +924,21 @@ if _ > 0:  # Ignore negative values
     non_indexed_symbols = [s for s in symbols
                            if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)]
 
-    if len(non_indexed_symbols) > 0:
-        lags =  abs(min(s.lags  for s in non_indexed_symbols))
-        leads = abs(max(s.leads for s in non_indexed_symbols))
-    else:
-        lags = leads = 0
+    if lags is None:
+        if len(non_indexed_symbols) > 0:
+            lags =  abs(min(s.lags  for s in non_indexed_symbols))
+        else:
+            lags = 0
+
+        lags = max(lags, min_lags)
+
+    if leads is None:
+        if len(non_indexed_symbols) > 0:
+            leads = abs(max(s.leads for s in non_indexed_symbols))
+        else:
+            leads = 0
+
+        leads = max(leads, min_leads)
 
     # Generate code block of equations
     expressions = [converter(s)
@@ -953,13 +968,18 @@ if _ > 0:  # Ignore negative values
 
     return model_definition_string
 
-def build_model(symbols: List[Symbol], *, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> 'BaseModel':
+def build_model(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Optional[int] = None, min_lags: int = 0, min_leads: int = 0, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> 'BaseModel':
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
 
     Parameters
     ----------
     symbols : list of fsic Symbol objects
         Constituent symbols of the model
+    lags, leads : int, default `None`
+        If passed (i.e. not `None`), impose the specified number of lags or
+        leads on the model
+    min_lags, min_leads : int, default 0
+        Set the minimum lag or lead length on the model
     converter : (optional) callable, default `None`
         Mechanism for customising the Python code generator. If `None`,
         generates the equation as a comment followed by the equivalent Python
@@ -985,6 +1005,8 @@ def build_model(symbols: List[Symbol], *, converter: Optional[Callable[[Symbol],
 
     # Construct the class definition
     model_definition_string = build_model_definition(symbols,
+                                                     lags=lags, leads=leads,
+                                                     min_lags=min_lags, min_leads=min_leads,
                                                      converter=converter,
                                                      with_type_hints=with_type_hints)
 
