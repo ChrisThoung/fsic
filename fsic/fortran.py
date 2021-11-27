@@ -858,7 +858,10 @@ def build_fortran_definition(symbols: List[Symbol], *, wrap_width: int = 100) ->
     equation_code = []     # Code to insert into the Fortran subroutine
     equation_summary = []  # Summary for the header at the top of the file
 
-    for s in filter(lambda x: x.type == Type.ENDOGENOUS, symbols):
+    symbols_with_code = filter(lambda x: x.type == Type.ENDOGENOUS and x.equation is not None,
+                               symbols)
+
+    for s in symbols_with_code:
         equation = s.equation
 
         pattern = re.compile(r'([_A-Za-z][_A-Za-z0-9]*)\[(.*?)\]')
