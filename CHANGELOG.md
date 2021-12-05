@@ -18,6 +18,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   backticks) to be inserted unmodified (verbatim).
 - Added parser support for user-specified lag and lead lengths, and for
   user-specified minimum lag and lead lengths.
+- Added check to parser for incomplete pairs of opening and closing braces.
 - Added support for Symbols of endogenous variables but no accompanying
   equation e.g. because of a separate Symbol of verbatim code.
 - Added new `strict` attribute (and `__init__()` keyword argument) to

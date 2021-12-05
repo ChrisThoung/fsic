@@ -498,6 +498,27 @@ def parse_equation(equation: str) -> List[Symbol]:
                    code=equation.strip('`\r\n'))
         ]
 
+    # Check for complete bracket pairs
+    bracket_pairs = [
+        ('{', '}'),
+    ]
+
+    for opening, closing in bracket_pairs:
+        count = 0
+
+        for character in equation:
+            if character == opening:
+                count += 1
+
+            elif character == closing:
+                count -= 1
+
+        if count != 0:
+            raise ParserError(
+                "Found incomplete brackets ('{}', '{}') in equation: {}".format(
+                    opening, closing, equation))
+
+    # Extract the terms from the equation
     terms = parse_equation_terms(equation)
 
     # Construct standardised and code representations of the equation

@@ -379,6 +379,16 @@ B = f(<C>, D)   # But here, C is an error
         with self.assertRaises(IndentationError):
             fsic.parse_model(' Y = C + I + G + X - M')
 
+    def test_incomplete_braces_error(self):
+        # Check that an incomplete set of braces raises a `ParserError`
+        with self.assertRaises(fsic.exceptions.ParserError):
+            # Missing closing brace after alpha_1
+            fsic.parse_model('C = {alpha_0} + {alpha_1 * Y')
+
+        with self.assertRaises(fsic.exceptions.ParserError):
+            # Missing opening brace before alpha_1
+            fsic.parse_model('C = {alpha_0} + alpha_1} * Y')
+
 
 class TestVectorContainer(unittest.TestCase):
 
