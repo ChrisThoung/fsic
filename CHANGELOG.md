@@ -21,6 +21,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Added check to parser for incomplete pairs of opening and closing braces.
 - Added support for Symbols of endogenous variables but no accompanying
   equation e.g. because of a separate Symbol of verbatim code.
+- Added error handling for `solve_t_before()` and `solve_t_after()`.
 - Added new `strict` attribute (and `__init__()` keyword argument) to
   `VectorContainer` (and, in turn, `BaseModel` and `BaseLinker`) to optionally
   guard against adding non-variable attributes. If `strict=True`:

@@ -2004,6 +2004,28 @@ H = H[-1] + YD - C
         with self.assertRaises(ValueError):
             model.solve_t(1, min_iter=10, max_iter=5)
 
+    def test_solve_t_before_errors(self):
+        # Check that error handling applies to `solve_t_before()`
+        class Model(self.Model):
+            def solve_t_before(self, t: int, *args, **kwargs) -> None:
+                _ = self.H[t] / 0  # Divide by zero
+
+        model = Model(range(10))
+
+        with self.assertRaises(fsic.exceptions.SolutionError):
+            model.solve()
+
+    def test_solve_t_after_errors(self):
+        # Check that error handling applies to `solve_t_after()`
+        class Model(self.Model):
+            def solve_t_after(self, t: int, *args, **kwargs) -> None:
+                _ = self.H[t] / 0  # Divide by zero
+
+        model = Model(range(10))
+
+        with self.assertRaises(fsic.exceptions.SolutionError):
+            model.solve()
+
 
 class TestCustomModel(unittest.TestCase):
 

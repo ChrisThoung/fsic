@@ -1157,7 +1157,19 @@ class BaseModel(SolverMixin, ModelInterface):
                 .format(self.span[t], t))
 
         # Run any code prior to solution
-        self.solve_t_before(t, errors=errors, catch_first_error=catch_first_error, iteration=0, **kwargs)
+        with warnings.catch_warnings(record=True) as w:
+            if errors == 'raise' and catch_first_error:
+                warnings.simplefilter('error')
+            else:
+                warnings.simplefilter('always')
+
+            try:
+                self.solve_t_before(t, errors=errors, catch_first_error=catch_first_error, iteration=0, **kwargs)
+            except:
+                raise SolutionError(
+                    'Error in `solve_t_before()` '
+                    'in period with label: {} (index: {})'
+                    .format(self.span[t], t))
 
         for iteration in range(1, max_iter + 1):
             previous_values = current_values.copy()
@@ -1227,8 +1239,22 @@ class BaseModel(SolverMixin, ModelInterface):
                 continue
 
             diff = current_values - previous_values
+
             if np.all(np.abs(diff) < tol):
-                self.solve_t_after(t, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
+                with warnings.catch_warnings(record=True) as w:
+                    if errors == 'raise' and catch_first_error:
+                        warnings.simplefilter('error')
+                    else:
+                        warnings.simplefilter('always')
+
+                    try:
+                        self.solve_t_after(t, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
+                    except:
+                        raise SolutionError(
+                            'Error in `solve_t_after()` '
+                            'in period with label: {} (index: {})'
+                            .format(self.span[t], t))
+
                 status = '.'
                 break
         else:

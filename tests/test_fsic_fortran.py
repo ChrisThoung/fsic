@@ -117,8 +117,17 @@ class TestModelContainerMethods(FortranTestWrapper, test_fsic.TestModelContainer
 class TestCopy(FortranTestWrapper, test_fsic.TestCopy):
     TEST_MODULE_NAME = 'fsic_test_fortran_testcopy'
 
+
 class TestSolve(FortranTestWrapper, test_fsic.TestSolve):
     TEST_MODULE_NAME = 'fsic_test_fortran_testsolve'
+
+    @unittest.skip('Version 0.8.0 behaviour not yet implemented in Fortran')
+    def test_solve_t_before_errors(self):
+        super().test_solve_t_before_errors()
+
+    @unittest.skip('Version 0.8.0 behaviour not yet implemented in Fortran')
+    def test_solve_t_after_errors(self):
+        super().test_solve_t_after_errors()
 
 
 class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorHandling):
