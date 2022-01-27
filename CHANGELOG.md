@@ -64,6 +64,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   default, `catch_first_error` is `True`, leading to the new
   behaviour. Pre-0.8.0 behaviour can be recovered with
   `catch_first_error=False`.
+- Implemented exception chaining in `BaseModel.solve_t()`.
 
 
 ## [0.7.1.dev] - 2021-08-04

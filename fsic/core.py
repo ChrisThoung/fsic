@@ -1165,11 +1165,11 @@ class BaseModel(SolverMixin, ModelInterface):
 
             try:
                 self.solve_t_before(t, errors=errors, catch_first_error=catch_first_error, iteration=0, **kwargs)
-            except:
+            except Exception as e:
                 raise SolutionError(
                     'Error in `solve_t_before()` '
                     'in period with label: {} (index: {})'
-                    .format(self.span[t], t))
+                    .format(self.span[t], t)) from e
 
         for iteration in range(1, max_iter + 1):
             previous_values = current_values.copy()
@@ -1185,7 +1185,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
                 try:
                     self._evaluate(t, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
-                except:
+                except Exception as e:
                     if errors == 'raise':
                         self.status[t] = 'E'
                         self.iterations[t] = iteration
@@ -1193,7 +1193,7 @@ class BaseModel(SolverMixin, ModelInterface):
                     raise SolutionError(
                         'Error after {} iterations(s) '
                         'in period with label: {} (index: {})'
-                        .format(iteration, self.span[t], t))
+                        .format(iteration, self.span[t], t)) from e
 
             current_values = get_check_values()
 
@@ -1249,11 +1249,11 @@ class BaseModel(SolverMixin, ModelInterface):
 
                     try:
                         self.solve_t_after(t, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
-                    except:
+                    except Exception as e:
                         raise SolutionError(
                             'Error in `solve_t_after()` '
                             'in period with label: {} (index: {})'
-                            .format(self.span[t], t))
+                            .format(self.span[t], t)) from e
 
                 status = '.'
                 break
