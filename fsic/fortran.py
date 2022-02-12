@@ -16,7 +16,7 @@ from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-from .core import BaseModel
+from .core import BaseModel, SolutionStatus
 from .exceptions import FortranEngineError, InitialisationError, NonConvergenceError, SolutionError
 from .parser import Symbol, Type
 
@@ -180,14 +180,14 @@ class FortranEngine(BaseModel):
 
             # Converged
             if converged:
-                self.status[t] = '.'
+                self.status[t] = SolutionStatus.SOLVED.value
                 self.iterations[t] = iteration
                 solved[i] = True
                 continue
 
             # Failed to converge but no errors
             elif not converged and error_code == 0:
-                self.status[t] = 'F'
+                self.status[t] = SolutionStatus.FAILED.value
                 self.iterations[t] = iteration
                 solved[i] = False
 
@@ -200,7 +200,7 @@ class FortranEngine(BaseModel):
 
             # Numerical solution error: Raise
             elif error_code == 21 and errors == 'raise':
-                self.status[t] = 'E'
+                self.status[t] = SolutionStatus.ERROR.value
                 self.iterations[t] = iteration
                 solved[i] = False
 
@@ -242,7 +242,7 @@ class FortranEngine(BaseModel):
 
             # Some other error but `errors='skip'`
             elif error_code == 22 and errors == 'skip':
-                self.status[t] = 'S'
+                self.status[t] = SolutionStatus.SKIPPED.value
                 self.iterations[t] = iteration
                 solved[i] = False
 
@@ -355,7 +355,7 @@ class FortranEngine(BaseModel):
             for name in self.ENDOGENOUS:
                 self.__dict__['_' + name][t] = self.__dict__['_' + name][t + offset]
 
-        status = '-'
+        status = SolutionStatus.UNSOLVED.value
         current_values = get_check_values()
 
         # Raise an exception if there are pre-existing NaNs or infinities, and
@@ -386,12 +386,12 @@ class FortranEngine(BaseModel):
         # Check solution result and error code
         if error_code == 0:
             if converged:
-                status = '.'
+                status = SolutionStatus.SOLVED.value
             else:
-                status = 'F'
+                status = SolutionStatus.FAILED.value
 
         elif error_code == 21 and errors == 'raise':
-            self.status[t] = 'E'
+            self.status[t] = SolutionStatus.ERROR.value
             self.iterations[t] = iteration
 
             raise SolutionError(
@@ -400,7 +400,7 @@ class FortranEngine(BaseModel):
                 .format(iteration, self.span[t], t))
 
         elif error_code == 22 and errors == 'skip':
-            status = 'S'
+            status = SolutionStatus.SKIPPED.value
 
         else:
             raise FortranEngineError(
@@ -411,13 +411,13 @@ class FortranEngine(BaseModel):
         self.status[t] = status
         self.iterations[t] = iteration
 
-        if status == 'F' and failures == 'raise':
+        if status == SolutionStatus.FAILED.value and failures == 'raise':
             raise NonConvergenceError(
                 'Solution failed to converge after {} iterations(s) '
                 'in period with label: {} (index: {})'
                 .format(iteration, self.span[t], t))
 
-        return status == '.'
+        return status == SolutionStatus.SOLVED.value
 
     def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.

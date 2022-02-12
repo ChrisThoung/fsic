@@ -65,6 +65,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   behaviour. Pre-0.8.0 behaviour can be recovered with
   `catch_first_error=False`.
 - Implemented exception chaining in `BaseModel.solve_t()`.
+- Changed solution status handling from strings to an enumeration.
 
 
 ## [0.7.1.dev] - 2021-08-04

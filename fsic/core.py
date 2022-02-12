@@ -15,6 +15,7 @@ Base classes:
 
 from collections import Counter
 import copy
+import enum
 from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
 import warnings
 
@@ -388,6 +389,16 @@ class VectorContainer:
 
 # Model interface, wrapping the core `VectorContainer` ------------------------
 
+class SolutionStatus(enum.Enum):
+    """Enumeration to record solution status."""
+    UNSOLVED = '-'
+
+    SOLVED = '.'
+
+    FAILED = 'F'
+    ERROR = 'E'
+    SKIPPED = 'S'
+
 class ModelInterface(VectorContainer):
 
     NAMES: List[str] = []
@@ -427,7 +438,7 @@ class ModelInterface(VectorContainer):
         # extend `self.names`)
 
         # Add solution tracking variables
-        super().add_variable('status', '-')
+        super().add_variable('status', SolutionStatus.UNSOLVED.value)
         super().add_variable('iterations', -1)
 
         # Check for duplicate names
@@ -1145,7 +1156,7 @@ class BaseModel(SolverMixin, ModelInterface):
             for name in self.ENDOGENOUS:
                 self.__dict__['_' + name][t] = self.__dict__['_' + name][t + offset]
 
-        status = '-'
+        status = SolutionStatus.UNSOLVED.value
         current_values = get_check_values()
 
         # Raise an exception if there are pre-existing NaNs or infinities, and
@@ -1187,7 +1198,7 @@ class BaseModel(SolverMixin, ModelInterface):
                     self._evaluate(t, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
                 except Exception as e:
                     if errors == 'raise':
-                        self.status[t] = 'E'
+                        self.status[t] = SolutionStatus.ERROR.value
                         self.iterations[t] = iteration
 
                     raise SolutionError(
@@ -1206,7 +1217,7 @@ class BaseModel(SolverMixin, ModelInterface):
             if np.any(~np.isfinite(current_values)):
 
                 if errors == 'raise':
-                    self.status[t] = 'E'
+                    self.status[t] = SolutionStatus.ERROR.value
                     self.iterations[t] = iteration
 
                     raise SolutionError(
@@ -1216,18 +1227,18 @@ class BaseModel(SolverMixin, ModelInterface):
                         .format(iteration, self.span[t], t))
 
                 elif errors == 'skip':
-                    status = 'S'
+                    status = SolutionStatus.SKIPPED.value
                     break
 
                 elif errors == 'ignore':
                     if iteration == max_iter:
-                        status = 'F'
+                        status = SolutionStatus.FAILED.value
                         break
                     continue
 
                 elif errors == 'replace':
                     if iteration == max_iter:
-                        status = 'F'
+                        status = SolutionStatus.FAILED.value
                         break
                     else:
                         current_values[~np.isfinite(current_values)] = 0.0
@@ -1256,21 +1267,21 @@ class BaseModel(SolverMixin, ModelInterface):
                             'in period with label: {} (index: {})'
                             .format(self.span[t], t)) from e
 
-                status = '.'
+                status = SolutionStatus.SOLVED.value
                 break
         else:
-            status = 'F'
+            status = SolutionStatus.FAILED.value
 
         self.status[t] = status
         self.iterations[t] = iteration
 
-        if status == 'F' and failures == 'raise':
+        if status == SolutionStatus.FAILED.value and failures == 'raise':
             raise NonConvergenceError(
                 'Solution failed to converge after {} iterations(s) '
                 'in period with label: {} (index: {})'
                 .format(iteration, self.span[t], t))
 
-        return status == '.'
+        return status == SolutionStatus.SOLVED.value
 
     def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
@@ -1693,7 +1704,7 @@ Spans of submodels differ:
             return check_values
 
 
-        status = '-'
+        status = SolutionStatus.UNSOLVED.value
         current_values = get_check_values()
 
         # Set iteration counters to zero for submodels to solve (also use this
@@ -1726,12 +1737,12 @@ Spans of submodels differ:
             diff_squared = {k: v ** 2 for k, v in diff.items()}
 
             if all(np.all(v < tol) for v in diff_squared.values()):
-                status = '.'
+                status = SolutionStatus.SOLVED.value
                 self.solve_t_after(t, submodels=submodels, errors=errors, catch_first_error=catch_first_error, iteration=iteration, **kwargs)
                 break
 
         else:
-            status = 'F'
+            status = SolutionStatus.FAILED.value
 
         self.status[t] = status
         self.iterations[t] = iteration
@@ -1740,13 +1751,13 @@ Spans of submodels differ:
             submodel = self.__dict__['submodels'][name]
             submodel.status[t] = status
 
-        if status == 'F' and failures == 'raise':
+        if status == SolutionStatus.FAILED.value and failures == 'raise':
             raise NonConvergenceError(
                 'Solution failed to converge after {} iterations(s) '
                 'in period with label: {} (index: {})'
                 .format(iteration, self.span[t], t))
 
-        return status == '.'
+        return status == SolutionStatus.SOLVED.value
 
     def evaluate_t(self, t: int, *, submodels: Optional[Sequence[Hashable]] = None, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the linker's `span`.
