@@ -1210,7 +1210,8 @@ class BaseModel(SolverMixin, ModelInterface):
                     self.iterations[t] = iteration
 
                     raise SolutionError(
-                        'Numerical solution error after {} iterations(s) '
+                        'Numerical solution error after {} iteration(s). '
+                        'Non-finite values (NaNs, Infs) generated '
                         'in period with label: {} (index: {})'
                         .format(iteration, self.span[t], t))
 
