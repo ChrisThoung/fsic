@@ -43,6 +43,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   calling the corresponding functions in `fsic.tools`.
 - Added new `dataframe_to_symbols()` function to `fsic.tools`, reversing
   `symbols_to_dataframe()` and permitting a roundtrip.
+- Added `status` and `iterations` keyword arguments to `model_to_dataframe()`
+  and `linker_to_dataframes()`, to optionally exclude non-data model contents.
 
 ### Changed
 

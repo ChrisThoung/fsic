@@ -80,6 +80,39 @@ class TestPandasFunctions(unittest.TestCase):
 
         pd.testing.assert_frame_equal(result, expected)
 
+    def test_model_to_dataframe_no_status(self):
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        expected = fsic.tools.model_to_dataframe(model).drop('status', axis='columns')
+        result = fsic.tools.model_to_dataframe(model, status=False)
+
+        pd.testing.assert_frame_equal(result, expected)
+
+    def test_model_to_dataframe_no_iterations(self):
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        expected = fsic.tools.model_to_dataframe(model).drop('iterations', axis='columns')
+        result = fsic.tools.model_to_dataframe(model, iterations=False)
+
+        pd.testing.assert_frame_equal(result, expected)
+
+    def test_model_to_dataframe_no_status_or_iterations(self):
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        expected = fsic.tools.model_to_dataframe(model).drop(['status', 'iterations'], axis='columns')
+        result = fsic.tools.model_to_dataframe(model, status=False, iterations=False)
+
+        pd.testing.assert_frame_equal(result, expected)
+
     def test_model_to_dataframe_additional_variables(self):
         # Check that extending the model with extra variables carries through
         # to the results DataFrame (including preserving variable types)
@@ -124,6 +157,53 @@ class TestPandasFunctions(unittest.TestCase):
             'G': 0.0,
             'status': '-',
             'iterations': -1
+        }, index=range(5))
+
+        pd.testing.assert_frame_equal(result, expected)
+
+    def test_model_to_dataframe_core_no_status(self):
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        result = model.to_dataframe(status=False)
+        expected = pd.DataFrame({
+            'Y': 0.0,
+            'C': 0.0,
+            'G': 0.0,
+            'iterations': -1
+        }, index=range(5))
+
+        pd.testing.assert_frame_equal(result, expected)
+
+    def test_model_to_dataframe_core_no_iterations(self):
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        result = model.to_dataframe(iterations=False)
+        expected = pd.DataFrame({
+            'Y': 0.0,
+            'C': 0.0,
+            'G': 0.0,
+            'status': '-',
+        }, index=range(5))
+
+        pd.testing.assert_frame_equal(result, expected)
+
+    def test_model_to_dataframe_core_no_status_or_iterations(self):
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        result = model.to_dataframe(status=False, iterations=False)
+        expected = pd.DataFrame({
+            'Y': 0.0,
+            'C': 0.0,
+            'G': 0.0,
         }, index=range(5))
 
         pd.testing.assert_frame_equal(result, expected)
