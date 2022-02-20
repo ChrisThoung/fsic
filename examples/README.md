@@ -1,4 +1,4 @@
-# FSIC examples
+# Examples
 
 Example applications of fsic, including implementations of economic models, and
 tips and tricks.
