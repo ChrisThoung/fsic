@@ -9,7 +9,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
-**Version 0.8.0 is the first release of FSIC as a Python package, rather than a
+**Version 0.8.0 is the first release of fsic as a Python package, rather than a
   set of individual Python modules.**
 
 ### Added
@@ -76,7 +76,7 @@ Various additions and changes to improve consistency and checks (both parser
 and solution).
 
 **Versions 0.7.x are the last releases to take the form of a set of individual
-  Python modules. Version 0.8.0 onwards implements FSIC as a Python package.**
+  Python modules. Version 0.8.0 onwards implements fsic as a Python package.**
 
 ### Added
 
@@ -115,7 +115,7 @@ trade.
 Various other changes and fixes.
 
 **Versions 0.7.x are the last releases to take the form of a set of individual
-  Python modules. Version 0.8.0 onwards implements FSIC as a Python package.**
+  Python modules. Version 0.8.0 onwards implements fsic as a Python package.**
 
 ### Added
 
@@ -217,7 +217,7 @@ Various other changes and fixes.
 - Parser test to trap accidental treatment of floats as callable
   (e.g. 'A = 0.5(B)') now only runs for Python 3.8 and above. (Doesn't look
   trivial to handle in earlier versions of Python.)
-- Refactored some FSIC Python unit tests to make them easier to reuse as FSIC
+- Refactored some fsic Python unit tests to make them easier to reuse as fsic
   Fortran tests.
 
 ### Fixed

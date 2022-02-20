@@ -2,7 +2,7 @@
 """
 6_reg
 =====
-FSIC implementation of Model *REG*, a model of a two-region economy with a
+fsic implementation of Model *REG*, a model of a two-region economy with a
 single government, fiscal and monetary system, and currency, from Chapter 6 of
 Godley and Lavoie (2007). This model disaggregates Model *PC* (see '4_pc.py')
 into two regions: 'North' and 'South'. Parameter values come from Zezza (2006).
@@ -15,7 +15,7 @@ This example also shows how to use the `offset` keyword argument in the solve
 methods to copy over values from another period before solving. This can
 substantially improve solution times.
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `pandas`, to generate a DataFrame of results using `fsic.tools`
 * `matplotlib`, to replicate, from Godley and Lavoie (2007), Figures 6.1, 6.2,
@@ -61,9 +61,9 @@ import fsic
 
 
 # Inline comments give the corresponding equation numbers from Godley and
-# Lavoie (2007) - for reference only; FSIC ignores comments, just as Python
+# Lavoie (2007) - for reference only; fsic ignores comments, just as Python
 # does.
-# 'A' suffix indicates a slight amendment to be compatible with the FSIC
+# 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
 script = '''
 Y_N = C_N + G_N + X_N - IM_N                                                  # 6.1

@@ -2,7 +2,7 @@
 """
 4_pc
 ====
-FSIC implementation of Model *PC*, a model of government money with portfolio
+fsic implementation of Model *PC*, a model of government money with portfolio
 choice, from Chapter 4 of Godley and Lavoie (2007).
 
 Godley and Lavoie (2007) analyse Model *PC* beginning from an initial
@@ -10,7 +10,7 @@ stationary state. This script first finds that stationary state, matching the
 starting values in Zezza's (2006) EViews scripts. The script then analyses a
 step-change in the interest rate, as in Godley and Lavoie (2007).
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `pandas`, to generate a DataFrame of results using `fsic.tools`
 * `matplotlib`, to replicate, from Godley and Lavoie (2007):
@@ -46,9 +46,9 @@ import fsic
 
 
 # Inline comments give the corresponding equation numbers from Godley and
-# Lavoie (2007) - for reference only; FSIC ignores comments, just as Python
+# Lavoie (2007) - for reference only; fsic ignores comments, just as Python
 # does.
-# 'A' suffix indicates a slight amendment to be compatible with the FSIC
+# 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
 script = '''
 Y = C + G                                                       # 4.1

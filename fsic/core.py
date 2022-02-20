@@ -1062,7 +1062,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
         Notes
         -----
-        As of version 0.3.0, FSIC provides (some) support (escape hatches) for
+        As of version 0.3.0, fsic provides (some) support (escape hatches) for
         numerical errors in solution.
 
         For example, there may be an equation that involves a division

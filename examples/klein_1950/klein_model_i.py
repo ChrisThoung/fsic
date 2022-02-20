@@ -2,7 +2,7 @@
 """
 klein_model_i
 =============
-Example FSIC implementation of Klein Model I, from Klein (1950).
+Example fsic implementation of Klein Model I, from Klein (1950).
 
 Before running this script:
 
@@ -11,7 +11,7 @@ Before running this script:
 2. Run 'estimate_equations.py' to generate 'parameters.csv', a CSV file of
    parameter estimates for the equations.
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `pandas`, to read the input data and, using `fsic.tools`, generate DataFrames
   of model results

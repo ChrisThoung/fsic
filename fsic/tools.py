@@ -2,7 +2,7 @@
 """
 tools
 =====
-Supporting tools for FSIC-based economic models. See the individual docstrings
+Supporting tools for fsic-based economic models. See the individual docstrings
 for dependencies additional to those of `fsic`.
 """
 

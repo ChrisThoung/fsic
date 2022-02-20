@@ -2,7 +2,7 @@
 """
 5_lp1
 =====
-FSIC implementation of Model *LP1*, a model of long-term bonds, capital gains
+fsic implementation of Model *LP1*, a model of long-term bonds, capital gains
 and liquidity preference, from Chapter 5 of Godley and Lavoie (2007). Parameter
 values come from Zezza (2006).
 
@@ -14,10 +14,10 @@ as in Godley and Lavoie (2007).
 
 This example also shows how to use conditional expressions in a model
 definition to avoid generating NaNs (from divide-by-zero operations). This is
-new in FSIC version 0.5.0.dev and an alternative to handling NaNs using the
+new in fsic version 0.5.0.dev and an alternative to handling NaNs using the
 `errors` keyword argument in `solve()`.
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `pandas`, to generate a DataFrame of results using `fsic.tools`
 * `matplotlib`, to replicate, from Godley and Lavoie (2007):
@@ -58,9 +58,9 @@ import fsic
 
 
 # Inline comments give the corresponding equation numbers from Godley and
-# Lavoie (2007) - for reference only; FSIC ignores comments, just as Python
+# Lavoie (2007) - for reference only; fsic ignores comments, just as Python
 # does.
-# 'A' suffix indicates a slight amendment to be compatible with the FSIC
+# 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
 script = '''
 Y = C + G                                                                    # 5.1

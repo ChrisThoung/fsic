@@ -1,6 +1,6 @@
 # Godley and Lavoie (2007) *Monetary economics*
 
-FSIC implementations of stock-flow consistent models from Godley and Lavoie
+fsic implementations of stock-flow consistent models from Godley and Lavoie
 (2007).
 
 There is one script per model, with naming convention as follows:

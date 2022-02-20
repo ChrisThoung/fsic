@@ -2,7 +2,7 @@
 """
 fortran
 =======
-Tools to speed up FSIC-based economic models by generating F2PY-compatible
+Tools to speed up fsic-based economic models by generating F2PY-compatible
 Fortran code.
 """
 
@@ -24,7 +24,7 @@ from .parser import Symbol, Type
 # Class implementing interface to Fortran code --------------------------------
 
 class FortranEngine(BaseModel):
-    """Subclass for derivatives of FSIC `BaseModel` to speed up model solution by calling compiled Fortran code."""
+    """Subclass for derivatives of fsic `BaseModel` to speed up model solution by calling compiled Fortran code."""
 
     ENGINE: Optional[ModuleType] = None
 
@@ -302,7 +302,7 @@ class FortranEngine(BaseModel):
 
         Notes
         -----
-        As of version 0.3.0, FSIC provides (some) support (escape hatches) for
+        As of version 0.3.0, fsic provides (some) support (escape hatches) for
         numerical errors in solution.
 
         For example, there may be an equation that involves a division

@@ -21,7 +21,7 @@ Tools for macroeconomic modelling in Python.
       the [makefile](makefile)): `pip install -r requirements/test.txt`
     * dependencies to run the examples: `pip install -r
       requirements/examples.txt`
-* see more examples of how to use FSIC: view the contents of the
+* see more examples of how to use fsic: view the contents of the
   [examples](examples/) folder
     * the [makefile](makefile) can run all the examples in sequence (see
       [requirements/examples.txt](requirements/examples.txt) for details of

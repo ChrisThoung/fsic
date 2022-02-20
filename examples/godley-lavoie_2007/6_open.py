@@ -2,7 +2,7 @@
 """
 6_open
 ======
-FSIC implementation of Model *OPEN*, a model of a two-country economy, from
+fsic implementation of Model *OPEN*, a model of a two-country economy, from
 Chapter 6 of Godley and Lavoie (2007). This model disaggregates Model *PC* (see
 '4_pc.py') into two countries: 'North' and 'South'. Parameter values come from
 Zezza (2006).
@@ -23,7 +23,7 @@ The linker is derived from the `fsic` `BaseLinker` class and shares similar
 features and interfaces with the `fsic` `BaseModel` class. However, it's up to
 the user to write the necessary code.
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `pandas`, to generate DataFrames of results using
   `fsic.tools.linker_to_dataframes()`
@@ -60,10 +60,10 @@ import fsic
 # Define the (common) structure of the individual country models
 #
 # Inline comments give the corresponding equation numbers from Godley and
-# Lavoie (2007) - for reference only; FSIC ignores comments, just as Python
+# Lavoie (2007) - for reference only; fsic ignores comments, just as Python
 # does.
 #
-# 'A' suffix indicates a slight amendment to be compatible with the FSIC
+# 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
 #
 # Note that not all the equations appear in the script directly below. The

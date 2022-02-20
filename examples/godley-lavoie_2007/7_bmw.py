@@ -2,14 +2,14 @@
 """
 7_bmw
 =====
-FSIC implementation of Model *BMW*, the simplest *bank-money-world*
+fsic implementation of Model *BMW*, the simplest *bank-money-world*
 model. Parameter values come from Zezza (2006).
 
 Godley and Lavoie (2007) analyse Model *BMW* beginning from an initial
 stationary state. This script first finds that stationary state, matching (more
 or less) the starting values in Zezza's (2006) EViews script.
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `matplotlib`, to replicate, from Godley and Lavoie (2007), Figures 7.1, 7.2,
   7.3, 7.4 and 7.5
@@ -43,9 +43,9 @@ import fsic
 
 
 # Inline comments give the corresponding equation numbers from Godley and
-# Lavoie (2007) - for reference only; FSIC ignores comments, just as Python
+# Lavoie (2007) - for reference only; fsic ignores comments, just as Python
 # does.
-# 'A' suffix indicates a slight amendment to be compatible with the FSIC
+# 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
 # 'B' suffix indicates a code change for ease of solution. This applies to
 # Equation 7.15 only.

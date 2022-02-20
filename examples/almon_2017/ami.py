@@ -2,11 +2,11 @@
 """
 ami
 ===
-Example FSIC implementation of Almon's (2017) AMI (Accelerator-Multiplier
+Example fsic implementation of Almon's (2017) AMI (Accelerator-Multiplier
 Interaction) model of an imaginary economy, as set out in Chapter 1 ('What is
 an economic model and why make one?').
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `pandas`, to read the input data and, using `fsic.tools`, generate a DataFrame
   of final results

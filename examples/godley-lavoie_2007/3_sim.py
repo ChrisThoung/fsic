@@ -2,10 +2,10 @@
 """
 3_sim
 =====
-FSIC implementation of Model *SIM* (the SIMplest model with government money)
+fsic implementation of Model *SIM* (the SIMplest model with government money)
 from Chapter 3 of Godley and Lavoie (2007).
 
-While FSIC only requires NumPy, this example also uses:
+While fsic only requires NumPy, this example also uses:
 
 * `pandas`, to generate a DataFrame of final results using `fsic.tools`
 * `matplotlib`, to replicate Figure 3.2 ('Disposable income and consumption
@@ -33,8 +33,8 @@ import fsic
 
 
 # Inline comments give the corresponding equation numbers from Godley and
-# Lavoie (2007) - for reference only; FSIC ignores these.
-# 'A' suffix indicates a slight amendment to be compatible with the FSIC
+# Lavoie (2007) - for reference only; fsic ignores these.
+# 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
 script = '''
 # Keynesian/Kaleckian quantity adjustment equalises demand and supply

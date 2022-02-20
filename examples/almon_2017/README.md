@@ -1,6 +1,6 @@
 # Almon (2017) *The craft of economic modeling*
 
-Example FSIC implementation of Almon's (2017) AMI (Accelerator-Multiplier
+Example fsic implementation of Almon's (2017) AMI (Accelerator-Multiplier
 Interaction) model of an imaginary economy, as set out in Chapter 1 ('What is
 an economic model and why make one?').
 

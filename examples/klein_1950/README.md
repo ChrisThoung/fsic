@@ -1,6 +1,6 @@
 # Klein (1950) *Economic fluctuations in the United States, 1921-1941*
 
-Example FSIC implementation of Klein Model I, from Klein (1950).
+Example fsic implementation of Klein Model I, from Klein (1950).
 
 This example shows how to:
 

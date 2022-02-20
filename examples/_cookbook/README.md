@@ -1,4 +1,4 @@
-# Cookbook: Various FSIC tips and tricks
+# Cookbook: Various fsic tips and tricks
 
 ## Contents
 
