@@ -1,9 +1,9 @@
 # FSIC examples
 
-Example applications of FSIC, including implementations of economic models, and
+Example applications of fsic, including implementations of economic models, and
 tips and tricks.
 
-While FSIC's only dependency for model solution is [NumPy](https://numpy.org/),
+While fsic's only dependency for model solution is [NumPy](https://numpy.org/),
 note that these examples also make use of [pandas](https://pandas.pydata.org/)
 (to present the results in a convenient format) and
 [Matplotlib](https://matplotlib.org/) (to produce charts).
