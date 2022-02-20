@@ -10,6 +10,8 @@ requirements :
 test :
 	pytest -x -v --cache-clear --cov=fsic --cov-branch && coverage report -m && coverage html
 
+.PHONY: sandbox
+
 .PHONY: examples
 examples :
 	cd examples/_cookbook && python fortran_engine.py && python progress_bar.py && python quickstart.py
