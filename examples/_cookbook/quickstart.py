@@ -74,11 +74,15 @@ model['theta', 1946:] = 0.2  # `pandas`-like indexing by label: variable and per
 model.solve(max_iter=350)
 
 
-# `model.status` lists the solution state of each period as one of:
+# `model.status` lists the solution status of each period as one of:
 #
 # * `-` : still to be solved (no attempt made)
 # * `.` : solved successfully
-# * `F` : failed to solve
+# * `F` : failed to solve e.g. after reaching the maximum number of iterations
+# * `E` : error encountered during solution, leading to the model failing to
+#         solve that period e.g. from a numerical problem or Python error
+# * `S` : error encountered during solution (as for `E`), leading to the model
+#         moving on to the next period
 #
 # The solved model's values are in `model.values`, which is a 2D NumPy array in
 # which each item of the:
