@@ -1,4 +1,4 @@
-linearmodels
+linearmodels<4.25
 matplotlib
 pandas
 tqdm
