@@ -1164,6 +1164,7 @@ class BaseModel(SolverMixin, ModelInterface):
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
                 'Pre-existing NaNs or infinities found '
+                'in one or more `CHECK` variables '
                 'in period with label: {} (index: {})'
                 .format(self.span[t], t))
 
