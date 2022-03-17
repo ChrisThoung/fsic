@@ -7,7 +7,8 @@ Tools for macroeconomic modelling in Python.
 
 ## How to...
 
-* install the package, in any of the following ways:
+* install the package, in any of the following ways (from the root of the
+  folder):
     * `$ python setup.py install`
     * `$ pip install .`
     * `$ make install`
