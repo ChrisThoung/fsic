@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-fortran
-=======
 Tools to speed up fsic-based economic models by generating F2PY-compatible
 Fortran code.
 """

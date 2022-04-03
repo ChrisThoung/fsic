@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-tools
-=====
 Supporting tools for fsic-based economic models. See the individual docstrings
 for dependencies additional to those of `fsic`.
 """

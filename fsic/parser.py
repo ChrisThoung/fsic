@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-parser
-======
 Tools to generate a model class (which derives from `fsic.BaseModel`) from a
 Python-like model script that describes the equations.
 

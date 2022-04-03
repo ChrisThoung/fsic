@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-core
-====
 Core `fsic` classes for defining and solving economic models. Economic models
 are implemented as derived classes of those in this module, inheriting the
 necessary attributes and methods that make up the API.

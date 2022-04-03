@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-fsic
-====
 Tools for macroeconomic modelling in Python.
 """
 
