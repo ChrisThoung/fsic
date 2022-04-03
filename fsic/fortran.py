@@ -21,7 +21,7 @@ from .parser import Symbol, Type
 
 # Class implementing interface to Fortran code --------------------------------
 
-class FortranEngine(BaseModel):
+class FortranEngine:
     """Subclass for derivatives of fsic `BaseModel` to speed up model solution by calling compiled Fortran code."""
 
     ENGINE: Optional[ModuleType] = None
