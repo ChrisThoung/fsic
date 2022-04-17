@@ -7,37 +7,73 @@ Tools for macroeconomic modelling in Python.
 
 ## How to...
 
-* install the package, in any of the following ways (from the root of the
-  folder):
+### ...install the package
+
+Any of the following will work from the terminal (installing NumPy at the same
+time, if not found):
+
+1. Clone the repository and, from the root of the folder, run any one of the
+   following:
     * `$ python setup.py install`
     * `$ pip install .`
     * `$ make install`
-* install dependencies, using the requirements files in the
-  [requirements](requirements) folder:
-    * minimum requirements (for completeness only: handled automatically by
-      installing the package): `pip install -r requirements/minimal.txt`
-    * optional requirements (to use all features of `fsic.tools`): `pip install
-      -r requirements/optional.txt`
-    * development requirements (to run the test suite as recommended e.g. as in
-      the [makefile](makefile)): `pip install -r requirements/test.txt`
-    * dependencies to run the examples: `pip install -r
-      requirements/examples.txt`
-* see more examples of how to use fsic: view the contents of the
-  [examples](examples/) folder
-    * the [makefile](makefile) can run all the examples in sequence (see
-      [requirements/examples.txt](requirements/examples.txt) for details of
-      dependencies): `$ make examples`
-* run the test suite, in any of the following ways:
-    * run any of the individual 'test_*.py' files in the [tests](tests/) folder
-      e.g. `python tests/test_fsic.py`
-    * with [`unittest`](https://docs.python.org/3/library/unittest.html)
-      e.g. `python -m unittest discover .`
-    * with a `unittest`-compatible test framework like
-      [`pytest`](https://docs.pytest.org/en/stable/) e.g. `pytest`
-    * with the [makefile](makefile), which expects `pytest` and `pytest-cov` to
-      be installed (see
-      [requirements/test.txt](requirements/test.txt)): `$ make
-      test`
+2. Use `pip` to install from the GitHub repository (h/t [Anthony
+   Sottile](https://www.twitch.tv/anthonywritescode):
+   [https://www.youtube.com/watch?v=AQrskWh-F5E](https://www.youtube.com/watch?v=AQrskWh-F5E)),
+   either:
+    * a specific [tag](https://github.com/ChrisThoung/fsic/tags) e.g. `$ pip
+      install git+https://github.com/ChrisThoung/fsic@v0.7.1.dev`
+    * the current development version (warning: this version isn't guaranteed
+      to work): `$ pip install git+https://github.com/ChrisThoung/fsic`
+
+### ...install further dependencies
+
+The installation process automatically checks for NumPy, installing it if not
+found.
+
+Depending on your use case(s) you might find other packages useful. Install
+these from the files in the [requirements](requirements/) folder using
+`pip`. For example:
+
+```
+$ pip install -r requirements/minimal.txt
+```
+
+Available files:
+
+* minimum requirements (for completeness only: handled automatically by
+  installing the package): [minimal.txt](requirements/minimal.txt)
+* optional requirements (to use all features of `fsic.tools`):
+  [optional.txt](requirements/optional.txt)
+* development requirements (to run the test suite as recommended e.g. as in the
+  [makefile](makefile)): [test.txt](requirements/test.txt)
+* dependencies to run the examples: [examples.txt](requirements/examples.txt)
+
+### ...find more examples
+
+See the contents of the [examples](examples/) folder.
+
+The [makefile](makefile) can run all the examples in sequence (see
+[requirements/examples.txt](requirements/examples.txt) for details of
+dependencies):
+
+```
+$ make examples
+```
+
+### ...run the test suite
+
+Any of the following will work from the terminal:
+
+* run any of the individual 'test_*.py' files in the [tests](tests/) folder
+  e.g. `$ python tests/test_fsic.py`
+* with [`unittest`](https://docs.python.org/3/library/unittest.html) e.g. `$
+  python -m unittest discover .`
+* with a `unittest`-compatible test framework like
+  [`pytest`](https://docs.pytest.org/en/stable/) e.g. `$ pytest`
+* with the [makefile](makefile), which expects `pytest` and `pytest-cov` to be
+  installed (see [requirements/test.txt](requirements/test.txt)): `$ make test`
+    * `pytest-randomly` is included/recommended to check for test pollution
 
 
 ## Quickstart
