@@ -11,6 +11,8 @@ test :
 	pytest -x -v --cache-clear --cov=fsic --cov-branch && coverage report -m && coverage html
 
 .PHONY: sandbox
+sandbox :
+	cd sandbox && python aliasing.py
 
 .PHONY: examples
 examples :
