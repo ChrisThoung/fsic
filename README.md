@@ -48,6 +48,8 @@ Available files:
 * development requirements (to run the test suite as recommended e.g. as in the
   [makefile](makefile)): [test.txt](requirements/test.txt)
 * dependencies to run the examples: [examples.txt](requirements/examples.txt)
+* dependencies to run experimental (sandbox) code:
+  [sandbox.txt](requirements/sandbox.txt)
 
 ### ...find more examples
 
