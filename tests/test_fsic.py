@@ -3212,23 +3212,62 @@ H = H[-1] + YD - C
                            alpha_1=0.6, alpha_2=0.4,
                            G=20, theta=0.2)
 
-        self.assertTrue(np.allclose(model.G, np.array([20.0] * 24)))
+        expected = np.array([20.0] * 24)
+        self.assertTrue(np.allclose(model.G, expected))
 
-        model['G', '1990Q1'] = 10
-        model['G', '1991'] = 15
-        model['G', '1995Q1':] = 25
+        model['G', :'1990Q4'] = 10
+        expected[:4] = 10
+        self.assertTrue(np.allclose(model.G, expected))
 
-        self.assertTrue(
-            np.allclose(model.G, np.array([10.0] + [20.0] * 3 +  # 1990
-                                          [15.0] * 4 +           # 1991
-                                          [20.0] * 12 +          # 1992-4
-                                          [25.0] * 4)))          # 1995
+        model['G', :'1992'] = 15
+        expected[:12] = 15
+        self.assertTrue(np.allclose(model.G, expected))
 
-        self.assertTrue(np.allclose(model['G', '1990Q1'], 10))
-        self.assertTrue(np.allclose(model['G', '1990Q2':'1990Q4'], 20))
-        self.assertTrue(np.allclose(model['G', '1991Q1':'1991Q4'], 15))
-        self.assertTrue(np.allclose(model['G', '1992Q1':'1994Q4'], 20))
-        self.assertTrue(np.allclose(model['G', '1995Q1':], 25))
+        model['G', '1993Q1':] = 25
+        expected[12:] = 25
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', '1994':] = 30
+        expected[16:] = 30
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', '1991Q1'] = 25
+        expected[4] = 25
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', '1992'] = 0
+        expected[8:12] = 0
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', '1992Q1':'1993Q4'] = 5
+        expected[8:16] = 5
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', '1993':'1994'] = 20
+        expected[12:20] = 20
+        self.assertTrue(np.allclose(model.G, expected))
+
+        self.assertTrue(np.allclose(
+            model.G,
+            np.array([15.0] * 4 +           # 1990
+                     [25.0] + [15.0] * 3 +  # 1991
+                     [ 5.0] * 4 +           # 1992
+                     [20.0] * 4 +           # 1993
+                     [20.0] * 4 +           # 1994
+                     [30.0] * 4             # 1995
+                     )))
+
+        self.assertTrue(np.allclose(model['G', '1991Q1'], 25))
+        self.assertTrue(np.allclose(model['G', '1990'], 15))
+
+        self.assertTrue(np.allclose(model['G', :'1990Q4'], 15))
+        self.assertTrue(np.allclose(model['G', :'1990'], 15))
+
+        self.assertTrue(np.allclose(model['G', '1995Q1':], 30))
+        self.assertTrue(np.allclose(model['G', '1995':], 30))
+
+        self.assertTrue(np.allclose(model['G', '1993':'1994'], 20))
+        self.assertTrue(np.allclose(model['G', '1993Q1':'1994Q4'], 20))
 
     def test_periodindex_solution(self):
         # Solution tests to check that `BaseModel` can use, as a `span`

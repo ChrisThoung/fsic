@@ -216,7 +216,23 @@ class VectorContainer:
             step = 1
 
         start_location = self._locate_period_in_span(start)
-        stop_location = self._locate_period_in_span(stop) + 1
+
+        # Adjust for a slice as a return value e.g. from a year ('2000') in a
+        # quarterly `pandas` `PeriodIndex` ('1999Q1':'2001Q4')
+        if isinstance(start_location, slice):
+            start_location = start_location.start
+
+        stop_location = self._locate_period_in_span(stop)
+
+        # Adjust for a slice (as with `start_location`)
+        if isinstance(stop_location, slice):
+            stop_location = stop_location.stop
+        else:
+            # Only extend the limit for a regular index (`pandas`, for example,
+            # already adjusts for this in its own API)
+            # TODO: Check how generally this treatment applies i.e. beyond
+            # `pandas`
+            stop_location += 1
 
         return start_location, stop_location, step
 
