@@ -3291,7 +3291,7 @@ H = H[-1] + YD - C
         # multiple periods
         model = self.Model(pd.period_range(start='1990-01', end='2010-12', freq='Q'))
 
-        with self.assertRaises(IndexError):
+        with self.assertRaises(KeyError):
             model.solve_period('2000')
 
 

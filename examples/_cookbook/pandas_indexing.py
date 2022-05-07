@@ -47,4 +47,4 @@ if __name__ == '__main__':
     # (e.g. '2000')
     # Uncomment the line below to see this
 
-    # model.solve_period('2000')  # Raises an `IndexError`
+    # model.solve_period('2000')  # Raises a `KeyError`

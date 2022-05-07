@@ -863,8 +863,8 @@ class SolverMixin:
         t = self._locate_period_in_span(period)
 
         if not isinstance(t, int):
-            raise IndexError(
-                f'Unable to convert `period` to a valid integer '
+            raise KeyError(
+                f'Invalid `period` argument: unable to convert to an integer '
                 f'(a single location in `self.span`). '
                 f'`period` resolved to type {type(t)} with value {t}')
 
