@@ -749,6 +749,14 @@ class SolverMixin:
                 'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
                     min_iter, max_iter))
 
+        # Catch invalid `start` and `end` periods here e.g. to avoid later
+        # problems with indexing a year against a `pandas` `PeriodIndex`
+        if start is not None and not isinstance(self._locate_period_in_span(start), int):
+            raise KeyError(start)
+
+        if end is not None and not isinstance(self._locate_period_in_span(end), int):
+            raise KeyError(end)
+
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
         indexes = [None] * len(period_iter)

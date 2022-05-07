@@ -3286,6 +3286,20 @@ H = H[-1] + YD - C
         self.assertTrue(np.isclose(model.T[-1], 20))
         self.assertTrue(np.isclose(model.H[-1], 80))
 
+    def test_periodindex_solve_error(self):
+        # Check that `solve()` raises an error if the arguments imply multiple
+        # periods
+        model = self.Model(pd.period_range(start='1990-01', end='2010-12', freq='Q'))
+
+        with self.assertRaises(KeyError):
+            model.solve(start='2000')
+
+        with self.assertRaises(KeyError):
+            model.solve(end='2000')
+
+        with self.assertRaises(KeyError):
+            model.solve(start='1995', end='2000')
+
     def test_periodindex_solve_period_error(self):
         # Check that `solve_period()` raises an error if the argument implies
         # multiple periods
