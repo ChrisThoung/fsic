@@ -86,6 +86,8 @@ class VectorContainer:
     array([12.,  1., 12.,  3., 12.,  5., 12.,  7., 12.,  9., 10.])
     """
 
+    _VALID_INDEX_METHODS: List[str] = ['get_loc', 'index']
+
     def __init__(self, span: Sequence[Hashable], *, strict: bool = False) -> None:
         """Initialise the container with a defined and labelled `span`.
 
@@ -185,6 +187,39 @@ class VectorContainer:
         else:
             self.__dict__['_' + name][:] = value
 
+    def _locate_period_in_span(self, period: Hashable) -> int:
+        """Return the index position of `period` in `self.span`.
+
+        Notes
+        -----
+        The class-level attribute `_VALID_INDEX_METHODS` defines recognised
+        methods for matching.
+        """
+        for method in self._VALID_INDEX_METHODS:
+            if hasattr(self.__dict__['span'], method):
+                index_function = getattr(self.__dict__['span'], method)
+                return index_function(period)
+        else:
+            raise AttributeError(
+                f'Unable to find valid search method in `span`; '
+                f'expected one of: {self._VALID_INDEX_METHODS}')
+
+    def _resolve_period_slice(self, index: slice) -> Tuple[int]:
+        """Convert a slice into a 3-tuple of indexing information to use with `self.span`."""
+        start, stop, step = index.start, index.stop, index.step
+
+        if start is None:
+            start = self.__dict__['span'][0]
+        if stop is None:
+            stop = self.__dict__['span'][-1]
+        if step is None:
+            step = 1
+
+        start_location = self._locate_period_in_span(start)
+        stop_location = self._locate_period_in_span(stop) + 1
+
+        return start_location, stop_location, step
+
     def __getitem__(self, key: Union[str, Tuple[str, Union[Hashable, slice]]]) -> Any:
         # `key` is a string (variable name): return the corresponding array
         if isinstance(key, str):
@@ -212,22 +247,11 @@ class VectorContainer:
 
             # Extract and return the relevant subset
             if isinstance(index, slice):
-                start, stop, step = index.start, index.stop, index.step
-
-                if start is None:
-                    start = self.__dict__['span'][0]
-                if stop is None:
-                    stop = self.__dict__['span'][-1]
-                if step is None:
-                    step = 1
-
-                start_location = self.__dict__['span'].index(start)
-                stop_location = self.__dict__['span'].index(stop) + 1
-
+                start_location, stop_location, step = self._resolve_period_slice(index)
                 return values[start_location:stop_location:step]
 
             else:
-                location = self.__dict__['span'].index(index)
+                location = self._locate_period_in_span(index)
                 return values[location]
 
         raise TypeError('Invalid index type ({}): `{}`'.format(type(key), key))
@@ -256,23 +280,12 @@ class VectorContainer:
 
             # Modify the relevant subset
             if isinstance(index, slice):
-                start, stop, step = index.start, index.stop, index.step
-
-                if start is None:
-                    start = self.__dict__['span'][0]
-                if stop is None:
-                    stop = self.__dict__['span'][-1]
-                if step is None:
-                    step = 1
-
-                start_location = self.__dict__['span'].index(start)
-                stop_location = self.__dict__['span'].index(stop) + 1
-
+                start_location, stop_location, step = self._resolve_period_slice(index)
                 self.__dict__['_' + name][start_location:stop_location:step] = value
                 return
 
             else:
-                location = self.__dict__['span'].index(index)
+                location = self._locate_period_in_span(index)
                 self.__dict__['_' + name][location] = value
                 return
 
@@ -599,8 +612,8 @@ class SolverMixin:
             end = self.span[-1 - self.LEADS]
 
         # Convert to an integer range
-        indexes = range(self.span.index(start),
-                        self.span.index(end) + 1)
+        indexes = range(self._locate_period_in_span(start),
+                        self._locate_period_in_span(end) + 1)
 
         return PeriodIter(indexes, self.span[indexes.start:indexes.stop])
 
@@ -831,7 +844,14 @@ class SolverMixin:
         With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
         treatment.
         """
-        t = self.span.index(period)
+        t = self._locate_period_in_span(period)
+
+        if not isinstance(t, int):
+            raise IndexError(
+                f'Unable to convert `period` to a valid integer '
+                f'(a single location in `self.span`). '
+                f'`period` resolved to type {type(t)} with value {t}')
+
         return self.solve_t(t, min_iter=min_iter, max_iter=max_iter, tol=tol, offset=offset, failures=failures, errors=errors, catch_first_error=catch_first_error, **kwargs)
 
     def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', catch_first_error: bool = True, **kwargs: Dict[str, Any]) -> bool:

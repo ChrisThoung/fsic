@@ -151,6 +151,8 @@ class TestLinkerCopy(FortranTestWrapper, test_fsic.TestLinkerCopy):
 class TestLinkerSolve(FortranTestWrapper, test_fsic.TestLinkerSolve):
     TEST_MODULE_NAME = 'fsic_test_fortran_testlinkersolve'
 
+class TestPandasIndexing(FortranTestWrapper, test_fsic.TestPandasIndexing):
+    TEST_MODULE_NAME = 'fsic_test_fortran_testpandasindexing'
 
 class TestLinkerInit(FortranTestWrapper, test_fsic.TestLinkerInit):
     TEST_MODULE_NAME = 'fsic_test_fortran_testlinkerinit'

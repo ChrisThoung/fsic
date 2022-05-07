@@ -45,6 +45,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `symbols_to_dataframe()` and permitting a roundtrip.
 - Added `status` and `iterations` keyword arguments to `model_to_dataframe()`
   and `linker_to_dataframes()`, to optionally exclude non-data model contents.
+- Added support to `VectorContainer` (and, in turn, `BaseModel` and
+  `BaseLinker`) for `pandas` index objects as `span` attribute values.
 
 ### Changed
 

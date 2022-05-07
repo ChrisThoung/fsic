@@ -3190,5 +3190,71 @@ class TestLinkerMisc(unittest.TestCase):
         self.assertEqual(linker.values.shape, (1, 10))
 
 
+@unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+class TestPandasIndexing(unittest.TestCase):
+
+    SCRIPT = '''
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+'''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+
+    def setUp(self):
+        self.Model = fsic.build_model(self.SYMBOLS)
+
+    def test_periodindex_indexing(self):
+        # Indexing tests to check that `BaseModel` can use, as a `span`
+        # attribute value, `pandas` `PeriodIndex` objects
+        model = self.Model(pd.period_range(start='1990-01', end='1995-12', freq='Q'),
+                           alpha_1=0.6, alpha_2=0.4,
+                           G=20, theta=0.2)
+
+        self.assertTrue(np.allclose(model.G, np.array([20.0] * 24)))
+
+        model['G', '1990Q1'] = 10
+        model['G', '1991'] = 15
+        model['G', '1995Q1':] = 25
+
+        self.assertTrue(
+            np.allclose(model.G, np.array([10.0] + [20.0] * 3 +  # 1990
+                                          [15.0] * 4 +           # 1991
+                                          [20.0] * 12 +          # 1992-4
+                                          [25.0] * 4)))          # 1995
+
+        self.assertTrue(np.allclose(model['G', '1990Q1'], 10))
+        self.assertTrue(np.allclose(model['G', '1990Q2':'1990Q4'], 20))
+        self.assertTrue(np.allclose(model['G', '1991Q1':'1991Q4'], 15))
+        self.assertTrue(np.allclose(model['G', '1992Q1':'1994Q4'], 20))
+        self.assertTrue(np.allclose(model['G', '1995Q1':], 25))
+
+    def test_periodindex_solution(self):
+        # Solution tests to check that `BaseModel` can use, as a `span`
+        # attribute value, `pandas` `PeriodIndex` objects
+        model = self.Model(pd.period_range(start='1990-01', end='2010-12', freq='Q'),
+                           alpha_1=0.6, alpha_2=0.4,
+                           G=20, theta=0.2)
+
+        model.solve(end='2010Q2')
+        model.solve_t(-2)
+        model.solve_period('2010Q4')
+
+        self.assertTrue(np.isclose(model.C[-1], 80))
+        self.assertTrue(np.isclose(model.YD[-1], 80))
+        self.assertTrue(np.isclose(model.Y[-1], 100))
+        self.assertTrue(np.isclose(model.T[-1], 20))
+        self.assertTrue(np.isclose(model.H[-1], 80))
+
+    def test_periodindex_solve_period_error(self):
+        # Check that `solve_period()` raises an error if the argument implies
+        # multiple periods
+        model = self.Model(pd.period_range(start='1990-01', end='2010-12', freq='Q'))
+
+        with self.assertRaises(IndexError):
+            model.solve_period('2000')
+
+
 if __name__ == '__main__':
     unittest.main()

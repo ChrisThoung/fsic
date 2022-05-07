@@ -150,8 +150,8 @@ class FortranEngine:
             end = self.span[-1 - self.LEADS]
 
         # Convert to an integer range and assemble accompanying list of labels
-        indexes = list(range(self.span.index(start),
-                             self.span.index(end) + 1))
+        indexes = list(range(self._locate_period_in_span(start),
+                             self._locate_period_in_span(end) + 1))
         labels = [self.span[t] for t in indexes]
 
         # Solve: Add 1 to `indexes` to go from zero-based (Python) to one-based
