@@ -1032,6 +1032,8 @@ class BaseModel(SolverMixin, ModelInterface):
     def from_dataframe(cls: 'BaseModel', data: 'pandas.DataFrame', *args, **kwargs) -> 'BaseModel':
         """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
 
+        TODO: Consider keyword argument to control type conversion of the index
+
         Parameters
         ----------
         data : `pandas` DataFrame(-like)
@@ -1042,7 +1044,14 @@ class BaseModel(SolverMixin, ModelInterface):
             continue to be set for any variables not included in the DataFrame.
         *args, **kwargs : further arguments to the class `__init__()` method
         """
-        return cls(list(data.index),
+        from pandas import DatetimeIndex, PeriodIndex, TimedeltaIndex
+
+        index = data.index
+
+        if not isinstance(index, (DatetimeIndex, PeriodIndex, TimedeltaIndex)):
+            index = list(index)
+
+        return cls(index,
                    *args,
                    **{k: v.values for k, v in data.items()},
                    **kwargs)
