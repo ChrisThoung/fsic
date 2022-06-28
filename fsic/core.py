@@ -1044,11 +1044,12 @@ class BaseModel(SolverMixin, ModelInterface):
             continue to be set for any variables not included in the DataFrame.
         *args, **kwargs : further arguments to the class `__init__()` method
         """
-        from pandas import DatetimeIndex, PeriodIndex, TimedeltaIndex
+        # TODO: Consider a more general way to deal with this
+        from pandas import DatetimeIndex, MultiIndex, PeriodIndex, TimedeltaIndex
 
         index = data.index
 
-        if not isinstance(index, (DatetimeIndex, PeriodIndex, TimedeltaIndex)):
+        if not isinstance(index, (DatetimeIndex, MultiIndex, PeriodIndex, TimedeltaIndex)):
             index = list(index)
 
         return cls(index,

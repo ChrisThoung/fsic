@@ -650,6 +650,12 @@ H = H[-1] + YD - C
 
         test_cases = {
             'DatetimeIndex': pd.date_range(start='01/01/2000', periods=269, freq='M'),
+            'MultiIndex.from_tuples': pd.MultiIndex.from_tuples(
+                [(year, term) for year in range(2000, 2005 + 1) for term in range(1, 3 + 1)],
+                names=['year', 'term']),
+            'MultiIndex.from_product': pd.MultiIndex.from_product(
+                [range(2000, 2005 + 1), range(1, 3 + 1)],
+                names=['year', 'term']),
             'PeriodIndex': pd.period_range(start='1990Q1', end='2000Q4', freq='Q'),
             'TimedeltaIndex': pd.timedelta_range(start='1 day', periods=50),
         }
@@ -3243,6 +3249,71 @@ H = H[-1] + YD - C
 
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
+
+    def test_multiindex_indexing(self):
+        # Indexing tests to check that `BaseModel` can use, as a `span`
+        # attribute value, `pandas` `MultiIndex` objects
+        model = self.Model(
+            pd.MultiIndex.from_product([range(2000, 2005 + 1), range(1, 3 + 1)],
+                                       names=['year', 'term']),
+            alpha_1=0.6, alpha_2=0.4,
+            G=20, theta=0.2)
+
+        expected = np.array([20.0] * 18)
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', :(2002, 3)] = 10
+        expected[:9] = 10
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', :2001] = 15
+        expected[:6] = 15
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', (2004, 3):] = 25
+        expected[-4:] = 25
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', 2003:] = 30
+        expected[9:] = 30
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', (2000, 3)] = 25
+        expected[2] = 25
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', 2001] = 0
+        expected[3:6] = 0
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', (2003, 2):(2005, 1)] = 5
+        expected[10:-2] = 5
+        self.assertTrue(np.allclose(model.G, expected))
+
+        model['G', 2001:2003] = 20
+        expected[3:12] = 20
+        self.assertTrue(np.allclose(model.G, expected))
+
+        self.assertTrue(np.allclose(
+            model.G,
+            np.array([15.0, 15.0, 25.0,
+                      20.0, 20.0, 20.0,
+                      20.0, 20.0, 20.0,
+                      20.0, 20.0, 20.0,
+                       5.0,  5.0,  5.0,
+                       5.0, 30.0, 30.0, ])))
+
+        self.assertTrue(np.allclose(model['G', (2000, 3)], 25.0))
+        self.assertTrue(np.allclose(model['G', 2001], 20.0))
+
+        self.assertTrue(np.allclose(model['G', :(2000, 2)], 15.0))
+        self.assertTrue(np.allclose(model['G', :2001], [15.0, 15.0, 25.0, 20.0, 20.0, 20.0]))
+
+        self.assertTrue(np.allclose(model['G', (2005, 2):], 30.0))
+        self.assertTrue(np.allclose(model['G', 2004:], [5.0, 5.0, 5.0, 5.0, 30.0, 30.0]))
+
+        self.assertTrue(np.allclose(model['G', 2001:2003], 20.0))
+        self.assertTrue(np.allclose(model['G', 2003:2004], [20.0, 20.0, 20.0, 5.0, 5.0, 5.0]))
 
     def test_periodindex_indexing(self):
         # Indexing tests to check that `BaseModel` can use, as a `span`
