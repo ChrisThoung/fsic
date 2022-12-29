@@ -43,8 +43,9 @@ Available files:
 
 * minimum requirements (for completeness only: handled automatically by
   installing the package): [minimal.txt](requirements/minimal.txt)
-* optional requirements (to use all features of `fsic.tools`):
-  [optional.txt](requirements/optional.txt)
+* optional requirements, to use all features of:  
+    * `fsic.extensions`: [extensions.txt](requirements/extensions.txt)
+    * `fsic.tools`: [tools.txt](requirements/tools.txt)
 * development requirements (to run the test suite as recommended e.g. as in the
   [makefile](makefile)): [test.txt](requirements/test.txt)
 * dependencies to run the examples: [examples.txt](requirements/examples.txt)
