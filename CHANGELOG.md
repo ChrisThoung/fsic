@@ -47,6 +47,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   and `linker_to_dataframes()`, to optionally exclude non-data model contents.
 - Added support to `VectorContainer` (and, in turn, `BaseModel` and
   `BaseLinker`) for `pandas` index objects as `span` attribute values.
+- Added new `extensions` sub-package to provide additional (and optional)
+  functionality, currently consisting of:
+    - `ProgressBarMixin` (in `fsic.extensions` / `fsic.extensions.common`):
+      transferring the `tqdm`-based example into the main `fsic` package
 
 ### Changed
 

@@ -23,7 +23,8 @@ over:
 This example shows two possible implementations:
 
 1. Call `iter_periods()` directly each time, wrapping the iterator with `tqdm`
-2. Over-ride `iter_periods()` at the class level, again using `tqdm`
+2. Over-ride `iter_periods()` at the class level, again using `tqdm` but with
+   `ProgressBarMixin` from `fsic.extensions`
 
 The example model in this script is a simplified five-equation version of
 Godley and Lavoie’s (2007) Model *SIM*.
@@ -40,6 +41,7 @@ import time
 
 from tqdm import tqdm
 
+from fsic.extensions import ProgressBarMixin
 import fsic
 
 
@@ -98,23 +100,9 @@ if __name__ == '__main__':
 
 
     # -------------------------------------------------------------------------
-    # 2. Over-ride `iter_periods()` at the class level
+    # 2. Over-ride `iter_periods()` at the class level using a mixin
 
-    # Define a mixin to over-ride the base `iter_periods()` method
-    class ProgressBarMixin:
-
-        def iter_periods(self, *args, show_progress=False, **kwargs):
-            """Modified `iter_periods()` method: Display a `tqdm` progress bar if `show_progress=True`."""
-            # Get the original `PeriodIter` object
-            period_iter = super().iter_periods(*args, **kwargs)
-
-            # Optionally wrap with `tqdm`
-            if show_progress:
-                period_iter = tqdm(period_iter)
-
-            return period_iter
-
-    # Apply to a new model class
+    # Apply the extension to a new model class
     class SIM_ProgressBar(ProgressBarMixin, SIM):
         pass
 

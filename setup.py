@@ -41,7 +41,7 @@ setuptools.setup(
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     url='https://github.com/ChrisThoung/fsic',
-    packages=setuptools.find_packages(include=['fsic']),
+    packages=setuptools.find_packages(include=['fsic', 'fsic.extensions']),
     python_requires='>=3.6',
 
     install_requires=extra_requirements['minimal'],

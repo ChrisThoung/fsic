@@ -7,6 +7,7 @@ __version__ = '0.8.0.dev'
 
 from fsic import core
 from fsic import exceptions
+from fsic import extensions
 from fsic import fortran
 from fsic import parser
 from fsic import tools
