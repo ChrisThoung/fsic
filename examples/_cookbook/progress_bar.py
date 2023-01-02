@@ -111,4 +111,4 @@ if __name__ == '__main__':
     model = SIM_ProgressBar(range(1945, 2010 + 1),
                             alpha_1=0.6, alpha_2=0.4,
                             G=20, theta=0.2)
-    model.solve(show_progress=True)
+    model.solve(progress_bar=True)
