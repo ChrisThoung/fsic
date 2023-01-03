@@ -41,7 +41,7 @@ concern:
 
 ## References
 
-Dafermos, Y., Nikolaidi, M. (2021),
+Dafermos, Y., Nikolaidi, M. (2021)
 'DEFINE-SIMPLE'  
 [https://define-model.org/define-simple/](https://define-model.org/define-simple/)  
 [https://github.com/DEFINE-model/SIMPLE](https://github.com/DEFINE-model/SIMPLE)

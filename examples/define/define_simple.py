@@ -32,7 +32,7 @@ As well as fsic (which depends in turn on NumPy), this script also requires:
 
 Reference:
 
-    Dafermos, Y., Nikolaidi, M. (2021),
+    Dafermos, Y., Nikolaidi, M. (2021)
     'DEFINE-SIMPLE'
     https://define-model.org/define-simple/
     https://github.com/DEFINE-model/SIMPLE
@@ -51,7 +51,7 @@ class DEFINE_Simple(BaseModel):
 
     Reference
     ---------
-    Dafermos, Y., Nikolaidi, M. (2021),
+    Dafermos, Y., Nikolaidi, M. (2021)
     'DEFINE-SIMPLE'
     https://define-model.org/define-simple/
     https://github.com/DEFINE-model/SIMPLE
