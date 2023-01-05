@@ -14,6 +14,7 @@ Base classes:
 from collections import Counter
 import copy
 import enum
+import re
 from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
 import warnings
 
@@ -407,8 +408,100 @@ class VectorContainer:
                  series = self.__getattribute__('_' + name)
                  self.__setattr__(name, np.full(series.shape, new_values, dtype=series.dtype))
 
-    def eval(self, expression: str) -> np.ndarray:
-        raise NotImplementedError('`eval()` method not implemented yet')
+    def _resolve_periods_to_indexes(self, expression: str) -> str:
+        """Convert period expressions enclosed in backticks in `expression` to integer indexes."""
+        period_re = re.compile(r'[`](.*?)[`]')
+
+        def replace(match):
+            period = match.group(1)
+
+            # Return index if found in span
+            if period in self.span:
+                return str(self._locate_period_in_span(period))
+
+            # If not found, try to cast to an integer
+            try:
+                period = int(period)
+            except ValueError:
+                raise KeyError(f"Unable to locate period with label '{period}' in object's span")
+
+            # Now check if integer is in span
+            if period not in self.span:
+                raise KeyError(f"Unable to locate period with label {period} in object's span")
+
+            return str(self._locate_period_in_span(period))
+
+        return period_re.sub(replace, expression)
+
+    def eval(self, expression: str, *, globals: Optional[Dict[str, Any]] = None, locals: Optional[Dict[str, Any]] = None) -> Union[float, np.ndarray]:
+        """Evaluate `expression` as it applies to the current object. **Uses `eval()`**.
+
+        **New in version 0.8.0 and subject to change** (see Notes).
+
+        Parameters
+        ----------
+        expression :
+            The expression to evaluate (see Examples and Notes for further
+            information)
+        globals :
+            `globals` argument to pass to `eval()`
+        locals :
+            `locals` argument to pass to `eval()`
+
+        Examples
+        --------
+        # Setup
+        >>> container = VectorContainer(range(2000, 2010 + 1))
+        >>> container.add_variable('X', 0, dtype=float)
+        >>> container.add_variable('Y', 1, dtype=float)
+        >>> container.add_variable('Z', 2, dtype=float)
+
+        # Vector operations
+        >>> container.eval('X + Y + Z')
+        array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])
+
+        # Item operations
+        >>> container.eval('X[0] + Y[-1]')
+        1.0
+
+        # Mixed item-vector operations
+        >>> container.X[1] = 1
+        >>> container.eval('X[1] + Y')
+        array([2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.])
+
+        # To index by period rather than position, enclose values with
+        # backticks (`)
+        >>> container.eval('X[`2001`]')
+        1.0
+
+        # NB Currently, slicing follows the Python (rather than pandas/fsic)
+        #    approach of an open interval to the right i.e. the below returns
+        #    the first five values, not the first six
+        >>> container.eval('X[`2000`:`2005`]')
+        array([0., 1., 0., 0., 0.])
+
+        Notes
+        -----
+        The current implementation needs further review and thought.
+
+        The current implementation supports label-/period-based indexing by
+        enclosing the labels in backticks. For convenience, the code (in
+        `_resolve_periods_to_indexes()`) automatically tries to cast strings as
+        integers if needed, rather than have `expression` require the type to
+        be specified explicitly e.g. X[`'2000Q1'`] (with quotes).
+        """
+        # Amend `expression` to account for period indexes
+        if '`' in expression:
+            expression = self._resolve_periods_to_indexes(expression)
+
+        # Construct the initial mapping of container variables and then update
+        # with arguments (so as to be able to over-ride the container
+        # variables)
+        locals_ = {x: self[x] for x in self.index}
+        if locals is not None:
+            locals_.update(locals)
+
+        return eval(expression, globals, locals_)
 
     def exec(self, expression: str) -> None:
         raise NotImplementedError('`exec()` method not implemented yet')

@@ -24,6 +24,7 @@ programs:
 import copy
 import functools
 import keyword
+import math
 import unittest
 import sys
 
@@ -528,7 +529,6 @@ class TestVectorContainer(unittest.TestCase):
         with self.assertRaises(fsic.exceptions.DimensionError):
             container.values = np.zeros((3, 4))
 
-    @unittest.expectedFailure
     def test_eval(self):
         # Check `eval()` method
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
@@ -540,10 +540,30 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(container.Y, 1))
         self.assertTrue(np.allclose(container.Z, 2))
 
+        # Test vector operations
         self.assertTrue(np.allclose(container.eval('X + Y + Z'), 3))
+        self.assertTrue(np.allclose(container.eval('X + Y - Z'), -1))
+
         self.assertTrue(np.allclose(container.X, 0))
         self.assertTrue(np.allclose(container.Y, 1))
         self.assertTrue(np.allclose(container.Z, 2))
+
+        # Test item operations
+        self.assertTrue(np.allclose(container.eval('math.exp(X[0]) * 3', locals={'math': math}), 3))
+
+        # Test mixed item-vector operations
+        result = container.eval('math.exp(X[0]) - Z', locals={'math': math})
+        self.assertEqual(result.shape, (11,))
+        self.assertTrue(np.allclose(result, -1))
+
+        # Test external functions
+        self.assertTrue(np.allclose(container.eval('np.exp(X)', locals={'np': np}), 1))
+        self.assertTrue(np.allclose(container.eval('np.exp(Y)', locals={'np': np}), np.e))
+
+        # Test period indexing
+        container.X[0] = -1
+        self.assertTrue(np.isclose(container.eval('X[`1995`]'), -1))
+        self.assertTrue(np.allclose(container.eval('X[`1996`:]'), 0))
 
     @unittest.expectedFailure
     def test_exec(self):
