@@ -540,7 +540,7 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(container.Y, 1))
         self.assertTrue(np.allclose(container.Z, 2))
 
-        self.assertTrue(np.allclose(container.eval('X + Y + Z')), 3)
+        self.assertTrue(np.allclose(container.eval('X + Y + Z'), 3))
         self.assertTrue(np.allclose(container.X, 0))
         self.assertTrue(np.allclose(container.Y, 1))
         self.assertTrue(np.allclose(container.Z, 2))
