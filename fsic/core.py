@@ -1644,6 +1644,10 @@ Spans of submodels differ:
     def __deepcopy__(self, *args, **kwargs) -> 'BaseLinker':
         return self.copy()
 
+    def to_dataframe(self, *, status: bool = True, iterations: bool = True) -> 'pandas.DataFrame':
+        """Return the values and solution information from the linker as a `pandas` DataFrame. **Requires `pandas`**."""
+        return _model_to_dataframe(self, status=status, iterations=iterations)
+
     def to_dataframes(self, *, status: bool = True, iterations: bool = True) -> Dict[Hashable, 'pandas.DataFrame']:
         """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames. **Requires `pandas`**."""
         return _linker_to_dataframes(self, status=status, iterations=iterations)

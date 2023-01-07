@@ -239,6 +239,42 @@ class TestPandasFunctions(unittest.TestCase):
 
         pd.testing.assert_frame_equal(result, expected)
 
+    def test_linker_to_dataframe(self):
+        Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
+
+        model = fsic.BaseLinker({
+            'A': Submodel(range(1990, 2005 + 1)),
+            'B': Submodel(range(1990, 2005 + 1)),
+            'C': Submodel(range(1990, 2005 + 1)),
+        }, name='test')
+        model.add_variable('D', 0.0)
+
+        linker_results = fsic.tools.model_to_dataframe(model)
+
+        pd.testing.assert_frame_equal(linker_results,
+                                      pd.DataFrame({'D': 0.0,
+                                                    'status': '-',
+                                                    'iterations': -1, },
+                                                   index=range(1990, 2005 + 1)))
+
+    def test_linker_to_dataframe_core(self):
+        Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
+
+        model = fsic.BaseLinker({
+            'A': Submodel(range(1990, 2005 + 1)),
+            'B': Submodel(range(1990, 2005 + 1)),
+            'C': Submodel(range(1990, 2005 + 1)),
+        }, name='test')
+        model.add_variable('D', 0.0)
+
+        linker_results = model.to_dataframe()
+
+        pd.testing.assert_frame_equal(linker_results,
+                                      pd.DataFrame({'D': 0.0,
+                                                    'status': '-',
+                                                    'iterations': -1, },
+                                                   index=range(1990, 2005 + 1)))
+
     def test_linker_to_dataframes(self):
         Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
 

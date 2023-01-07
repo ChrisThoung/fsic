@@ -122,7 +122,7 @@ def linker_to_dataframes(linker: 'BaseLinker', *, status: bool = True, iteration
     """
     from pandas import DataFrame
 
-    results = {linker.name: model_to_dataframe(linker, status=status, iterations=iterations)}
+    results = {linker.name: linker.to_dataframe(status=status, iterations=iterations)}
 
     for name, model in linker.submodels.items():
         results[name] = model_to_dataframe(model, status=status, iterations=iterations)
