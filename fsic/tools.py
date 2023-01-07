@@ -125,6 +125,6 @@ def linker_to_dataframes(linker: 'BaseLinker', *, status: bool = True, iteration
     results = {linker.name: linker.to_dataframe(status=status, iterations=iterations)}
 
     for name, model in linker.submodels.items():
-        results[name] = model_to_dataframe(model, status=status, iterations=iterations)
+        results[name] = model.to_dataframe(status=status, iterations=iterations)
 
     return results
