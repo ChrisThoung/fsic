@@ -468,7 +468,7 @@ class VectorContainer:
 
             return f'[{start}:{stop}:{step}]'
 
-        index_re = re.compile(r'\[\s*(.+)?\s*\]')
+        index_re = re.compile(r'\[\s*(.+?)?\s*\]')
         return index_re.sub(resolve_indexes, expression)
 
     def eval(self, expression: str, *, globals: Optional[Dict[str, Any]] = None, locals: Optional[Dict[str, Any]] = None) -> Union[float, np.ndarray]:
