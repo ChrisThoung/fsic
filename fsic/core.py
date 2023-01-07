@@ -408,30 +408,68 @@ class VectorContainer:
                  series = self.__getattribute__('_' + name)
                  self.__setattr__(name, np.full(series.shape, new_values, dtype=series.dtype))
 
-    def _resolve_periods_to_indexes(self, expression: str) -> str:
-        """Convert period expressions enclosed in backticks in `expression` to integer indexes."""
-        period_re = re.compile(r'[`](.*?)[`]')
+    def _resolve_expression_indexes(self, expression: str) -> str:
+        """Convert an expression with backticks (denoting period labels) to one with just integer indexes."""
 
-        def replace(match):
-            period = match.group(1)
+        def resolve_index_in_span(label: str) -> int:
+            """Convert a single, possibly backticked, index/label to an integer index."""
+            # If no backticks, take `label` to be a regular integer index:
+            # Convert and return
+            if '`' not in label:
+                return int(label.strip())
 
-            # Return index if found in span
+            # Remove backticks
+            period = label.strip().strip('`')
+
+            # Return the index if found in `span`
             if period in self.span:
-                return str(self._locate_period_in_span(period))
+                return self._locate_period_in_span(period)
 
-            # If not found, try to cast to an integer
+            # If not found, try to cast to an integer and check again
+            # TODO: Is this too implicit?
             try:
                 period = int(period)
             except ValueError:
                 raise KeyError(f"Unable to locate period with label '{period}' in object's span")
 
-            # Now check if integer is in span
             if period not in self.span:
-                raise KeyError(f"Unable to locate period with label {period} in object's span")
+                raise KeyError(f"Unable to locate period with label '{period}' in object's span")
 
-            return str(self._locate_period_in_span(period))
+            return self._locate_period_in_span(period)
 
-        return period_re.sub(replace, expression)
+        def resolve_indexes(match: re.match) -> str:
+            """Convert the contents of a possibly backticked index expression to integer indexes."""
+            # Treat the contents of `match` as a slice, with up to three
+            # components: start, stop, step
+            slice_ = match.group(1).split(':')
+
+            if len(slice_) > 3:
+                raise ValueError(f"'{match.group(1)}' is invalid as a slice: Too many items")
+
+            if len(slice_) == 1:
+                # One item provided: A period label as an index
+                return '[' + str(resolve_index_in_span(slice_[0])) + ']'
+
+            # Multiple items: Treat as a slice
+            start, stop, *step = map(str.strip, slice_)
+
+            if len(start):
+                start = resolve_index_in_span(start)
+
+            if len(stop):
+                stop = resolve_index_in_span(stop) + 1
+
+            if len(step) == 0:
+                step = ''
+            elif len(step) == 1:
+                step = step[0]
+            else:
+                raise ValueError(f"Found multiple step values in '{match.group(1)}': Expected at most one")
+
+            return f'[{start}:{stop}:{step}]'
+
+        index_re = re.compile(r'\[\s*(.+)?\s*\]')
+        return index_re.sub(resolve_indexes, expression)
 
     def eval(self, expression: str, *, globals: Optional[Dict[str, Any]] = None, locals: Optional[Dict[str, Any]] = None) -> Union[float, np.ndarray]:
         """Evaluate `expression` as it applies to the current object. **Uses `eval()`**.
@@ -460,11 +498,15 @@ class VectorContainer:
         >>> container.eval('X + Y + Z')
         array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])
 
-        # Item operations
+        # Index and slice operations
         >>> container.eval('X[0] + Y[-1]')
         1.0
 
-        # Mixed item-vector operations
+        >>> container.Z[2:4] += 1
+        >>> container.eval('Y[::2] + Z[:6]')
+        [3. 3. 4. 4. 3. 3.]
+
+        # Mixed index/slice-vector operations
         >>> container.X[1] = 1
         >>> container.eval('X[1] + Y')
         array([2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.])
@@ -474,25 +516,30 @@ class VectorContainer:
         >>> container.eval('X[`2001`]')
         1.0
 
-        # NB Currently, slicing follows the Python (rather than pandas/fsic)
-        #    approach of an open interval to the right i.e. the below returns
-        #    the first five values, not the first six
-        >>> container.eval('X[`2000`:`2005`]')
-        array([0., 1., 0., 0., 0.])
+        >>> container.eval('X[`2001`:`2009`:3]')
+        [1. 0. 0.]
 
         Notes
         -----
-        The current implementation needs further review and thought.
+        The main question about this implementation is the implicit casting to
+        integer for indexes enclosed in backticks.
 
-        The current implementation supports label-/period-based indexing by
-        enclosing the labels in backticks. For convenience, the code (in
-        `_resolve_periods_to_indexes()`) automatically tries to cast strings as
-        integers if needed, rather than have `expression` require the type to
-        be specified explicitly e.g. X[`'2000Q1'`] (with quotes).
+        For example, the expression 'X[`2000`]' first tries to match the label
+        2000 as a string. If this fails, the same is tried after casting 2000
+        to an integer.
+
+        This has the convenience of not needing to keep track of label types
+        (and simplifies the syntax) but may be too implicit.
+
+        *To think on further*.
+
+        See also
+        --------
+        _resolve_expression_indexes(), for the implementation set out in Notes.
         """
         # Amend `expression` to account for period indexes
         if '`' in expression:
-            expression = self._resolve_periods_to_indexes(expression)
+            expression = self._resolve_expression_indexes(expression)
 
         # Construct the initial mapping of container variables and then update
         # with arguments (so as to be able to over-ride the container
