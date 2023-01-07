@@ -529,8 +529,8 @@ class TestVectorContainer(unittest.TestCase):
         with self.assertRaises(fsic.exceptions.DimensionError):
             container.values = np.zeros((3, 4))
 
-    def test_eval(self):
-        # Check `eval()` method
+    def test_eval_index(self):
+        # Check `eval()` method with integer indexes
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
         container.add_variable('X', 0, dtype=float)
         container.add_variable('Y', 1, dtype=float)
@@ -541,29 +541,50 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(container.Z, 2))
 
         # Test vector operations
-        self.assertTrue(np.allclose(container.eval('X + Y + Z'), 3))
-        self.assertTrue(np.allclose(container.eval('X + Y - Z'), -1))
+        self.assertTrue(np.allclose(container.eval('X + Y + Z'), np.array([3] * 11, dtype=float)))
+        self.assertTrue(np.allclose(container.eval('X + Y - Z'), np.array([-1] * 11, dtype=float)))
+
+        # Test index operations
+        container.X += range(-5, 5 + 1)
+        self.assertTrue(math.isclose(container.eval('X[0]'), -5))
+        self.assertTrue(math.isclose(container.eval('X[-1]'), 5))
+
+        # Test slice operations
+        self.assertTrue(np.allclose(container.eval('X[0:2] + Y[-2:]'), np.array([-4, -3], dtype=float)))
+        self.assertTrue(np.allclose(container.eval('X[:-1:2] + Y[1::2]'), np.array([-4, -2, 0, 2, 4], dtype=float)))
+
+        # Test mixed operations
+        self.assertTrue(np.allclose(container.eval('(X[0] + Y[-1::2]) * Z'), np.array([-8] * 11, dtype=float)))
+
+        # Test external functions
+        self.assertTrue(math.isclose(container.eval('math.exp(X[0])', locals={'math': math}), math.exp(-5)))
+        self.assertTrue(np.allclose(container.eval('np.exp(Y)', locals={'math': math}), np.array([math.exp(1)] * 11)))
+
+    def test_eval_label(self):
+        # Check `eval()` method with label indexes
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', 0, dtype=float)
+        container.add_variable('Y', 1, dtype=float)
+        container.add_variable('Z', 2, dtype=float)
 
         self.assertTrue(np.allclose(container.X, 0))
         self.assertTrue(np.allclose(container.Y, 1))
         self.assertTrue(np.allclose(container.Z, 2))
 
-        # Test item operations
-        self.assertTrue(np.allclose(container.eval('math.exp(X[0]) * 3', locals={'math': math}), 3))
+        # Test index operations
+        container.X += range(-5, 5 + 1)
+        self.assertTrue(math.isclose(container.eval('X[`1995`]'), -5))
+        self.assertTrue(math.isclose(container.eval('X[`2005`]'), 5))
 
-        # Test mixed item-vector operations
-        result = container.eval('math.exp(X[0]) - Z', locals={'math': math})
-        self.assertEqual(result.shape, (11,))
-        self.assertTrue(np.allclose(result, -1))
+        # Test slice operations
+        self.assertTrue(np.allclose(container.eval('X[`1995`:`1996`] + Y[`2004`:]'), np.array([-4, -3], dtype=float)))
+        self.assertTrue(np.allclose(container.eval('X[:`2004`:2] + Y[`1996`::2]'), np.array([-4, -2, 0, 2, 4], dtype=float)))
+
+        # Test mixed operations
+        self.assertTrue(np.allclose(container.eval('(X[`1995`] + Y[`2004`::2]) * Z'), np.array([-8] * 11, dtype=float)))
 
         # Test external functions
-        self.assertTrue(np.allclose(container.eval('np.exp(X)', locals={'np': np}), 1))
-        self.assertTrue(np.allclose(container.eval('np.exp(Y)', locals={'np': np}), np.e))
-
-        # Test period indexing
-        container.X[0] = -1
-        self.assertTrue(np.isclose(container.eval('X[`1995`]'), -1))
-        self.assertTrue(np.allclose(container.eval('X[`1996`:]'), 0))
+        self.assertTrue(math.isclose(container.eval('math.exp(X[`1995`])', locals={'math': math}), math.exp(-5)))
 
     @unittest.expectedFailure
     def test_exec(self):
