@@ -18,7 +18,7 @@ Reference:
     Almon, C. (2017)
     *The craft of economic modeling*,
     Third, enlarged edition, *Inforum*
-    http://www.inforum.umd.edu/papers/TheCraft.html
+    http://inforumweb.inforumecon.com/papers/TheCraft.html
 """
 
 import matplotlib.pyplot as plt

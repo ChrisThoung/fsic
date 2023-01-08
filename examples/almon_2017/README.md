@@ -42,4 +42,4 @@ Almon, C. (2017)
 *The craft of economic modeling*, Third, enlarged edition,
 licensed under [Creative Commons Attribution-NonCommercial 4.0 International
 (BY-NC)](https://creativecommons.org/licenses/by-nc/4.0/legalcode)  
-[http://www.inforum.umd.edu/papers/TheCraft.html](http://www.inforum.umd.edu/papers/TheCraft.html)
+[http://inforumweb.inforumecon.com/papers/TheCraft.html](http://inforumweb.inforumecon.com/papers/TheCraft.html)
