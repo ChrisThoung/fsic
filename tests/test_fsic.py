@@ -3359,7 +3359,7 @@ H = H[-1] + YD - C
     def test_periodindex_indexing(self):
         # Indexing tests to check that `BaseModel` can use, as a `span`
         # attribute value, `pandas` `PeriodIndex` objects
-        model = self.Model(pd.period_range(start='1990-01', end='1995-12', freq='Q'),
+        model = self.Model(pd.period_range(start='1990-01-01', end='1995-12-31', freq='Q'),
                            alpha_1=0.6, alpha_2=0.4,
                            G=20, theta=0.2)
 
