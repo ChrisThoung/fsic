@@ -453,12 +453,29 @@ class VectorContainer:
             # Multiple items: Treat as a slice
             start, stop, *step = map(str.strip, slice_)
 
+            # Resolve first (`start`) and second (`stop`) arguments
             if len(start):
                 start = resolve_index_in_span(start)
 
-            if len(stop):
-                stop = resolve_index_in_span(stop) + 1
+                # Handle slices (typically from a `pandas` `PeriodIndex` or
+                # similar)
+                if isinstance(start, slice):
+                    start = start.start
 
+            if len(stop):
+                stop = resolve_index_in_span(stop)
+
+                # Handle slices (typically from a `pandas` `PeriodIndex` or
+                # similar)
+                if isinstance(stop, slice):
+                    stop = stop.stop
+
+            # Adjust for closed intervals on the right-hand side (mirroring
+            # `pandas`)
+            if isinstance(stop, int):
+                stop += 1
+
+            # Resolve third (`step`) argument
             if len(step) == 0:
                 step = ''
             elif len(step) == 1:
@@ -518,6 +535,38 @@ class VectorContainer:
 
         >>> container.eval('X[`2001`:`2009`:3]')
         [1. 0. 0.]
+
+
+        # `eval()` also works for `pandas` index objects
+        >>> import pandas as pd
+
+        # Instantiate an object covering the period 2000Q1-2002Q4
+        >>> container = VectorContainer(pd.period_range(start='2000-01-01', end='2002-12-31', freq='Q'))
+
+        >>> container.add_variable('X', range(12), dtype=float)
+        >>> container.X
+        [ 0.  1.  2.  3.  4.  5.  6.  7.  8.  9. 10. 11.]
+
+        >>> container['X', '2001':'2002']
+        [ 4.  5.  6.  7.  8.  9. 10. 11.]
+
+        >>> container.eval('X[`2001Q2`:`2002Q3`] * 2')
+        [10. 12. 14. 16. 18. 20.]
+
+        >>> container['X', '2001']
+        [4. 5. 6. 7.]
+
+        >>> container.eval('X[`2001`] * 3')
+        [12. 15. 18. 21.]
+
+        >>> container.eval('X[:`2001:2]')
+        [0. 2. 4. 6.]
+
+        >>> container['X', '2001':'2002Q3']
+        [ 4.  5.  6.  7.  8.  9. 10.]
+
+        >>> container.eval('X[`2001`:`2002Q3`:3]')
+        [ 4.  7. 10.]
 
         Notes
         -----

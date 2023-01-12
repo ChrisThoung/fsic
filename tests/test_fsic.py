@@ -586,6 +586,52 @@ class TestVectorContainer(unittest.TestCase):
         # Test external functions
         self.assertTrue(math.isclose(container.eval('math.exp(X[`1995`])', locals={'math': math}), math.exp(-5)))
 
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_eval_label_periodindex(self):
+        # Check `eval()` method on pandas PeriodIndex objects
+        container = fsic.core.VectorContainer(pd.period_range(start='2000-01-01', end='2005-12-31', freq='Q'))
+        container.add_variable('X', 0, dtype=float)
+        container.add_variable('Y', 1, dtype=float)
+        container.add_variable('Z', 2, dtype=float)
+
+        self.assertTrue(np.allclose(container.X, 0))
+        self.assertTrue(np.allclose(container.Y, 1))
+        self.assertTrue(np.allclose(container.Z, 2))
+
+        # Test index operations
+        container.X[-1] = 5
+        self.assertTrue(math.isclose(container.eval('X[`2005Q4`]'), 5))
+
+        container.Y[-8:-4] = 10
+        self.assertTrue(np.allclose(container.eval('Y[`2004`]'), np.array([10] * 4, dtype=float)))
+
+        # Test slice operations
+        container.Z[1:6] = range(1, 6)
+        self.assertTrue(np.allclose(container.eval('Z[`2000Q2`:`2001Q2`] * 2'), np.arange(2, 11, 2, dtype=float)))
+        self.assertTrue(np.allclose(container.eval('Z[`2001`:`2002`] + 1'), np.array([5, 6, 3, 3, 3, 3, 3, 3], dtype=float)))
+
+        self.assertTrue(np.allclose(container.eval('X[`2005Q2`:] + 3'), np.array([3, 3, 8], dtype=float)))
+        self.assertTrue(np.allclose(container.eval('X[`2004`:] * 3'), np.array([0, 0, 0, 0, 0, 0, 0, 15], dtype=float)))
+
+        self.assertTrue(np.allclose(container.eval('Z[:`2001Q2`] - 3'), np.array([-1, -2, -1, 0, 1, 2], dtype=float)))
+        self.assertTrue(np.allclose(container.eval('Z[:`2001`] / 3'), np.array([2, 1, 2, 3, 4, 5, 2, 2], dtype=float) / 3))
+
+        self.assertTrue(np.allclose(container.eval('Z[`2000Q2`:`2001Q2`:2] * 2'), np.arange(2, 11, 4, dtype=float)))
+        self.assertTrue(np.allclose(container.eval('Z[`2001`:`2002`:2] + 1'), np.array([5, 3, 3, 3], dtype=float)))
+
+        self.assertTrue(np.allclose(container.eval('X[`2005Q2`::2] + 3'), np.array([3, 8], dtype=float)))
+        self.assertTrue(np.allclose(container.eval('X[`2004`::2] * 3'), np.array([0, 0, 0, 0], dtype=float)))
+
+        self.assertTrue(np.allclose(container.eval('Z[:`2001Q2`:2] - 3'), np.array([-1, -1, 1], dtype=float)))
+        self.assertTrue(np.allclose(container.eval('Z[:`2001`:2] / 3'), np.array([2, 2, 4, 2], dtype=float) / 3))
+
+        # # Test mixed operations
+        self.assertTrue(np.allclose(container.eval('(Z[:`2001`:2] + X[-1]) / 3'), np.array([7, 7, 9, 7], dtype=float) / 3))
+
+        # # Test external functions
+        self.assertTrue(np.allclose(container.eval('(Z[:`2001`:2] + X[-1]) / np.exp(3)', locals={'np': np}),
+                                    np.array([7, 7, 9, 7], dtype=float) / np.exp(3)))
+
     @unittest.expectedFailure
     def test_exec(self):
         # Check `exec()` method
