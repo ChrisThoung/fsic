@@ -4,6 +4,16 @@ pandas_indexing
 ===============
 Example of how to use a `pandas` `PeriodIndex` for the span of a model. This
 might be useful when dealing with models of higher-than-annual frequency.
+
+The example model in this script is a simplified five-equation version of
+Godley and Lavoie’s (2007) Model *SIM*.
+
+Reference:
+
+    Godley, W., Lavoie, M. (2007),
+    *Monetary economics: an integrated approach to
+    credit, money, income, production and wealth*,
+    Palgrave Macmillan
 """
 
 import pandas as pd
