@@ -51,6 +51,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `BaseLinker`) for `pandas` index objects as `span` attribute values.
 - Added new `extensions` sub-package to provide additional (and optional)
   functionality, currently consisting of:
+    - `AliasMixin` (in `fsic.extensions` / `fsic.extensions.common`): support
+      for multiple/alternative names for model variables
     - `ProgressBarMixin` (in `fsic.extensions` / `fsic.extensions.common`):
       transferring the `tqdm`-based example into the main `fsic` package
 
