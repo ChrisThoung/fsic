@@ -13,4 +13,4 @@ about, *inter alia*:
 
 | File                       | Description                                              |
 | -------------------------- | -------------------------------------------------------- |
-| [aliasing.py](aliasing.py) | Aliases for binding alternative names to model variables |
+|                            |                                                          |

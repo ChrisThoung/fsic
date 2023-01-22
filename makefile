@@ -12,7 +12,6 @@ test :
 
 .PHONY: sandbox
 sandbox :
-	cd sandbox && python aliasing.py
 
 .PHONY: examples
 examples :
