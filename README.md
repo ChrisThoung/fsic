@@ -22,7 +22,7 @@ time, if not found):
    [https://www.youtube.com/watch?v=AQrskWh-F5E](https://www.youtube.com/watch?v=AQrskWh-F5E)),
    either:
     * a specific [tag](https://github.com/ChrisThoung/fsic/tags) e.g. `$ pip
-      install git+https://github.com/ChrisThoung/fsic@v0.7.1.dev`
+      install git+https://github.com/ChrisThoung/fsic@v0.8.0.dev`
     * the current development version (warning: this version isn't guaranteed
       to work): `$ pip install git+https://github.com/ChrisThoung/fsic`
 
