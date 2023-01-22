@@ -15,7 +15,7 @@ sandbox :
 
 .PHONY: examples
 examples :
-	cd examples/_cookbook && python aliases.py && python fortran_engine.py && python pandas_indexing.py && python progress_bar.py && python quickstart.py
+	cd examples/_cookbook && python aliases.py && python eval.py && python fortran_engine.py && python pandas_indexing.py && python progress_bar.py && python quickstart.py
 	cd examples/almon_2017 && python ami.py
 	cd examples/godley-lavoie_2007 && python 3_sim.py && python 4_pc.py && python 5_lp1.py && python 6_reg.py && python 6_open.py && python 7_bmw.py
 	cd examples/klein_1950 && make
