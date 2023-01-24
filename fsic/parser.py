@@ -728,7 +728,7 @@ class Model(BaseModel):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
 {equations}\
@@ -781,7 +781,7 @@ class Model(BaseModel):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
 {equations}\

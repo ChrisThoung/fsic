@@ -299,7 +299,7 @@ class FortranEngine:
              - 'replace': each iteration, replace NaNs and infinities with
                           zeroes
                           [period solution statuses as usual i.e. '.' or 'F']
-        kwargs :
+        **kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
@@ -441,7 +441,7 @@ class FortranEngine:
         iteration : int
             ** Does nothing: defined for compatibility with the base Python API
                only **
-        kwargs :
+        **kwargs :
             ** Does nothing: defined for compatibility with the base Python API
                only **
             Further keyword arguments for solution are *not* passed to the

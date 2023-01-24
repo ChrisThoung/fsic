@@ -871,7 +871,7 @@ class SolverMixin:
             raising an exception (`SolutionError`) after the fact. This allows
             numerical errors (NaNs, Infs) to propagate through the solution
             before raising the exception.
-        kwargs :
+        **kwargs :
             Further keyword arguments to pass on to other methods:
              - `iter_periods()`
              - `solve_t()`
@@ -1005,7 +1005,7 @@ class SolverMixin:
             raising an exception (`SolutionError`) after the fact. This allows
             numerical errors (NaNs, Infs) to propagate through the solution
             before raising the exception.
-        kwargs :
+        **kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
@@ -1111,7 +1111,7 @@ class SolverMixin:
             raising an exception (`SolutionError`) after the fact. This allows
             numerical errors (NaNs, Infs) to propagate through the solution
             before raising the exception.
-        kwargs :
+        **kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
@@ -1294,7 +1294,7 @@ class BaseModel(SolverMixin, ModelInterface):
             raising an exception (`SolutionError`) after the fact. This allows
             numerical errors (NaNs, Infs) to propagate through the solution
             before raising the exception.
-        kwargs :
+        **kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
@@ -1558,7 +1558,7 @@ class BaseModel(SolverMixin, ModelInterface):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         raise NotImplementedError('Method must be over-ridden by a child class')
@@ -1752,7 +1752,7 @@ Spans of submodels differ:
             raising an exception (`SolutionError`) after the fact. This allows
             numerical errors (NaNs, Infs) to propagate through the solution
             before raising the exception.
-        kwargs :
+        **kwargs :
             Further keyword arguments to pass on to other methods:
              - `iter_periods()`
              - `solve_t()`
@@ -1881,7 +1881,7 @@ Spans of submodels differ:
             raising an exception (`SolutionError`) after the fact. This allows
             numerical errors (NaNs, Infs) to propagate through the solution
             before raising the exception.
-        kwargs :
+        **kwargs :
             Further keyword arguments to pass to the solution routines
 
         Returns
@@ -2030,7 +2030,7 @@ Spans of submodels differ:
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the individual submodels'
             over-riding code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
 
         Notes
