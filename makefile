@@ -20,3 +20,7 @@ examples :
 	cd examples/godley-lavoie_2007 && python 3_sim.py && python 4_pc.py && python 5_lp1.py && python 6_reg.py && python 6_open.py && python 7_bmw.py
 	cd examples/klein_1950 && make
 	cd examples/define && python define_simple.py
+
+.PHONY: hashes
+hashes :
+	git show-ref --tags | cut -d ' ' -f 1 > hashes.txt
