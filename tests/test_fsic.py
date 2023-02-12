@@ -1228,7 +1228,7 @@ class TestBuild(unittest.TestCase):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         pass'''
@@ -1289,7 +1289,7 @@ class TestBuild(unittest.TestCase):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
@@ -1347,7 +1347,7 @@ class TestBuild(unittest.TestCase):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         pass'''
@@ -1404,7 +1404,7 @@ class TestBuild(unittest.TestCase):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         # Y[t] = X[t] if X[t] > Z[t] else Z[t]
@@ -1465,7 +1465,7 @@ class TestBuild(unittest.TestCase):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         # `self.Y[t] = self.C[t] + self.G[t]`
@@ -1530,7 +1530,7 @@ class TestBuild(unittest.TestCase):
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         # ```
@@ -1594,7 +1594,7 @@ self.T[t] = self.theta[t] * self.Y[t]
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the user's over-riding
             code to decide how to handle this.
-        kwargs :
+        **kwargs :
             Further keyword arguments for solution
         """
         # Y[t] = X[t]
