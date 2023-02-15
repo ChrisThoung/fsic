@@ -768,7 +768,7 @@ class ModelInterface(VectorContainer):
 # Mixin to define (but not fully implement) solver behaviour ------------------
 
 class PeriodIter:
-    """Iterator of (index, label) pairs returned by `BaseModel.iter_periods()`. Compatible with `len()`."""
+    """Iterator of (index, label) pairs returned by `SolverMixin.iter_periods()`. Compatible with `len()`."""
 
     def __init__(self, *args):
         self._length = len(args[0])
@@ -784,7 +784,10 @@ class PeriodIter:
         return self._length
 
 class SolverMixin:
-    """Requires `self.span` (a `Sequence` of `Hashable`s) as an attribute."""
+    """Mixin to define (but not fully implement) solver behaviour.
+
+    Requires `self.span` (a `Sequence` of `Hashable`s) as an attribute.
+    """
 
     LAGS: int = 0
     LEADS: int = 0
