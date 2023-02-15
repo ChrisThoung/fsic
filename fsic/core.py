@@ -491,7 +491,7 @@ class VectorContainer:
     def eval(self, expression: str, *, globals: Optional[Dict[str, Any]] = None, locals: Optional[Dict[str, Any]] = None) -> Union[float, np.ndarray]:
         """Evaluate `expression` as it applies to the current object. **Uses `eval()`**.
 
-        **New in version 0.8.0 and subject to change** (see Notes).
+        **Subject to change** (see Notes).
 
         Parameters
         ----------
@@ -889,38 +889,6 @@ class SolverMixin:
 
         Notes
         -----
-        Before version 0.8.0, error handling worked as follows during solution:
-
-          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
-             suppressing all warnings (numerical solution errors). Results
-             arising from warnings (NaNs, Infs) enter the solution at this
-             point and propagate if these results feed into other equations
-             during the iteration.
-          2. If any warnings came up during the call to `_evaluate()`, handle
-             according to the value of `errors`:
-              - 'raise':   raise an exception (`SolutionError`)
-              - 'skip':    move immediately to the next period, retaining the
-                           NaNs/Infs
-              - 'ignore':  proceed to the next iteration (in the hope that
-                           NaNs/Infs are eventually replaced with finite
-                           values)
-              - 'replace': replace NaNs/Infs with zeroes before proceeding to
-                           the next iteration (in the hope that this is enough
-                           to eventually generate finite values throughout the
-                           solution)
-
-        However, this behaviour (even if straightforward to replicate in
-        Fortran) comes at the expense of knowing which equation(s) led to an
-        error. All we can see is how non-finite values propagated through the
-        solution from a single pass/iteration. Moreover, by allowing the entire
-        system to run through each time, there's no guarantee that 'ignore' or
-        'replace' will help to solve the model, should the same pattern of NaNs
-        and Infs repeat each iteration.
-
-        Consequently, the above treatment is no longer the default behaviour in
-        version 0.8.0, which introduces the keyword argument
-        `catch_first_error` (default `True`).
-
         With `catch_first_error=True` and `errors='raise'`, solution
         immediately halts on the first error, throwing an exception up the call
         stack. This identifies the problem statement in the stack trace (which
@@ -928,9 +896,6 @@ class SolverMixin:
         solution (which may be useful for inspection) and, were there a
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
-
-        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
-        treatment.
         """
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
@@ -1014,38 +979,6 @@ class SolverMixin:
 
         Notes
         -----
-        Before version 0.8.0, error handling worked as follows during solution:
-
-          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
-             suppressing all warnings (numerical solution errors). Results
-             arising from warnings (NaNs, Infs) enter the solution at this
-             point and propagate if these results feed into other equations
-             during the iteration.
-          2. If any warnings came up during the call to `_evaluate()`, handle
-             according to the value of `errors`:
-              - 'raise':   raise an exception (`SolutionError`)
-              - 'skip':    move immediately to the next period, retaining the
-                           NaNs/Infs
-              - 'ignore':  proceed to the next iteration (in the hope that
-                           NaNs/Infs are eventually replaced with finite
-                           values)
-              - 'replace': replace NaNs/Infs with zeroes before proceeding to
-                           the next iteration (in the hope that this is enough
-                           to eventually generate finite values throughout the
-                           solution)
-
-        However, this behaviour (even if straightforward to replicate in
-        Fortran) comes at the expense of knowing which equation(s) led to an
-        error. All we can see is how non-finite values propagated through the
-        solution from a single pass/iteration. Moreover, by allowing the entire
-        system to run through each time, there's no guarantee that 'ignore' or
-        'replace' will help to solve the model, should the same pattern of NaNs
-        and Infs repeat each iteration.
-
-        Consequently, the above treatment is no longer the default behaviour in
-        version 0.8.0, which introduces the keyword argument
-        `catch_first_error` (default `True`).
-
         With `catch_first_error=True` and `errors='raise'`, solution
         immediately halts on the first error, throwing an exception up the call
         stack. This identifies the problem statement in the stack trace (which
@@ -1053,9 +986,6 @@ class SolverMixin:
         solution (which may be useful for inspection) and, were there a
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
-
-        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
-        treatment.
         """
         t = self._locate_period_in_span(period)
 
@@ -1120,38 +1050,6 @@ class SolverMixin:
 
         Notes
         -----
-        Before version 0.8.0, error handling worked as follows during solution:
-
-          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
-             suppressing all warnings (numerical solution errors). Results
-             arising from warnings (NaNs, Infs) enter the solution at this
-             point and propagate if these results feed into other equations
-             during the iteration.
-          2. If any warnings came up during the call to `_evaluate()`, handle
-             according to the value of `errors`:
-              - 'raise':   raise an exception (`SolutionError`)
-              - 'skip':    move immediately to the next period, retaining the
-                           NaNs/Infs
-              - 'ignore':  proceed to the next iteration (in the hope that
-                           NaNs/Infs are eventually replaced with finite
-                           values)
-              - 'replace': replace NaNs/Infs with zeroes before proceeding to
-                           the next iteration (in the hope that this is enough
-                           to eventually generate finite values throughout the
-                           solution)
-
-        However, this behaviour (even if straightforward to replicate in
-        Fortran) comes at the expense of knowing which equation(s) led to an
-        error. All we can see is how non-finite values propagated through the
-        solution from a single pass/iteration. Moreover, by allowing the entire
-        system to run through each time, there's no guarantee that 'ignore' or
-        'replace' will help to solve the model, should the same pattern of NaNs
-        and Infs repeat each iteration.
-
-        Consequently, the above treatment is no longer the default behaviour in
-        version 0.8.0, which introduces the keyword argument
-        `catch_first_error` (default `True`).
-
         With `catch_first_error=True` and `errors='raise'`, solution
         immediately halts on the first error, throwing an exception up the call
         stack. This identifies the problem statement in the stack trace (which
@@ -1159,9 +1057,6 @@ class SolverMixin:
         solution (which may be useful for inspection) and, were there a
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
-
-        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
-        treatment.
         """
         raise NotImplementedError('Method must be over-ridden by a child class')
 
@@ -1303,52 +1198,6 @@ class BaseModel(SolverMixin, ModelInterface):
 
         Notes
         -----
-        As of version 0.3.0, fsic provides (some) support (escape hatches) for
-        numerical errors in solution.
-
-        For example, there may be an equation that involves a division
-        operation but the equation that determines the divisor follows
-        later. If that divisor was initialised to zero, this leads to a
-        divide-by-zero operation that NumPy evaluates to a NaN. This becomes
-        problematic if the NaNs then propagate through the solution. Similar
-        problems come about with infinities e.g. from log(0).
-
-        The `solve_t()` method now catches such operations (after a full pass
-        through / iteration over the system of equations).
-
-
-        Before version 0.8.0, error handling worked as follows during solution:
-
-          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
-             suppressing all warnings (numerical solution errors). Results
-             arising from warnings (NaNs, Infs) enter the solution at this
-             point and propagate if these results feed into other equations
-             during the iteration.
-          2. If any warnings came up during the call to `_evaluate()`, handle
-             according to the value of `errors`:
-              - 'raise':   raise an exception (`SolutionError`)
-              - 'skip':    move immediately to the next period, retaining the
-                           NaNs/Infs
-              - 'ignore':  proceed to the next iteration (in the hope that
-                           NaNs/Infs are eventually replaced with finite
-                           values)
-              - 'replace': replace NaNs/Infs with zeroes before proceeding to
-                           the next iteration (in the hope that this is enough
-                           to eventually generate finite values throughout the
-                           solution)
-
-        However, this behaviour (even if straightforward to replicate in
-        Fortran) comes at the expense of knowing which equation(s) led to an
-        error. All we can see is how non-finite values propagated through the
-        solution from a single pass/iteration. Moreover, by allowing the entire
-        system to run through each time, there's no guarantee that 'ignore' or
-        'replace' will help to solve the model, should the same pattern of NaNs
-        and Infs repeat each iteration.
-
-        Consequently, the above treatment is no longer the default behaviour in
-        version 0.8.0, which introduces the keyword argument
-        `catch_first_error` (default `True`).
-
         With `catch_first_error=True` and `errors='raise'`, solution
         immediately halts on the first error, throwing an exception up the call
         stack. This identifies the problem statement in the stack trace (which
@@ -1356,9 +1205,6 @@ class BaseModel(SolverMixin, ModelInterface):
         solution (which may be useful for inspection) and, were there a
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
-
-        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
-        treatment.
         """
         def get_check_values() -> np.ndarray:
             """Return a 1D NumPy array of variable values for checking in the current period."""
@@ -1429,7 +1275,6 @@ class BaseModel(SolverMixin, ModelInterface):
 
             with warnings.catch_warnings(record=True) as w:
                 if errors == 'raise' and catch_first_error:
-                    # New in version 0.8.0:
                     # Immediately raise an exception in the event of a
                     # numerical solution error
                     warnings.simplefilter('error')
@@ -1770,38 +1615,6 @@ Spans of submodels differ:
 
         Notes
         -----
-        Before version 0.8.0, error handling worked as follows during solution:
-
-          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
-             suppressing all warnings (numerical solution errors). Results
-             arising from warnings (NaNs, Infs) enter the solution at this
-             point and propagate if these results feed into other equations
-             during the iteration.
-          2. If any warnings came up during the call to `_evaluate()`, handle
-             according to the value of `errors`:
-              - 'raise':   raise an exception (`SolutionError`)
-              - 'skip':    move immediately to the next period, retaining the
-                           NaNs/Infs
-              - 'ignore':  proceed to the next iteration (in the hope that
-                           NaNs/Infs are eventually replaced with finite
-                           values)
-              - 'replace': replace NaNs/Infs with zeroes before proceeding to
-                           the next iteration (in the hope that this is enough
-                           to eventually generate finite values throughout the
-                           solution)
-
-        However, this behaviour (even if straightforward to replicate in
-        Fortran) comes at the expense of knowing which equation(s) led to an
-        error. All we can see is how non-finite values propagated through the
-        solution from a single pass/iteration. Moreover, by allowing the entire
-        system to run through each time, there's no guarantee that 'ignore' or
-        'replace' will help to solve the model, should the same pattern of NaNs
-        and Infs repeat each iteration.
-
-        Consequently, the above treatment is no longer the default behaviour in
-        version 0.8.0, which introduces the keyword argument
-        `catch_first_error` (default `True`).
-
         With `catch_first_error=True` and `errors='raise'`, solution
         immediately halts on the first error, throwing an exception up the call
         stack. This identifies the problem statement in the stack trace (which
@@ -1809,9 +1622,6 @@ Spans of submodels differ:
         solution (which may be useful for inspection) and, were there a
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
-
-        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
-        treatment.
         """
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
@@ -1890,38 +1700,6 @@ Spans of submodels differ:
 
         Notes
         -----
-        Before version 0.8.0, error handling worked as follows during solution:
-
-          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
-             suppressing all warnings (numerical solution errors). Results
-             arising from warnings (NaNs, Infs) enter the solution at this
-             point and propagate if these results feed into other equations
-             during the iteration.
-          2. If any warnings came up during the call to `_evaluate()`, handle
-             according to the value of `errors`:
-              - 'raise':   raise an exception (`SolutionError`)
-              - 'skip':    move immediately to the next period, retaining the
-                           NaNs/Infs
-              - 'ignore':  proceed to the next iteration (in the hope that
-                           NaNs/Infs are eventually replaced with finite
-                           values)
-              - 'replace': replace NaNs/Infs with zeroes before proceeding to
-                           the next iteration (in the hope that this is enough
-                           to eventually generate finite values throughout the
-                           solution)
-
-        However, this behaviour (even if straightforward to replicate in
-        Fortran) comes at the expense of knowing which equation(s) led to an
-        error. All we can see is how non-finite values propagated through the
-        solution from a single pass/iteration. Moreover, by allowing the entire
-        system to run through each time, there's no guarantee that 'ignore' or
-        'replace' will help to solve the model, should the same pattern of NaNs
-        and Infs repeat each iteration.
-
-        Consequently, the above treatment is no longer the default behaviour in
-        version 0.8.0, which introduces the keyword argument
-        `catch_first_error` (default `True`).
-
         With `catch_first_error=True` and `errors='raise'`, solution
         immediately halts on the first error, throwing an exception up the call
         stack. This identifies the problem statement in the stack trace (which
@@ -1929,9 +1707,6 @@ Spans of submodels differ:
         solution (which may be useful for inspection) and, were there a
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
-
-        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
-        treatment.
         """
         if submodels is None:
             submodels = list(self.__dict__['submodels'].keys())
@@ -2035,38 +1810,6 @@ Spans of submodels differ:
 
         Notes
         -----
-        Before version 0.8.0, error handling worked as follows during solution:
-
-          1. Call `_evaluate()` (i.e. solve one iteration), temporarily
-             suppressing all warnings (numerical solution errors). Results
-             arising from warnings (NaNs, Infs) enter the solution at this
-             point and propagate if these results feed into other equations
-             during the iteration.
-          2. If any warnings came up during the call to `_evaluate()`, handle
-             according to the value of `errors`:
-              - 'raise':   raise an exception (`SolutionError`)
-              - 'skip':    move immediately to the next period, retaining the
-                           NaNs/Infs
-              - 'ignore':  proceed to the next iteration (in the hope that
-                           NaNs/Infs are eventually replaced with finite
-                           values)
-              - 'replace': replace NaNs/Infs with zeroes before proceeding to
-                           the next iteration (in the hope that this is enough
-                           to eventually generate finite values throughout the
-                           solution)
-
-        However, this behaviour (even if straightforward to replicate in
-        Fortran) comes at the expense of knowing which equation(s) led to an
-        error. All we can see is how non-finite values propagated through the
-        solution from a single pass/iteration. Moreover, by allowing the entire
-        system to run through each time, there's no guarantee that 'ignore' or
-        'replace' will help to solve the model, should the same pattern of NaNs
-        and Infs repeat each iteration.
-
-        Consequently, the above treatment is no longer the default behaviour in
-        version 0.8.0, which introduces the keyword argument
-        `catch_first_error` (default `True`).
-
         With `catch_first_error=True` and `errors='raise'`, solution
         immediately halts on the first error, throwing an exception up the call
         stack. This identifies the problem statement in the stack trace (which
@@ -2074,9 +1817,6 @@ Spans of submodels differ:
         solution (which may be useful for inspection) and, were there a
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
-
-        With `catch_first_error=False`, the behaviour returns to the pre-0.8.0
-        treatment.
         """
         if submodels is None:
             submodels = list(self.__dict__['submodels'].keys())
