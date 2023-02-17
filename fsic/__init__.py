@@ -9,6 +9,7 @@ from fsic import core
 from fsic import exceptions
 from fsic import extensions
 from fsic import fortran
+from fsic import functions
 from fsic import parser
 from fsic import tools
 
