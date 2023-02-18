@@ -21,6 +21,7 @@ import warnings
 import numpy as np
 
 from .exceptions import DimensionError, DuplicateNameError, EvalError, InitialisationError, NonConvergenceError, SolutionError
+from .functions import builtins as _builtins
 from .tools import model_to_dataframe as _model_to_dataframe
 from .tools import linker_to_dataframes as _linker_to_dataframes
 
@@ -488,7 +489,7 @@ class VectorContainer:
         index_re = re.compile(r'\[\s*(.+?)?\s*\]')
         return index_re.sub(resolve_indexes, expression)
 
-    def eval(self, expression: str, *, globals: Optional[Dict[str, Any]] = None, locals: Optional[Dict[str, Any]] = None) -> Union[float, np.ndarray]:
+    def eval(self, expression: str, *, globals: Optional[Dict[str, Any]] = None, locals: Optional[Dict[str, Any]] = None, builtins: [Optional[Dict[str, Any]]] = None) -> Union[float, np.ndarray]:
         """Evaluate `expression` as it applies to the current object. **Uses `eval()`**.
 
         **Subject to change** (see Notes).
@@ -502,6 +503,10 @@ class VectorContainer:
             `globals` argument to pass to `eval()`
         locals :
             `locals` argument to pass to `eval()`
+        builtins :
+            If `None` (the default), make standard operators from
+            `fsic.functions` available (see Notes)
+            Disable by passing `{}`
 
         Examples
         --------
@@ -570,8 +575,23 @@ class VectorContainer:
 
         Notes
         -----
-        The main question about this implementation is the implicit casting to
-        integer for indexes enclosed in backticks.
+        This method carries out various pre-processing operations before
+        passing the expression to Python's `eval()` function:
+
+        1. Process `expression` to handle any period indexes e.g. to convert
+           'X[`2000`]' to 'X[2]' or similar
+        2. Assemble the final version of `locals` (`globals` is unchanged)
+
+        The order for assembling `locals` is as follows (the reverse gives the
+        order of precedence):
+
+        1. `builtins`
+        2. model variables
+        3. the `locals` parameter passed to this method
+
+
+        The main question about the overall implementation is the implicit
+        casting to integer for indexes enclosed in backticks.
 
         For example, the expression 'X[`2000`]' first tries to match the label
         2000 as a string. If this fails, the same is tried after casting 2000
@@ -586,14 +606,21 @@ class VectorContainer:
         --------
         _resolve_expression_indexes(), for the implementation set out in Notes.
         """
-        # Amend `expression` to account for period indexes
+        # 1. Process `expression` to handle any period indexes
         if '`' in expression:
             expression = self._resolve_expression_indexes(expression)
 
-        # Construct the initial mapping of container variables and then update
-        # with arguments (so as to be able to over-ride the container
-        # variables)
-        locals_ = {x: self[x] for x in self.index}
+        # 2. Assemble the final version of `locals` (`globals` is unchanged)
+
+        # Set builtins
+        if builtins is None:
+            builtins = _builtins
+        locals_ = builtins
+
+        # Update with model variables
+        locals_.update({x: self[x] for x in self.index})
+
+        # Add user locals as needed
         if locals is not None:
             locals_.update(locals)
 

@@ -11,9 +11,6 @@ from numpy import exp, log
 import numpy as np
 
 
-__all__ = ['diff', 'exp', 'lag', 'lead', 'log', ]
-
-
 def shift(x: np.ndarray, p: int, *, fill_value: Any = np.nan) -> np.ndarray:
     """Return `x` with elements shifted `p` places to the right."""
     if len(x.shape) != 1:
@@ -61,3 +58,14 @@ def diff(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
         differenced = x - lead(x, d, fill_value=fill_value)
         differenced[d:] = fill_value
         return differenced
+
+
+builtins = {
+    'diff': diff,
+    'exp': exp,
+    'lag': lag,
+    'lead': lead,
+    'log': log,
+}
+
+__all__ = list(builtins.keys())
