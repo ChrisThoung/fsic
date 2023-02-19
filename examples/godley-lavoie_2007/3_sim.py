@@ -13,9 +13,7 @@ While fsic only requires NumPy, this example also uses:
 
 Outputs:
 
-1. Prints a complete set of results to the terminal, as a table (`pandas`
-   DataFrame)
-2. Replicates Figure 3.2 of Godley and Lavoie (2007), saving the chart to
+1. Replicates Figure 3.2 of Godley and Lavoie (2007), saving the chart to
    'figure-3.2.png'
 
 Reference:
@@ -90,9 +88,8 @@ if __name__ == '__main__':
     # convergence
     model.solve(max_iter=350)
 
-    # Store results to a DataFrame and print to the screen
+    # Store results to a DataFrame
     results = fsic.tools.model_to_dataframe(model)
-    print(results.round(1))
 
     # Replicate Figure 3.2 of Godley and Lavoie (2007): Disposable income and
     # consumption starting from scratch
