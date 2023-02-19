@@ -34,7 +34,7 @@ are in *italics*.
 |  6. Introducing the open economy                                  | [REG](6_reg.py), [OPEN](6_open.py), *OPENG*, *OPENM*, *OPENM3* |
 |  7. A simple model with private bank money                        | [BMW](7_bmw.py), *BMWK*                                        |
 |  8. Time, inventories, profits and pricing                        | -                                                              |
-|  9. A model with private bank money, inventories and inflation    | *DIS*, *DISINF*                                                |
+|  9. A model with private bank money, inventories and inflation    | [DIS](9_dis.py), *DISINF*                                      |
 | 10. A model with both inside and outside money                    | *INSOUT*                                                       |
 | 11. A growth model prototype                                      | *GROWTH*                                                       |
 | 12. A more advanced open economy mode                             | *OPENFIX*, *OPENFIXR*, *OPENFIXG*, *OPENFLEX*                  |
