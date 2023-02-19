@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-test_fsic
+test_core
 =========
-Test suite for FSIC.
+Test suite for core fsic code.
 
 Example equations/models are adapted from:
 

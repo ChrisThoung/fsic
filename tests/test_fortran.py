@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-test_fsic_fortran
-=================
-Test suite for Fortran-accelerated FSIC-based economic models.
+test_fortran
+============
+Test suite for Fortran-accelerated fsic-based economic models.
 
 Example equations/models are adapted from:
 
@@ -27,10 +27,10 @@ import numpy as np
 import fsic
 
 try:
-    from . import test_fsic
+    from . import test_core
     imported_as_package = True
 except ImportError:
-    import test_fsic
+    import test_core
     imported_as_package = False
 
 
@@ -105,20 +105,20 @@ class FortranTestWrapper:
         self.clean()
 
 
-class TestInit(FortranTestWrapper, test_fsic.TestInit):
+class TestInit(FortranTestWrapper, test_core.TestInit):
     TEST_MODULE_NAME = 'fsic_test_fortran_testinit'
 
-class TestInterface(FortranTestWrapper, test_fsic.TestInterface):
+class TestInterface(FortranTestWrapper, test_core.TestInterface):
     TEST_MODULE_NAME = 'fsic_test_fortran_testinterface'
 
-class TestModelContainerMethods(FortranTestWrapper, test_fsic.TestModelContainerMethods):
+class TestModelContainerMethods(FortranTestWrapper, test_core.TestModelContainerMethods):
     TEST_MODULE_NAME = 'fsic_test_fortran_testmodelcontainermethods'
 
-class TestCopy(FortranTestWrapper, test_fsic.TestCopy):
+class TestCopy(FortranTestWrapper, test_core.TestCopy):
     TEST_MODULE_NAME = 'fsic_test_fortran_testcopy'
 
 
-class TestSolve(FortranTestWrapper, test_fsic.TestSolve):
+class TestSolve(FortranTestWrapper, test_core.TestSolve):
     TEST_MODULE_NAME = 'fsic_test_fortran_testsolve'
 
     @unittest.skip('Version 0.8.0 behaviour not yet implemented in Fortran')
@@ -130,7 +130,7 @@ class TestSolve(FortranTestWrapper, test_fsic.TestSolve):
         super().test_solve_t_after_errors()
 
 
-class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorHandling):
+class TestSolutionErrorHandling(FortranTestWrapper, test_core.TestSolutionErrorHandling):
     TEST_MODULE_NAME = 'fsic_test_fortran_testsolutionerrorhandling'
 
     @unittest.skip('Version 0.8.0 behaviour not yet implemented in Fortran')
@@ -142,19 +142,19 @@ class TestSolutionErrorHandling(FortranTestWrapper, test_fsic.TestSolutionErrorH
         super().test_raise_infinities()
 
 
-class TestNonConvergenceError(FortranTestWrapper, test_fsic.TestNonConvergenceError):
+class TestNonConvergenceError(FortranTestWrapper, test_core.TestNonConvergenceError):
     TEST_MODULE_NAME = 'fsic_test_fortran_testnonconvergenceerror'
 
-class TestLinkerCopy(FortranTestWrapper, test_fsic.TestLinkerCopy):
+class TestLinkerCopy(FortranTestWrapper, test_core.TestLinkerCopy):
     TEST_MODULE_NAME = 'fsic_test_fortran_testlinkercopy'
 
-class TestLinkerSolve(FortranTestWrapper, test_fsic.TestLinkerSolve):
+class TestLinkerSolve(FortranTestWrapper, test_core.TestLinkerSolve):
     TEST_MODULE_NAME = 'fsic_test_fortran_testlinkersolve'
 
-class TestPandasIndexing(FortranTestWrapper, test_fsic.TestPandasIndexing):
+class TestPandasIndexing(FortranTestWrapper, test_core.TestPandasIndexing):
     TEST_MODULE_NAME = 'fsic_test_fortran_testpandasindexing'
 
-class TestLinkerInit(FortranTestWrapper, test_fsic.TestLinkerInit):
+class TestLinkerInit(FortranTestWrapper, test_core.TestLinkerInit):
     TEST_MODULE_NAME = 'fsic_test_fortran_testlinkerinit'
 
     def setUp(self):

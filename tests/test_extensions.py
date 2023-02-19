@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-test_fsic_extensions
-====================
+test_extensions
+===============
 Test suite for fsic extensions.
 """
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-test_fsic_tools
-===============
-Test suite for supporting FSIC tools.
+test_tools
+==========
+Test suite for supporting fsic tools.
 """
 
 import unittest

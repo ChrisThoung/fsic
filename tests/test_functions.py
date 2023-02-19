@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-test_fsic_functions
-===================
+test_functions
+==============
 Test suite for `fsic` `functions` module.
 """
 
