@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
 
     # Solve for each set of parameters ----------------------------------------
-    for estimator, parameter_estimates in parameters.iteritems():
+    for estimator, parameter_estimates in parameters.items():
         # Copy the base and insert the parameters
         model = base.copy()
         model.replace_values(**parameter_estimates)
