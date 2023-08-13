@@ -22,6 +22,7 @@ def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':
 
     return DataFrame([s._asdict() for s in symbols])
 
+
 def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:
     """Convert a `pandas` DataFrame to a list of symbols, reversing the operation of `symbols_to_dataframe()`. **Requires `pandas`**.
 
@@ -37,6 +38,7 @@ def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:
         symbols.append(Symbol(**entry))
 
     return symbols
+
 
 def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
     """Convert the list of symbols to a NetworkX DiGraph. **Requires `networkx`."""
@@ -59,6 +61,7 @@ def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
                 G.add_edge(x, n)
 
     return G
+
 
 def symbols_to_sympy(symbols: List[Symbol]) -> Dict['sympy.Symbol', 'sympy.Eq']:
     """Convert the system of equations into a dictionary of `SymPy` objects. **Requires `SymPy`**."""
@@ -94,7 +97,10 @@ def symbols_to_sympy(symbols: List[Symbol]) -> Dict['sympy.Symbol', 'sympy.Eq']:
 
     return system
 
-def model_to_dataframe(model: 'BaseModel', *, status: bool = True, iterations: bool = True) -> 'pandas.DataFrame':
+
+def model_to_dataframe(
+    model: 'BaseModel', *, status: bool = True, iterations: bool = True
+) -> 'pandas.DataFrame':
     """Return the values and solution information from the model as a `pandas` DataFrame (also available as `fsic.BaseModel.to_dataframe()` / `fsic.core.BaseModel.to_dataframe()`). **Requires `pandas`**.
 
     See also
@@ -113,7 +119,10 @@ def model_to_dataframe(model: 'BaseModel', *, status: bool = True, iterations: b
 
     return df
 
-def linker_to_dataframes(linker: 'BaseLinker', *, status: bool = True, iterations: bool = True) -> Dict[Hashable, 'pandas.DataFrame']:
+
+def linker_to_dataframes(
+    linker: 'BaseLinker', *, status: bool = True, iterations: bool = True
+) -> Dict[Hashable, 'pandas.DataFrame']:
     """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames (also available as `fsic.BaseLinker.to_dataframes()` / `fsic.core.BaseLinker.to_dataframes()`). **Requires `pandas`**.
 
     See also

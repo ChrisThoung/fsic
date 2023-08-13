@@ -178,6 +178,7 @@ class AliasMixin:
     In this way, aliases are available externally and internally wherever the
     original variable name is valid. This includes `_evaluate()`.
     """
+
     # Key-value pairs mapping aliases to variable names
     ALIASES: Dict[str, str] = {}
 
@@ -225,7 +226,8 @@ class AliasMixin:
                 raise ValueError(
                     f"Name '{name}' is a duplicate reference: "
                     f"one or more other names in `PREFERRED_NAMES` "
-                    f"point to the same underlying model variable")
+                    f"point to the same underlying model variable"
+                )
 
             seen.append(target)
 
@@ -233,7 +235,9 @@ class AliasMixin:
 
         # Instantiate the object as usual, but replace aliases with actual
         # variable names as needed, using `_resolve_alias()`
-        super().__init__(*args, **{self._resolve_alias(k): v for k, v in kwargs.items()})
+        super().__init__(
+            *args, **{self._resolve_alias(k): v for k, v in kwargs.items()}
+        )
 
         # TODO: Decide whether to check for aliases that are overwriting named
         #       model variables
@@ -259,7 +263,11 @@ class AliasMixin:
 
         return super().__getitem__(key)
 
-    def __setitem__(self, key: Union[str, Tuple[str, Union[Hashable, slice]]], value: Union[Any, Sequence[Any]]) -> None:
+    def __setitem__(
+        self,
+        key: Union[str, Tuple[str, Union[Hashable, slice]]],
+        value: Union[Any, Sequence[Any]],
+    ) -> None:
         if isinstance(key, tuple):
             name, *index = key
             key = tuple([self._resolve_alias(name)] + list(index))
@@ -274,7 +282,9 @@ class AliasMixin:
     def _ipython_key_completions_(self) -> List[str]:
         return super()._ipython_key_completions_() + list(self.aliases.keys())
 
-    def to_dataframe(self, *, use_aliases: bool = False, **kwargs: Any) -> 'pandas.DataFrame':
+    def to_dataframe(
+        self, *, use_aliases: bool = False, **kwargs: Any
+    ) -> 'pandas.DataFrame':
         """Return the values and solution information from the model as a `pandas` DataFrame. If `use_aliases=True`, use any defined aliases as column titles. **Requires `pandas`**."""
         df = super().to_dataframe(**kwargs)
 
@@ -295,7 +305,9 @@ class AliasMixin:
         sorted_by_value = sorted(self.aliases.items(), key=lambda x: x[1])
 
         # Loop through the groups
-        for target, group_iter in itertools.groupby(sorted_by_value, key=lambda x: x[1]):
+        for target, group_iter in itertools.groupby(
+            sorted_by_value, key=lambda x: x[1]
+        ):
             # Extract aliases (`x[1]` just repeats `target`)
             aliases = [x[0] for x in group_iter]
 
@@ -327,13 +339,13 @@ class AliasMixin:
                     f"Found multiple entries in `self.preferred_names` "
                     f"(which copies `PREFERRED_NAMES`, initially) "
                     f"pointing to '{target}' "
-                    f"- a unique correspondence is required: {names}")
+                    f"- a unique correspondence is required: {names}"
+                )
 
         return df.rename(columns=replacements)
 
 
 class ProgressBarMixin:
-
     def iter_periods(self, *args, progress_bar: bool = False, **kwargs):
         """Modified `iter_periods()` method: Display a `tqdm` progress bar if `progress_bar=True`. **Requires `tqdm`**"""
         # Get the original `PeriodIter` object
@@ -342,6 +354,7 @@ class ProgressBarMixin:
         # Optionally wrap with `tqdm`
         if progress_bar:
             from tqdm import tqdm
+
             period_iter = tqdm(period_iter)
 
         return period_iter

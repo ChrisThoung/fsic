@@ -15,11 +15,17 @@ from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from .core import BaseModel, SolutionStatus
-from .exceptions import FortranEngineError, InitialisationError, NonConvergenceError, SolutionError
+from .exceptions import (
+    FortranEngineError,
+    InitialisationError,
+    NonConvergenceError,
+    SolutionError,
+)
 from .parser import Symbol, Type
 
 
 # Class implementing interface to Fortran code --------------------------------
+
 
 class FortranEngine:
     """Subclass for derivatives of fsic `BaseModel` to speed up model solution by calling compiled Fortran code."""
@@ -38,7 +44,16 @@ class FortranEngine:
         'replace': 3,
     }
 
-    def __init__(self, span: Sequence[Hashable], *, engine: str = 'fortran', strict: bool = False, dtype: Any = float, default_value: Union[int, float] = 0.0, **initial_values: Dict[str, Any]) -> None:
+    def __init__(
+        self,
+        span: Sequence[Hashable],
+        *,
+        engine: str = 'fortran',
+        strict: bool = False,
+        dtype: Any = float,
+        default_value: Union[int, float] = 0.0,
+        **initial_values: Dict[str, Any]
+    ) -> None:
         """Initialise model variables.
 
         Parameters
@@ -62,16 +77,31 @@ class FortranEngine:
             raise InitialisationError(
                 "`engine` argument is '{}' but class `ENGINE` attribute is `{}`. "
                 "Check that `ENGINE` has an assigned value (i.e. a module of solution routines); "
-                "this typically uses a subclass".format(engine, self.ENGINE))
+                "this typically uses a subclass".format(engine, self.ENGINE)
+            )
 
-        super().__init__(span=span,
-                         engine=engine,
-                         strict=strict,
-                         dtype=dtype,
-                         default_value=default_value,
-                         **initial_values)
+        super().__init__(
+            span=span,
+            engine=engine,
+            strict=strict,
+            dtype=dtype,
+            default_value=default_value,
+            **initial_values
+        )
 
-    def solve(self, *, start: Optional[Hashable] = None, end: Optional[Hashable] = None, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> Tuple[List[Hashable], List[int], List[bool]]:
+    def solve(
+        self,
+        *,
+        start: Optional[Hashable] = None,
+        end: Optional[Hashable] = None,
+        min_iter: int = 0,
+        max_iter: int = 100,
+        tol: Union[int, float] = 1e-10,
+        offset: int = 0,
+        failures: str = 'raise',
+        errors: str = 'raise',
+        **kwargs: Dict[str, Any]
+    ) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
         This method is part of the `FortranEngine` class and wraps a Fortran
@@ -138,11 +168,15 @@ class FortranEngine:
         if min_iter > max_iter:
             raise ValueError(
                 'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
-                    min_iter, max_iter))
+                    min_iter, max_iter
+                )
+            )
 
         # Catch invalid `start` and `end` periods here e.g. to avoid later
         # problems with indexing a year against a `pandas` `PeriodIndex`
-        if start is not None and not isinstance(self._locate_period_in_span(start), int):
+        if start is not None and not isinstance(
+            self._locate_period_in_span(start), int
+        ):
             raise KeyError(start)
 
         if end is not None and not isinstance(self._locate_period_in_span(end), int):
@@ -158,22 +192,25 @@ class FortranEngine:
             end = self.span[-1 - self.LEADS]
 
         # Convert to an integer range and assemble accompanying list of labels
-        indexes = list(range(self._locate_period_in_span(start),
-                             self._locate_period_in_span(end) + 1))
+        indexes = list(
+            range(
+                self._locate_period_in_span(start), self._locate_period_in_span(end) + 1
+            )
+        )
         labels = [self.span[t] for t in indexes]
 
         # Solve: Add 1 to `indexes` to go from zero-based (Python) to one-based
         #        (Fortran) indexing
-        solved_values, convergences, iterations, error_codes = (
-            self.ENGINE.solve(self.values.astype(float),
-                              [t + 1 for t in indexes],
-                              min_iter,
-                              max_iter,
-                              tol,
-                              offset,
-                              [self.names.index(x) for x in self.CHECK],
-                              self._FAILURE_OPTIONS[failures],
-                              self._ERROR_OPTIONS[errors], )
+        solved_values, convergences, iterations, error_codes = self.ENGINE.solve(
+            self.values.astype(float),
+            [t + 1 for t in indexes],
+            min_iter,
+            max_iter,
+            tol,
+            offset,
+            [self.names.index(x) for x in self.CHECK],
+            self._FAILURE_OPTIONS[failures],
+            self._ERROR_OPTIONS[errors],
         )
 
         # Store the values back to this Python instance
@@ -182,8 +219,9 @@ class FortranEngine:
         # Loop through results information and update object and return values
         solved = [None] * len(indexes)
 
-        for i, (t, period, converged, iteration, error_code) in enumerate(zip(indexes, labels, convergences, iterations, error_codes)):
-
+        for i, (t, period, converged, iteration, error_code) in enumerate(
+            zip(indexes, labels, convergences, iterations, error_codes)
+        ):
             # Converged
             if converged:
                 self.status[t] = SolutionStatus.SOLVED.value
@@ -201,8 +239,10 @@ class FortranEngine:
                 if failures == 'raise':
                     raise NonConvergenceError(
                         'Solution failed to converge after {} iterations(s) '
-                        'in period with label: {} (index: {})'
-                        .format(iteration, period, t))
+                        'in period with label: {} (index: {})'.format(
+                            iteration, period, t
+                        )
+                    )
 
             # Numerical solution error: Raise
             elif error_code == 21 and errors == 'raise':
@@ -212,15 +252,15 @@ class FortranEngine:
 
                 raise SolutionError(
                     'Numerical solution error after {} iterations(s) '
-                    'in period with label: {} (index: {})'
-                    .format(iteration, period, t))
+                    'in period with label: {} (index: {})'.format(iteration, period, t)
+                )
 
             # Found pre-existing NaN or infinity prior to solution
             elif error_code == 31 and errors == 'raise':
                 raise SolutionError(
                     'Pre-existing NaNs or infinities found '
-                    'in period with label: {} (index: {})'
-                    .format(period, t))
+                    'in period with label: {} (index: {})'.format(period, t)
+                )
 
             # Error if `offset` points prior to the current model span
             elif error_code == 41:
@@ -232,7 +272,9 @@ class FortranEngine:
                     '`offset` argument ({}) for position `t` ({}) '
                     'implies a period before the span of the current model instance: '
                     '{} + {} -> position {} < 0'.format(
-                        offset, t, offset, t, offset + t_check))
+                        offset, t, offset, t, offset + t_check
+                    )
+                )
 
             # Error if `offset` points beyond the current model span
             elif error_code == 42:
@@ -244,7 +286,9 @@ class FortranEngine:
                     '`offset` argument ({}) for position `t` ({}) '
                     'implies a period beyond the span of the current model instance: '
                     '{} + {} -> position {} >= {} periods in span'.format(
-                        offset, t, offset, t, offset + t_check, len(self.span)))
+                        offset, t, offset, t, offset + t_check, len(self.span)
+                    )
+                )
 
             # Some other error but `errors='skip'`
             elif error_code == 22 and errors == 'skip':
@@ -256,12 +300,25 @@ class FortranEngine:
             else:
                 raise FortranEngineError(
                     'Failed to solve model in period with label {} (index: {}), '
-                    'with uncaught error code {} after {} iteration(s)'
-                    .format(period, t, error_code, iteration))
+                    'with uncaught error code {} after {} iteration(s)'.format(
+                        period, t, error_code, iteration
+                    )
+                )
 
         return labels, indexes, solved
 
-    def solve_t(self, t: int, *, min_iter: int = 0, max_iter: int = 100, tol: Union[int, float] = 1e-10, offset: int = 0, failures: str = 'raise', errors: str = 'raise', **kwargs: Dict[str, Any]) -> bool:
+    def solve_t(
+        self,
+        t: int,
+        *,
+        min_iter: int = 0,
+        max_iter: int = 100,
+        tol: Union[int, float] = 1e-10,
+        offset: int = 0,
+        failures: str = 'raise',
+        errors: str = 'raise',
+        **kwargs: Dict[str, Any]
+    ) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
         This method is part of the `FortranEngine` class and wraps a Fortran
@@ -321,17 +378,18 @@ class FortranEngine:
         The `solve_t()` method now catches such operations (after a full pass
         through / iteration over the system of equations).
         """
+
         def get_check_values() -> np.ndarray:
             """Return a 1D NumPy array of variable values for checking in the current period."""
-            return np.array([
-                self.__dict__['_' + name][t] for name in self.CHECK
-            ])
+            return np.array([self.__dict__['_' + name][t] for name in self.CHECK])
 
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
                 'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
-                    min_iter, max_iter))
+                    min_iter, max_iter
+                )
+            )
 
         if errors not in self._ERROR_OPTIONS:
             raise ValueError('Invalid `errors` argument: {}'.format(errors))
@@ -348,7 +406,9 @@ class FortranEngine:
                     '`offset` argument ({}) for position `t` ({}) '
                     'implies a period before the span of the current model instance: '
                     '{} + {} -> position {} < 0'.format(
-                        offset, t, offset, t, offset + t_check))
+                        offset, t, offset, t, offset + t_check
+                    )
+                )
 
             # Error if `offset` points beyond the current model span
             if t_check + offset >= len(self.span):
@@ -356,7 +416,9 @@ class FortranEngine:
                     '`offset` argument ({}) for position `t` ({}) '
                     'implies a period beyond the span of the current model instance: '
                     '{} + {} -> position {} >= {} periods in span'.format(
-                        offset, t, offset, t, offset + t_check, len(self.span)))
+                        offset, t, offset, t, offset + t_check, len(self.span)
+                    )
+                )
 
             for name in self.ENDOGENOUS:
                 self.__dict__['_' + name][t] = self.__dict__['_' + name][t + offset]
@@ -369,20 +431,21 @@ class FortranEngine:
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
                 'Pre-existing NaNs or infinities found '
-                'in period with label: {} (index: {})'
-                .format(self.span[t], t))
+                'in period with label: {} (index: {})'.format(self.span[t], t)
+            )
 
         # Solve: Add 1 to `t` to go from zero-based (Python) to one-based
         #        (Fortran) indexing
-        solved_values, converged, iteration, error_code = (
-            self.ENGINE.solve_t(self.values.astype(float),
-                                t + 1,
-                                min_iter,
-                                max_iter,
-                                tol,
-                                offset,
-                                [self.names.index(x) for x in self.CHECK],
-                                self._ERROR_OPTIONS[errors]))
+        solved_values, converged, iteration, error_code = self.ENGINE.solve_t(
+            self.values.astype(float),
+            t + 1,
+            min_iter,
+            max_iter,
+            tol,
+            offset,
+            [self.names.index(x) for x in self.CHECK],
+            self._ERROR_OPTIONS[errors],
+        )
 
         converged = bool(converged)
 
@@ -402,8 +465,10 @@ class FortranEngine:
 
             raise SolutionError(
                 'Numerical solution error after {} iterations(s) '
-                'in period with label: {} (index: {})'
-                .format(iteration, self.span[t], t))
+                'in period with label: {} (index: {})'.format(
+                    iteration, self.span[t], t
+                )
+            )
 
         elif error_code == 22 and errors == 'skip':
             status = SolutionStatus.SKIPPED.value
@@ -411,8 +476,10 @@ class FortranEngine:
         else:
             raise FortranEngineError(
                 'Failed to solve model in period with label {} (index: {}), '
-                'with uncaught error code {} after {} iteration(s)'
-                .format(self.span[t], t, error_code, iteration))
+                'with uncaught error code {} after {} iteration(s)'.format(
+                    self.span[t], t, error_code, iteration
+                )
+            )
 
         self.status[t] = status
         self.iterations[t] = iteration
@@ -420,12 +487,21 @@ class FortranEngine:
         if status == SolutionStatus.FAILED.value and failures == 'raise':
             raise NonConvergenceError(
                 'Solution failed to converge after {} iterations(s) '
-                'in period with label: {} (index: {})'
-                .format(iteration, self.span[t], t))
+                'in period with label: {} (index: {})'.format(
+                    iteration, self.span[t], t
+                )
+            )
 
         return status == SolutionStatus.SOLVED.value
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(
+        self,
+        t: int,
+        *,
+        errors: str = 'raise',
+        iteration: Optional[int] = None,
+        **kwargs: Dict[str, Any]
+    ) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         This method is part of the `FortranEngine` class and wraps a Fortran
@@ -455,7 +531,9 @@ class FortranEngine:
         to the Fortran code.
         """
         # Add 1 to `t` to go from zero-based (Python) to one-based (Fortran) indexing
-        solved_values, error_code = self.ENGINE.evaluate(self.values.astype(float), t + 1)
+        solved_values, error_code = self.ENGINE.evaluate(
+            self.values.astype(float), t + 1
+        )
 
         # The Fortran code should fail silently but assign an error code
         # according to the outcome
@@ -464,11 +542,14 @@ class FortranEngine:
             if error_code in (11, 12, 13, 14):
                 raise IndexError(
                     'index {} is out of bounds for axis 0 with size {}'.format(
-                        t, len(self.span)))
+                        t, len(self.span)
+                    )
+                )
             else:
                 raise SolutionError(
                     'Failed to evaluate the system of equations at index `t` = {}, '
-                    'with unidentified error code {}'.format(t, error_code))
+                    'with unidentified error code {}'.format(t, error_code)
+                )
 
         # If here, store the values back to this Python instance
         self.values = solved_values
@@ -836,7 +917,16 @@ subroutine solve(initial_values, indexes,                                       
 end subroutine solve
 '''
 
-def build_fortran_definition(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Optional[int] = None, min_lags: int = 0, min_leads: int = 0, wrap_width: int = 100) -> str:
+
+def build_fortran_definition(
+    symbols: List[Symbol],
+    *,
+    lags: Optional[int] = None,
+    leads: Optional[int] = None,
+    min_lags: int = 0,
+    min_leads: int = 0,
+    wrap_width: int = 100
+) -> str:
     """Return a string of Fortran code that embeds the equations in `symbols`.
 
     Parameters
@@ -858,12 +948,13 @@ def build_fortran_definition(symbols: List[Symbol], *, lags: Optional[int] = Non
     errors     = [s.name for s in symbols if s.type == Type.ERROR]
 
     # Set longest lag and lead
-    non_indexed_symbols = [s for s in symbols
-                           if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)]
+    non_indexed_symbols = [
+        s for s in symbols if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)
+    ]
 
     if lags is None:
         if len(non_indexed_symbols) > 0:
-            lags =  abs(min(s.lags  for s in non_indexed_symbols))
+            lags = abs(min(s.lags for s in non_indexed_symbols))
         else:
             lags = 0
 
@@ -880,16 +971,18 @@ def build_fortran_definition(symbols: List[Symbol], *, lags: Optional[int] = Non
     # Map variable names to numbers (index positions)
     variables_to_numbers = {
         x: i
-        for i, x in enumerate(itertools.chain(endogenous, exogenous, parameters, errors),
-                              start=1)
+        for i, x in enumerate(
+            itertools.chain(endogenous, exogenous, parameters, errors), start=1
+        )
     }
 
     # Generate code block of equations
-    equation_code = []     # Code to insert into the Fortran subroutine
+    equation_code = []  # Code to insert into the Fortran subroutine
     equation_summary = []  # Summary for the header at the top of the file
 
-    symbols_with_code = filter(lambda x: x.type == Type.ENDOGENOUS and x.equation is not None,
-                               symbols)
+    symbols_with_code = filter(
+        lambda x: x.type == Type.ENDOGENOUS and x.equation is not None, symbols
+    )
 
     for s in symbols_with_code:
         equation = s.equation
@@ -898,16 +991,22 @@ def build_fortran_definition(symbols: List[Symbol], *, lags: Optional[int] = Non
         code = equation
         for match in reversed(list(pattern.finditer(equation))):
             start, end = match.span()
-            variable = 'solved_values({}, {})'.format(variables_to_numbers[match[1]], match[2].replace('t', 'index'))
+            variable = 'solved_values({}, {})'.format(
+                variables_to_numbers[match[1]], match[2].replace('t', 'index')
+            )
             code = code[:start] + variable + code[end:]
 
-        block = '! {}\n{}'.format(equation, '  &\n&  '.join(textwrap.wrap(code, width=wrap_width)))
+        block = '! {}\n{}'.format(
+            equation, '  &\n&  '.join(textwrap.wrap(code, width=wrap_width))
+        )
         equation_code.append(textwrap.indent(block, '  '))
 
         equation_summary.append(equation)
 
     # Fill in template
-    def create_integer_array_definition(variable_names: Sequence[str], name: str) -> str:
+    def create_integer_array_definition(
+        variable_names: Sequence[str], name: str
+    ) -> str:
         """Return a Fortran definition with `name`, containing the index numbers in `variable_names`.
 
         Examples
@@ -934,9 +1033,9 @@ def build_fortran_definition(symbols: List[Symbol], *, lags: Optional[int] = Non
     fortran_definition_string = fortran_template.format(
         system='\n'.join('!   ' + x for x in equation_summary),
         equations='\n\n'.join(equation_code),
-        lags=lags, leads=leads,
+        lags=lags,
+        leads=leads,
         version=__version__,
-
         endogenous=create_integer_array_definition(endogenous, 'endogenous'),
         exogenous=create_integer_array_definition(exogenous, 'exogenous'),
         parameters=create_integer_array_definition(parameters, 'parameters'),

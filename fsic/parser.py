@@ -103,7 +103,17 @@ import itertools
 import keyword
 import re
 import textwrap
-from typing import Any, Callable, Dict, Iterator, List, Match, NamedTuple, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Match,
+    NamedTuple,
+    Optional,
+    Tuple,
+)
 import warnings
 
 import numpy as np
@@ -135,7 +145,7 @@ equation_re = re.compile(
         (?: ^    \S+? \s* [=] \s* \( .*? \) (?= \s* ) $ )|  # Brackets beginning on the right-hand side
         (?: ^    \S+? \s* [=] \s*    .*?    (?= \s* ) $ )   # Equation on a single line
     ''',
-    re.DOTALL | re.MULTILINE | re.VERBOSE
+    re.DOTALL | re.MULTILINE | re.VERBOSE,
 )
 
 # Terms are valid Python identifiers. If they aren't functions, they may also
@@ -153,14 +163,11 @@ equation_re = re.compile(
 term_re = re.compile(
     # Match verbatim code enclosed in backticks
     r'(?: (?P<_VERBATIM> [`] (.+?) [`]) )|'
-
     # Match attempts to use reserved Python keywords as variable names (to be
     # raised as errors elsewhere)
     r'(?: (?P<_INVALID> (?: {}) \s* \[ .*? \]) )|'.format('|'.join(keyword.kwlist)) +
-
     # Match Python keywords
     r'(?: \b (?P<_KEYWORD> {} ) \b )|'.format('|'.join(keyword.kwlist)) +
-
     # Valid terms for the parser
     r'''
         (?: (?P<_FUNCTION> [_A-Za-z][_A-Za-z0-9.]*[_A-Za-z0-9]* ) \s* (?= \( ) )|
@@ -172,14 +179,16 @@ term_re = re.compile(
         )
         (?: \[ \s* (?P<INDEX> .*? ) \s* \] )?
     ''',
-    re.VERBOSE
+    re.VERBOSE,
 )
 
 
 # Containers for term and symbol information ----------------------------------
 
+
 class Type(enum.IntEnum):
     """Enumeration to track term/symbol types."""
+
     VARIABLE = enum.auto()
     EXOGENOUS = enum.auto()
     ENDOGENOUS = enum.auto()
@@ -202,8 +211,10 @@ replacement_function_names = {
     'min': 'min',
 }
 
+
 class Term(NamedTuple):
     """Container for information about a single term of an equation."""
+
     name: str
     type: Type
     index_: Optional[int]
@@ -238,7 +249,7 @@ class Term(NamedTuple):
             code = replacement_function_names.get(code, code)
 
         # If a block of verbatim code, drop the enclosing backticks
-        elif self.type in (Type.VERBATIM, ):
+        elif self.type in (Type.VERBATIM,):
             code = code.strip('`')
 
         # Otherwise, access as a regular internal variable
@@ -250,6 +261,7 @@ class Term(NamedTuple):
 
 class Symbol(NamedTuple):
     """Container for information about a single symbol of an equation or model."""
+
     name: Optional[str]
     type: Type
     lags: Optional[int]
@@ -266,8 +278,10 @@ class Symbol(NamedTuple):
             if old is not None and new is not None:
                 if old != new:
                     raise ParserError(
-                        "Endogenous variable '{}' defined twice:\n    {}\n    {}"
-                        .format(self.name, old, new))
+                        "Endogenous variable '{}' defined twice:\n    {}\n    {}".format(
+                            self.name, old, new
+                        )
+                    )
 
             elif old is None and new is not None:
                 resolved = new
@@ -278,15 +292,22 @@ class Symbol(NamedTuple):
 
         combined_type = self.type
         if self.type != other.type:
-            if (self.type  not in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS) or
-                other.type not in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS)):
-                raise SymbolError('''\
+            if self.type not in (
+                Type.VARIABLE,
+                Type.EXOGENOUS,
+                Type.ENDOGENOUS,
+            ) or other.type not in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS):
+                raise SymbolError(
+                    '''\
 Unable to combine the following pair of symbols:
  - {}
  - {}
 
 Variables cannot appear in the input script as both endogenous/exogenous
-variables and parameters/errors etc.'''.format(self, other))
+variables and parameters/errors etc.'''.format(
+                        self, other
+                    )
+                )
 
             combined_type = max(self.type, other.type)
 
@@ -305,15 +326,18 @@ variables and parameters/errors etc.'''.format(self, other))
         equation = resolve_strings(self.equation, other.equation)
         code = resolve_strings(self.code, other.code)
 
-        return Symbol(name=self.name,
-                      type=combined_type,
-                      lags=lags,
-                      leads=leads,
-                      equation=equation,
-                      code=code)
+        return Symbol(
+            name=self.name,
+            type=combined_type,
+            lags=lags,
+            leads=leads,
+            equation=equation,
+            code=code,
+        )
 
 
 # Parser functions to convert strings to objects ------------------------------
+
 
 def split_equations_iter(model: str) -> Iterator[str]:
     """Return the equations of `model` as an iterator of strings."""
@@ -358,8 +382,12 @@ def split_equations_iter(model: str) -> Iterator[str]:
                 unmatched_parentheses -= 1
 
             if unmatched_parentheses < 0:
-                raise ParserError('Found closing bracket before opening bracket '
-                                  'while attempting to read the following: {}'.format('\n'.join(buffer)))
+                raise ParserError(
+                    'Found closing bracket before opening bracket '
+                    'while attempting to read the following: {}'.format(
+                        '\n'.join(buffer)
+                    )
+                )
 
         # If complete, combine and yield
         if unmatched_parentheses == 0 and complete_verbatim_block:
@@ -380,8 +408,10 @@ def split_equations_iter(model: str) -> Iterator[str]:
                     # Not compatible with Python 3.6: `if isinstance(match, re.Match):`
                     if match is not None:
                         raise IndentationError(
-                            "Found unnecessary leading whitespace in equation: '{}'"
-                            .format(equation))
+                            "Found unnecessary leading whitespace in equation: '{}'".format(
+                                equation
+                            )
+                        )
 
                     # Otherwise, raise the general error
                     raise ParserError("Failed to parse equation: '{}'".format(equation))
@@ -394,8 +424,11 @@ def split_equations_iter(model: str) -> Iterator[str]:
     # If `unmatched_parentheses` is non-zero at this point, there must have
     # been an error in the input script's syntax. Throw an error
     if unmatched_parentheses != 0:
-        raise ParserError('Failed to identify any equations in the following, '
-                          'owing to unmatched brackets: {}'.format('\n'.join(buffer)))
+        raise ParserError(
+            'Failed to identify any equations in the following, '
+            'owing to unmatched brackets: {}'.format('\n'.join(buffer))
+        )
+
 
 def split_equations(model: str) -> List[str]:
     """Return the equations of `model` as a list of strings."""
@@ -410,8 +443,9 @@ def parse_terms(expression: str) -> List[Term]:
         groupdict = match.groupdict()
 
         # Filter to the named group that matched for this term
-        type_key_list = [k for k, v in groupdict.items()
-                         if k.startswith('_') and v is not None]
+        type_key_list = [
+            k for k, v in groupdict.items() if k.startswith('_') and v is not None
+        ]
         assert len(type_key_list) == 1
         type_key = type_key_list[0]
 
@@ -426,17 +460,21 @@ def parse_terms(expression: str) -> List[Term]:
             try:
                 index = int(index_)
             except ValueError:
-                raise ParserError("Unable to parse index '{}' of '{}' in '{}'".format(
-                    index_, match.group(0), expression))
+                raise ParserError(
+                    "Unable to parse index '{}' of '{}' in '{}'".format(
+                        index_, match.group(0), expression
+                    )
+                )
 
-        return Term(name=groupdict[type_key],
-                    type=Type[type_key[1:]],
-                    index_=index)
+        return Term(name=groupdict[type_key], type=Type[type_key[1:]], index_=index)
 
-    return [process_term_match(m)
-            for m in term_re.finditer(expression)
-            # Python keywords are unnamed groups: Filter these out
-            if any(m.groups())]
+    return [
+        process_term_match(m)
+        for m in term_re.finditer(expression)
+        # Python keywords are unnamed groups: Filter these out
+        if any(m.groups())
+    ]
+
 
 def parse_equation_terms(equation: str) -> List[Term]:
     """Return the terms of `equation` as a list of Term objects."""
@@ -462,14 +500,16 @@ def parse_equation_terms(equation: str) -> List[Term]:
         # to print the expression that failed
         raise ParserError("Failed to parse right-hand side of: '{}'".format(equation))
 
-    if (any(filter(lambda x: x.type == Type.KEYWORD, lhs_terms)) or
-        any(filter(lambda x: x.type == Type.INVALID, rhs_terms))):
+    if any(filter(lambda x: x.type == Type.KEYWORD, lhs_terms)) or any(
+        filter(lambda x: x.type == Type.INVALID, rhs_terms)
+    ):
         raise ParserError(
             'Equation uses one or more reserved Python keywords as variable '
-            'names - these keywords are invalid for this purpose: `{}`'
-            .format(equation))
+            'names - these keywords are invalid for this purpose: `{}`'.format(equation)
+        )
 
     return lhs_terms + rhs_terms
+
 
 def parse_equation(equation: str) -> List[Symbol]:
     """Return the symbols of `equation` as a list of Symbol objects."""
@@ -483,17 +523,20 @@ def parse_equation(equation: str) -> List[Symbol]:
     if len(equations) != 1:
         raise ParserError(
             '`parse_equation()` expects a string that defines a single equation '
-            'but found {} instead'.format(len(equations)))
+            'but found {} instead'.format(len(equations))
+        )
 
     # Insert verbatim code straight into a Symbol object and return
     if equation.startswith('`') and equation.endswith('`'):
         return [
-            Symbol(name=None,
-                   type=Type.VERBATIM,
-                   lags=None,
-                   leads=None,
-                   equation=equation,
-                   code=equation.strip('`\r\n'))
+            Symbol(
+                name=None,
+                type=Type.VERBATIM,
+                lags=None,
+                leads=None,
+                equation=equation,
+                code=equation.strip('`\r\n'),
+            )
         ]
 
     # Check for complete bracket pairs
@@ -514,7 +557,9 @@ def parse_equation(equation: str) -> List[Symbol]:
         if count != 0:
             raise ParserError(
                 "Found incomplete brackets ('{}', '{}') in equation: {}".format(
-                    opening, closing, equation))
+                    opening, closing, equation
+                )
+            )
 
     # Extract the terms from the equation
     terms = parse_equation_terms(equation)
@@ -550,12 +595,14 @@ def parse_equation(equation: str) -> List[Symbol]:
         if term.type == Type.VERBATIM:
             continue
 
-        symbol = Symbol(name=term.name,
-                        type=term.type,
-                        lags=term.index_,
-                        leads=term.index_,
-                        equation=None,
-                        code=None)
+        symbol = Symbol(
+            name=term.name,
+            type=term.type,
+            lags=term.index_,
+            leads=term.index_,
+            equation=None,
+            code=None,
+        )
 
         name = symbol.name
 
@@ -578,6 +625,7 @@ def parse_equation(equation: str) -> List[Symbol]:
         symbols[name] = symbols.get(name, symbol).combine(symbol)
 
     return list(symbols.values())
+
 
 def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
     """Return the symbols of `model` as a list of Symbol objects.
@@ -640,10 +688,16 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
                             break
                         else:
                             raise ParserError(
-                                'Unexpected warning (error) when parsing: {}\n    {}'.format(statement, w[0]))
+                                'Unexpected warning (error) when parsing: {}\n    {}'.format(
+                                    statement, w[0]
+                                )
+                            )
                     else:
                         raise ParserError(
-                            'Unexpected number of warnings (errors) when parsing: {}'.format(statement))
+                            'Unexpected number of warnings (errors) when parsing: {}'.format(
+                                statement
+                            )
+                        )
 
         symbols_by_equation.append(equation_symbols)
 
@@ -659,8 +713,9 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
             lines.append(line)
 
         raise ParserError(
-            'Failed to parse the following {} statement(s):\n'.format(len(lines)) +
-            '\n'.join(lines))
+            'Failed to parse the following {} statement(s):\n'.format(len(lines))
+            + '\n'.join(lines)
+        )
 
     # Store combined symbols to a:
     #  - dictionary for regular symbols (to track replacements)
@@ -787,7 +842,17 @@ class Model(BaseModel):
 {equations}\
 '''
 
-def build_model_definition(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Optional[int] = None, min_lags: int = 0, min_leads: int = 0, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> str:
+
+def build_model_definition(
+    symbols: List[Symbol],
+    *,
+    lags: Optional[int] = None,
+    leads: Optional[int] = None,
+    min_lags: int = 0,
+    min_leads: int = 0,
+    converter: Optional[Callable[[Symbol], str]] = None,
+    with_type_hints: bool = True
+) -> str:
     """Return a model class definition string from the contents of `symbols` (with type hints, by default).
 
     Parameters
@@ -923,7 +988,9 @@ if _ > 0:  # Ignore negative values
         """Return Python code for the current equation as an `exec`utable string."""
         return '''\
 {}
-{}'''.format('\n'.join('# ' + x for x in symbol.equation.splitlines()), symbol.code)
+{}'''.format(
+            '\n'.join('# ' + x for x in symbol.equation.splitlines()), symbol.code
+        )
 
     if converter is None:
         converter = default_converter
@@ -940,12 +1007,13 @@ if _ > 0:  # Ignore negative values
     errors     = [s.name for s in symbols if s.type == Type.ERROR]
 
     # Set longest lag and lead
-    non_indexed_symbols = [s for s in symbols
-                           if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)]
+    non_indexed_symbols = [
+        s for s in symbols if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)
+    ]
 
     if lags is None:
         if len(non_indexed_symbols) > 0:
-            lags =  abs(min(s.lags  for s in non_indexed_symbols))
+            lags = abs(min(s.lags for s in non_indexed_symbols))
         else:
             lags = 0
 
@@ -960,11 +1028,15 @@ if _ > 0:  # Ignore negative values
         leads = max(leads, min_leads)
 
     # Generate code block of equations
-    expressions = [converter(s)
-                   for s in symbols
-                   # Only convert symbols that are endogenous or verbatim *and*
-                   # include the corresponding code
-                   if s.type in (Type.ENDOGENOUS, Type.VERBATIM) and s.equation is not None and s.code is not None]
+    expressions = [
+        converter(s)
+        for s in symbols
+        # Only convert symbols that are endogenous or verbatim *and*
+        # include the corresponding code
+        if s.type in (Type.ENDOGENOUS, Type.VERBATIM)
+        and s.equation is not None
+        and s.code is not None
+    ]
     equations = '\n\n'.join(textwrap.indent(e, '        ') for e in expressions)
 
     # If there are no equations, insert `pass` instead
@@ -975,19 +1047,26 @@ if _ > 0:  # Ignore negative values
     model_definition_string = model_template.format(
         endogenous=endogenous,
         exogenous=exogenous,
-
         parameters=parameters,
         errors=errors,
-
         lags=lags,
         leads=leads,
-
         equations=equations,
     )
 
     return model_definition_string
 
-def build_model(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Optional[int] = None, min_lags: int = 0, min_leads: int = 0, converter: Optional[Callable[[Symbol], str]] = None, with_type_hints: bool = True) -> 'BaseModel':
+
+def build_model(
+    symbols: List[Symbol],
+    *,
+    lags: Optional[int] = None,
+    leads: Optional[int] = None,
+    min_lags: int = 0,
+    min_leads: int = 0,
+    converter: Optional[Callable[[Symbol], str]] = None,
+    with_type_hints: bool = True
+) -> 'BaseModel':
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
 
     Parameters
@@ -1023,11 +1102,15 @@ def build_model(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Opt
     from .core import BaseModel
 
     # Construct the class definition
-    model_definition_string = build_model_definition(symbols,
-                                                     lags=lags, leads=leads,
-                                                     min_lags=min_lags, min_leads=min_leads,
-                                                     converter=converter,
-                                                     with_type_hints=with_type_hints)
+    model_definition_string = build_model_definition(
+        symbols,
+        lags=lags,
+        leads=leads,
+        min_lags=min_lags,
+        min_leads=min_leads,
+        converter=converter,
+        with_type_hints=with_type_hints,
+    )
 
     # Execute the class definition code
     try:
@@ -1044,8 +1127,9 @@ def build_model(symbols: List[Symbol], *, lags: Optional[int] = None, leads: Opt
 
         if failed_execs:
             raise BuildError(
-                'Failed to `exec`ute the following `Symbol` object(s):\n' +
-                '\n'.join('    {}'.format(x) for x in failed_execs))
+                'Failed to `exec`ute the following `Symbol` object(s):\n'
+                + '\n'.join('    {}'.format(x) for x in failed_execs)
+            )
 
     # Otherwise, if here, assign the original code to an attribute and return
     # the class
