@@ -804,7 +804,7 @@ class ModelInterface(VectorContainer):
             dtype = self.__dict__['dtype']
 
         super().add_variable(name, value, dtype=dtype)
-        self.__dict__['names'] += name
+        self.__dict__['names'].append(name)
 
     @property
     def size(self) -> int:

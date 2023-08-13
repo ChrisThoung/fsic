@@ -18,6 +18,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 ### Deprecated
 ### Removed
 ### Fixed
+
+- Corrected error in `ModelInterface.add_variable()` that added variable names
+  as a list of character strings ('ABC' -> ['A', 'B', 'C']) rather than a
+  string in a list ('ABC' -> ['ABC']).
+
 ### Security
 
 

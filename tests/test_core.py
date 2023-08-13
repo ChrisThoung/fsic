@@ -942,6 +942,30 @@ class TestModelContainerMethods(unittest.TestCase):
         self.assertEqual(model.L.dtype, bool)
         self.assertEqual(model['L'].dtype, bool)
 
+        # Check `add_variable()` for names longer than one character
+        model.add_variable('AB', 0, dtype=int)       # Impose int
+        model.add_variable('CD', 0)                  # float, by default
+        model.add_variable('EF', 0, dtype=float)     # Impose float
+        model.add_variable('GH', False, dtype=bool)  # Import bool
+
+        # Check list of names is now changed
+        self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L', 'AB', 'CD', 'EF', 'GH'])
+        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L', 'AB', 'CD', 'EF', 'GH'])
+
+        self.assertEqual(model.values.shape, (13, 10))
+
+        self.assertEqual(model.AB.dtype, int)
+        self.assertEqual(model['AB'].dtype, int)
+
+        self.assertEqual(model.CD.dtype, float)
+        self.assertEqual(model['CD'].dtype, float)
+
+        self.assertEqual(model.EF.dtype, float)
+        self.assertEqual(model['EF'].dtype, float)
+
+        self.assertEqual(model.GH.dtype, bool)
+        self.assertEqual(model['GH'].dtype, bool)
+
     def test_add_variable_strict(self):
         # Check that `add_variable()` extends the model object's store (both
         # values and the accompanying key) while applying the correct type,
