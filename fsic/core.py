@@ -13,6 +13,7 @@ Base classes:
 
 from collections import Counter
 import copy
+import difflib
 import enum
 import re
 from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
@@ -170,6 +171,54 @@ class VectorContainer:
         """Total bytes consumed by the elements in the object's vector arrays."""
         return sum(self[k].nbytes for k in self.__dict__['index'])
 
+    def get_closest_match(
+        self,
+        name: str,
+        *,
+        possibilities: Optional[Sequence[str]] = None,
+        cutoff: Union[int, float] = 0.1,
+    ) -> List[str]:
+        """Return the closest match(es) to `name` among `possibilities` (by default, `self.index`).
+
+        Parameters
+        ----------
+        name : str
+            Variable name to attempt to match
+        possibilities : sequence of str, default `None`
+            List of names to try to match to. If `None`, use `self.index`.
+        cutoff : numeric, default 0.1
+            Cutoff score (to pass to `difflib.get_close_matches()`) above which
+            to return matches
+
+        Returns
+        -------
+        List[str] :
+            Closest match(es) to `name` in `possibilities` (multiple matches
+            arise if `possibilities` has duplicate names, once converted to
+            lower case)
+        """
+        # Set default list if none provided
+        if possibilities is None:
+            possibilities = self.index
+
+        # Form lookup of lowercase versions of the names
+        candidates = {}
+        for x in possibilities:
+            candidates[x.lower()] = candidates.get(x, []) + [x]
+
+        # Match using `difflib`
+        closest_match = difflib.get_close_matches(
+            name.lower(), candidates.keys(), n=1, cutoff=cutoff
+        )
+
+        # If a match has been found, return the candidate(s) from the original
+        # (non-lowercase) listing
+        if len(closest_match):
+            return candidates[closest_match[0]]
+
+        # Otherwise, no suitable match found
+        return []
+
     def __getattr__(self, name: str) -> Any:
         if name in self.__dict__['index']:
             return self.__dict__['_' + name]
@@ -183,9 +232,19 @@ class VectorContainer:
             and self.__dict__['_strict']
             and name not in self.__dict__['index']
         ):
-            raise AttributeError(
-                "Unable to add new attribute '{}' with `strict=True`".format(name)
-            )
+            message = f"Unable to add new attribute '{name}' with `strict=True`"
+
+            # Try to find a possible alternative, if `name` is a typo
+            alternatives = self.get_closest_match(name)
+
+            if len(alternatives) == 1:
+                message += f". Did you mean: '{alternatives[0]}'?"
+            elif len(alternatives) > 1:
+                raise NotImplementedError(
+                    'Handling of multiple name matches not yet implemented'
+                )
+
+            raise AttributeError(message)
 
         if name not in self.__dict__['index']:
             super.__setattr__(self, name, value)
@@ -757,10 +816,26 @@ class ModelInterface(VectorContainer):
             invalid_names = passed_names - permitted_names
 
             if len(invalid_names) > 0:
+                message_suggestions = []
+                for name in invalid_names:
+                    suggestions = self.get_closest_match(name, possibilities=names)
+                    if len(suggestions) == 0:
+                        message_suggestions.append(
+                            f' - {name} : no alternative suggestions available'
+                        )
+                    elif len(suggestions) == 1:
+                        message_suggestions.append(
+                            f" - {name} : did you mean '{suggestions[0]}'?"
+                        )
+                    elif len(suggestion) > 1:
+                        raise NotImplementedError(
+                            'Handling of multiple name matches not yet implemented'
+                        )
+
                 raise InitialisationError(
                     'Cannot add unlisted variables (i.e. variables not in `NAMES`) '
-                    'when `strict=True` - found {} instance(s): {}'.format(
-                        len(invalid_names), ', '.join(invalid_names)
+                    'when `strict=True` - found {} instance(s):\n{}'.format(
+                        len(invalid_names), '\n'.join(message_suggestions)
                     )
                 )
 
@@ -810,6 +885,40 @@ class ModelInterface(VectorContainer):
     def size(self) -> int:
         """Number of elements in the model's vector arrays."""
         return len(self.__dict__['names']) * len(self.__dict__['span'])
+
+    def get_closest_match(
+        self,
+        name: str,
+        *,
+        possibilities: Optional[Sequence[str]] = None,
+        cutoff: Union[int, float] = 0.1,
+    ) -> List[str]:
+        """Return the closest match(es) to `name` among `possibilities` (by default, `self.names`).
+
+        Parameters
+        ----------
+        name : str
+            Variable name to attempt to match
+        possibilities : sequence of str, default `None`
+            List of names to try to match to. If `None`, use `self.names`.
+        cutoff : numeric, default 0.1
+            Cutoff score (to pass to `difflib.get_close_matches()`) above which
+            to return matches
+
+        Returns
+        -------
+        List[str] :
+            Closest match(es) to `name` in `possibilities` (multiple matches
+            arise if `possibilities` has duplicate names, once converted to
+            lower case)
+        """
+        # Set default list if none provided
+        if possibilities is None:
+            possibilities = self.names
+
+        return super().get_closest_match(
+            name, possibilities=possibilities, cutoff=cutoff
+        )
 
     def __contains__(self, key: str) -> bool:
         return key in self.__dict__['names']
@@ -1035,8 +1144,8 @@ class SolverMixin:
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
         indexes = [None] * len(period_iter)
-        labels = [None] * len(period_iter)
-        solved = [None] * len(period_iter)
+        labels  = [None] * len(period_iter)
+        solved  = [None] * len(period_iter)
 
         for i, (t, period) in enumerate(period_iter):
             indexes[i] = t

@@ -480,6 +480,39 @@ class TestVectorContainer(unittest.TestCase):
 
         self.assertEqual(container.values.shape, (4, 10))
 
+    def test_get_closest_match(self):
+        # Check that `get_closest_match()` suggests reasonable (expected)
+        # alternatives to undefined variable names
+
+        # Keys: Actual variable names
+        # Values: Undefined names (to see if the container can suggest the key)
+        inputs = {
+            'A':    ('a',),
+            'B':    ('b',),
+            'C':    ('c',),
+
+            'AB':   ('Ab',),
+            'BC':   ('bC',),
+
+            'ABC':  ('abc', 'AbC', 'aBc',),
+            'ABCD': ('ABCd', 'ABcd', 'Abcd',),
+
+            'XYZ':  ('xyz', 'XyZ', 'xYz',),
+        }
+
+        # Add variables to the container (from the keys above)
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        for x in inputs:
+            container.add_variable(x, 0, dtype=float)
+
+        # Loop by key and then possible names to see if the key is correctly
+        # suggested each time
+        for expected, undefined_names in inputs.items():
+            for x in undefined_names:
+                with self.subTest(undefined_name=x):
+                    self.assertEqual(container.get_closest_match(x),
+                                     [expected])
+
     def test_values_replacement_array(self):
         # Check that the `values` property can be replaced by an array of
         # identical shape
@@ -1005,6 +1038,39 @@ class TestModelContainerMethods(unittest.TestCase):
 
         with self.assertRaises(AttributeError):
             model.M = 'Should raise an `AttributeError`'
+
+    def test_get_closest_match(self):
+        # Check that `get_closest_match()` suggests reasonable (expected)
+        # alternatives to undefined variable names
+
+        # Keys: Actual variable names
+        # Values: Undefined names (to see if the model can suggest the key)
+        inputs = {
+            'A':    ('a',),
+            'B':    ('b',),
+            # 'C':    ('c',),  # Exclude from test to avoid collision with model definition of C
+
+            'AB':   ('Ab',),
+            'BC':   ('bC',),
+
+            'ABC':  ('abc', 'AbC', 'aBc',),
+            'ABCD': ('ABCd', 'ABcd', 'Abcd',),
+
+            'XYZ':  ('xyz', 'XyZ', 'xYz',),
+        }
+
+        # Add variables to the model (from the keys above)
+        model = self.Model(range(1995, 2005 + 1))
+        for x in inputs:
+            model.add_variable(x, 0, dtype=float)
+
+        # Loop by key and then possible names to see if the key is correctly
+        # suggested each time
+        for expected, undefined_names in inputs.items():
+            for x in undefined_names:
+                with self.subTest(undefined_name=x):
+                    self.assertEqual(model.get_closest_match(x),
+                                     [expected])
 
     def test_getitem_by_name(self):
         # Test variable access by name
