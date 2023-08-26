@@ -1324,7 +1324,6 @@ class SolverMixin:
         NaN/Inf, from it being propagated (it's not immediately obvious if this
         has any use, though).
         """
-        raise NotImplementedError('Method must be over-ridden by a child class')
 
 
 # Base class for individual models --------------------------------------------
@@ -1737,7 +1736,6 @@ class BaseModel(SolverMixin, ModelInterface):
         **kwargs :
             Further keyword arguments for solution
         """
-        raise NotImplementedError('Method must be over-ridden by a child class')
 
 
 # Base class to link models ---------------------------------------------------

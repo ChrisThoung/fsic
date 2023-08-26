@@ -17,6 +17,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   (similar to improved error messages in Python 3.10 onwards).
 
 ### Changed
+
+- Removed `NotImplementedError`s from over-rideable methods.
+
 ### Deprecated
 ### Removed
 ### Fixed
