@@ -20,10 +20,6 @@ class DuplicateNameError(FSICError):
     pass
 
 
-class EvalError(FSICError):
-    pass
-
-
 class InitialisationError(FSICError):
     pass
 

@@ -4,8 +4,6 @@ Tools to speed up fsic-based economic models by generating F2PY-compatible
 Fortran code.
 """
 
-from fsic import __version__
-
 import itertools
 import re
 import textwrap
@@ -22,6 +20,9 @@ from .exceptions import (
     SolutionError,
 )
 from .parser import Symbol, Type
+
+
+from fsic import __version__
 
 
 # Class implementing interface to Fortran code --------------------------------
@@ -52,7 +53,7 @@ class FortranEngine:
         strict: bool = False,
         dtype: Any = float,
         default_value: Union[int, float] = 0.0,
-        **initial_values: Dict[str, Any]
+        **initial_values: Dict[str, Any],
     ) -> None:
         """Initialise model variables.
 
@@ -75,9 +76,9 @@ class FortranEngine:
         """
         if engine == 'fortran' and self.ENGINE is None:
             raise InitialisationError(
-                "`engine` argument is '{}' but class `ENGINE` attribute is `{}`. "
-                "Check that `ENGINE` has an assigned value (i.e. a module of solution routines); "
-                "this typically uses a subclass".format(engine, self.ENGINE)
+                f"`engine` argument is '{engine}' but class `ENGINE` attribute is `{self.ENGINE}`. "
+                f"Check that `ENGINE` has an assigned value (i.e. a module of solution routines); "
+                f"this typically uses a subclass"
             )
 
         super().__init__(
@@ -86,7 +87,7 @@ class FortranEngine:
             strict=strict,
             dtype=dtype,
             default_value=default_value,
-            **initial_values
+            **initial_values,
         )
 
     def solve(
@@ -100,7 +101,7 @@ class FortranEngine:
         offset: int = 0,
         failures: str = 'raise',
         errors: str = 'raise',
-        **kwargs: Dict[str, Any]
+        **kwargs: Dict[str, Any],
     ) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
@@ -167,9 +168,8 @@ class FortranEngine:
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
-                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
-                    min_iter, max_iter
-                )
+                f'Value of `min_iter` ({min_iter}) '
+                f'cannot exceed value of `max_iter` ({max_iter})'
             )
 
         # Catch invalid `start` and `end` periods here e.g. to avoid later
@@ -238,10 +238,8 @@ class FortranEngine:
                 # Raise Exception as required
                 if failures == 'raise':
                     raise NonConvergenceError(
-                        'Solution failed to converge after {} iterations(s) '
-                        'in period with label: {} (index: {})'.format(
-                            iteration, period, t
-                        )
+                        f'Solution failed to converge after {iteration} iterations(s) '
+                        f'in period with label: {period} (index: {t})'
                     )
 
             # Numerical solution error: Raise
@@ -251,15 +249,15 @@ class FortranEngine:
                 solved[i] = False
 
                 raise SolutionError(
-                    'Numerical solution error after {} iterations(s) '
-                    'in period with label: {} (index: {})'.format(iteration, period, t)
+                    f'Numerical solution error after {iteration} iterations(s) '
+                    f'in period with label: {period} (index: {t})'
                 )
 
             # Found pre-existing NaN or infinity prior to solution
             elif error_code == 31 and errors == 'raise':
                 raise SolutionError(
-                    'Pre-existing NaNs or infinities found '
-                    'in period with label: {} (index: {})'.format(period, t)
+                    f'Pre-existing NaNs or infinities found '
+                    f'in period with label: {period} (index: {t})'
                 )
 
             # Error if `offset` points prior to the current model span
@@ -269,11 +267,9 @@ class FortranEngine:
                     t_check += len(self.span)
 
                 raise IndexError(
-                    '`offset` argument ({}) for position `t` ({}) '
-                    'implies a period before the span of the current model instance: '
-                    '{} + {} -> position {} < 0'.format(
-                        offset, t, offset, t, offset + t_check
-                    )
+                    f'`offset` argument ({offset}) for position `t` ({t}) '
+                    f'implies a period before the span of the current model instance: '
+                    f'{offset} + {t} -> position {offset + t_check} < 0'
                 )
 
             # Error if `offset` points beyond the current model span
@@ -283,11 +279,9 @@ class FortranEngine:
                     t_check += len(self.span)
 
                 raise IndexError(
-                    '`offset` argument ({}) for position `t` ({}) '
-                    'implies a period beyond the span of the current model instance: '
-                    '{} + {} -> position {} >= {} periods in span'.format(
-                        offset, t, offset, t, offset + t_check, len(self.span)
-                    )
+                    f'`offset` argument ({offset}) for position `t` ({t}) '
+                    f'implies a period beyond the span of the current model instance: '
+                    f'{offset} + {t} -> position {offset + t_check} >= {len(self.span)} periods in span'
                 )
 
             # Some other error but `errors='skip'`
@@ -299,10 +293,8 @@ class FortranEngine:
             # Any uncaught errors
             else:
                 raise FortranEngineError(
-                    'Failed to solve model in period with label {} (index: {}), '
-                    'with uncaught error code {} after {} iteration(s)'.format(
-                        period, t, error_code, iteration
-                    )
+                    f'Failed to solve model in period with label {period} (index: {t}), '
+                    f'with uncaught error code {error_code} after {iteration} iteration(s)'
                 )
 
         return labels, indexes, solved
@@ -317,7 +309,7 @@ class FortranEngine:
         offset: int = 0,
         failures: str = 'raise',
         errors: str = 'raise',
-        **kwargs: Dict[str, Any]
+        **kwargs: Dict[str, Any],
     ) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
@@ -386,13 +378,11 @@ class FortranEngine:
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
-                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
-                    min_iter, max_iter
-                )
+                f'Value of `min_iter` ({min_iter}) cannot exceed value of `max_iter` ({max_iter})'
             )
 
         if errors not in self._ERROR_OPTIONS:
-            raise ValueError('Invalid `errors` argument: {}'.format(errors))
+            raise ValueError(f'Invalid `errors` argument: {errors}')
 
         # Optionally copy initial values from another period
         if offset:
@@ -403,21 +393,17 @@ class FortranEngine:
             # Error if `offset` points prior to the current model span
             if t_check + offset < 0:
                 raise IndexError(
-                    '`offset` argument ({}) for position `t` ({}) '
-                    'implies a period before the span of the current model instance: '
-                    '{} + {} -> position {} < 0'.format(
-                        offset, t, offset, t, offset + t_check
-                    )
+                    f'`offset` argument ({offset}) for position `t` ({t}) '
+                    f'implies a period before the span of the current model instance: '
+                    f'{offset} + {t} -> position {offset + t_check} < 0'
                 )
 
             # Error if `offset` points beyond the current model span
             if t_check + offset >= len(self.span):
                 raise IndexError(
-                    '`offset` argument ({}) for position `t` ({}) '
-                    'implies a period beyond the span of the current model instance: '
-                    '{} + {} -> position {} >= {} periods in span'.format(
-                        offset, t, offset, t, offset + t_check, len(self.span)
-                    )
+                    f'`offset` argument ({offset}) for position `t` ({t}) '
+                    f'implies a period beyond the span of the current model instance: '
+                    f'{offset} + {t} -> position {offset + t_check} >= {len(self.span)} periods in span'
                 )
 
             for name in self.ENDOGENOUS:
@@ -430,8 +416,8 @@ class FortranEngine:
         # error checking is at its strictest ('raise')
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
-                'Pre-existing NaNs or infinities found '
-                'in period with label: {} (index: {})'.format(self.span[t], t)
+                f'Pre-existing NaNs or infinities found '
+                f'in period with label: {self.span[t]} (index: {t})'
             )
 
         # Solve: Add 1 to `t` to go from zero-based (Python) to one-based
@@ -464,10 +450,8 @@ class FortranEngine:
             self.iterations[t] = iteration
 
             raise SolutionError(
-                'Numerical solution error after {} iterations(s) '
-                'in period with label: {} (index: {})'.format(
-                    iteration, self.span[t], t
-                )
+                f'Numerical solution error after {iteration} iterations(s) '
+                f'in period with label: {self.span[t]} (index: {t})'
             )
 
         elif error_code == 22 and errors == 'skip':
@@ -475,10 +459,8 @@ class FortranEngine:
 
         else:
             raise FortranEngineError(
-                'Failed to solve model in period with label {} (index: {}), '
-                'with uncaught error code {} after {} iteration(s)'.format(
-                    self.span[t], t, error_code, iteration
-                )
+                f'Failed to solve model in period with label {self.span[t]} (index: {t}), '
+                f'with uncaught error code {error_code} after {iteration} iteration(s)'
             )
 
         self.status[t] = status
@@ -486,10 +468,8 @@ class FortranEngine:
 
         if status == SolutionStatus.FAILED.value and failures == 'raise':
             raise NonConvergenceError(
-                'Solution failed to converge after {} iterations(s) '
-                'in period with label: {} (index: {})'.format(
-                    iteration, self.span[t], t
-                )
+                f'Solution failed to converge after {iteration} iterations(s) '
+                f'in period with label: {self.span[t]} (index: {t})'
             )
 
         return status == SolutionStatus.SOLVED.value
@@ -500,7 +480,7 @@ class FortranEngine:
         *,
         errors: str = 'raise',
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any]
+        **kwargs: Dict[str, Any],
     ) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
@@ -541,14 +521,12 @@ class FortranEngine:
             # `t` is out of bounds, even accounting for reverse indexing
             if error_code in (11, 12, 13, 14):
                 raise IndexError(
-                    'index {} is out of bounds for axis 0 with size {}'.format(
-                        t, len(self.span)
-                    )
+                    f'index {t} is out of bounds for axis 0 with size {len(self.span)}'
                 )
             else:
                 raise SolutionError(
-                    'Failed to evaluate the system of equations at index `t` = {}, '
-                    'with unidentified error code {}'.format(t, error_code)
+                    f'Failed to evaluate the system of equations at index `t` = {t}, '
+                    f'with unidentified error code {error_code}'
                 )
 
         # If here, store the values back to this Python instance
@@ -925,7 +903,7 @@ def build_fortran_definition(
     leads: Optional[int] = None,
     min_lags: int = 0,
     min_leads: int = 0,
-    wrap_width: int = 100
+    wrap_width: int = 100,
 ) -> str:
     """Return a string of Fortran code that embeds the equations in `symbols`.
 
@@ -991,13 +969,11 @@ def build_fortran_definition(
         code = equation
         for match in reversed(list(pattern.finditer(equation))):
             start, end = match.span()
-            variable = 'solved_values({}, {})'.format(
-                variables_to_numbers[match[1]], match[2].replace('t', 'index')
-            )
+            variable = f"solved_values({variables_to_numbers[match[1]]}, {match[2].replace('t', 'index')})"
             code = code[:start] + variable + code[end:]
 
-        block = '! {}\n{}'.format(
-            equation, '  &\n&  '.join(textwrap.wrap(code, width=wrap_width))
+        block = f"! {equation}\n" + '  &\n&  '.join(
+            textwrap.wrap(code, width=wrap_width)
         )
         equation_code.append(textwrap.indent(block, '  '))
 
@@ -1020,9 +996,9 @@ def build_fortran_definition(
         """
         indexes = [variables_to_numbers[k] for k in variable_names]
 
-        definition = 'integer, dimension({}) :: {}'.format(len(indexes), name)
+        definition = f'integer, dimension({len(indexes)}) :: {name}'
         if len(indexes) > 0:
-            definition += ' = (/ {} /)'.format(', '.join(map(str, indexes)))
+            definition += f" = (/ {', '.join(map(str, indexes))} /)"
 
         # Line wrap as needed
         blocks = textwrap.wrap(definition, width=wrap_width)

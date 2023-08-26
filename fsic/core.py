@@ -24,7 +24,6 @@ import numpy as np
 from .exceptions import (
     DimensionError,
     DuplicateNameError,
-    EvalError,
     InitialisationError,
     NonConvergenceError,
     SolutionError,
@@ -136,7 +135,7 @@ class VectorContainer:
         """
         if name in self.__dict__['index']:
             raise DuplicateNameError(
-                "'{}' is already defined in the current object".format(name)
+                f"'{name}' is already defined in the current object"
             )
 
         # Cast to a 1D array
@@ -152,10 +151,10 @@ class VectorContainer:
         # Check dimensions
         if value_as_array.shape[0] != len(self.__dict__['span']):
             raise DimensionError(
-                "Invalid assignment for '{}': "
-                "must be either a single value or "
-                "a sequence of identical length to `span`"
-                "(expected {} elements)".format(name, len(self.__dict__['span']))
+                f"Invalid assignment for '{name}': "
+                f"must be either a single value or "
+                f"a sequence of identical length to `span`"
+                f"(expected {len(self.__dict__['span'])} elements)"
             )
 
         self.__dict__['_' + name] = value_as_array
@@ -222,8 +221,8 @@ class VectorContainer:
     def __getattr__(self, name: str) -> Any:
         if name in self.__dict__['index']:
             return self.__dict__['_' + name]
-        else:
-            return super().__getattribute__(name)
+
+        return super().__getattribute__(name)
 
     def __setattr__(self, name: str, value: Union[Any, Sequence[Any]]) -> None:
         # Error on attempt to add an attribute if `strict=True`
@@ -247,18 +246,18 @@ class VectorContainer:
             raise AttributeError(message)
 
         if name not in self.__dict__['index']:
-            super.__setattr__(self, name, value)
+            super().__setattr__(name, value)
             return
 
-        elif isinstance(value, Sequence) and not isinstance(value, str):
+        if isinstance(value, Sequence) and not isinstance(value, str):
             value_as_array = np.array(value, dtype=self.__dict__['_' + name].dtype)
 
             if value_as_array.shape[0] != len(self.__dict__['span']):
                 raise DimensionError(
-                    "Invalid assignment for '{}': "
-                    "must be either a single value or "
-                    "a sequence of identical length to `span`"
-                    "(expected {} elements)".format(name, len(self.__dict__['span']))
+                    f"Invalid assignment for '{name}': "
+                    f"must be either a single value or "
+                    f"a sequence of identical length to `span`"
+                    f"(expected {len(self.__dict__['span'])} elements)"
                 )
 
             self.__dict__['_' + name] = value_as_array
@@ -278,11 +277,11 @@ class VectorContainer:
             if hasattr(self.__dict__['span'], method):
                 index_function = getattr(self.__dict__['span'], method)
                 return index_function(period)
-        else:
-            raise AttributeError(
-                f'Unable to find valid search method in `span`; '
-                f'expected one of: {self._VALID_INDEX_METHODS}'
-            )
+
+        raise AttributeError(
+            f'Unable to find valid search method in `span`; '
+            f'expected one of: {self._VALID_INDEX_METHODS}'
+        )
 
     def _resolve_period_slice(self, index: slice) -> Tuple[int]:
         """Convert a slice into a 3-tuple of indexing information to use with `self.span`."""
@@ -320,7 +319,7 @@ class VectorContainer:
         # `key` is a string (variable name): return the corresponding array
         if isinstance(key, str):
             if key not in self.__dict__['index']:
-                raise KeyError("'{}' not recognised as a variable name".format(key))
+                raise KeyError(f"'{key}' not recognised as a variable name")
             return self.__getattr__(key)
 
         # `key` is a tuple (variable name plus index): return the selected
@@ -339,7 +338,7 @@ class VectorContainer:
 
             # Get the full array
             if name not in self.__dict__['index']:
-                raise KeyError("'{}' not recognised as a variable name".format(name))
+                raise KeyError(f"'{name}' not recognised as a variable name")
             values = self.__getattr__(name)
 
             # Extract and return the relevant subset
@@ -347,11 +346,10 @@ class VectorContainer:
                 start_location, stop_location, step = self._resolve_period_slice(index)
                 return values[start_location:stop_location:step]
 
-            else:
-                location = self._locate_period_in_span(index)
-                return values[location]
+            location = self._locate_period_in_span(index)
+            return values[location]
 
-        raise TypeError('Invalid index type ({}): `{}`'.format(type(key), key))
+        raise TypeError(f'Invalid index type ({type(key)}): `{key}`')
 
     def __setitem__(
         self,
@@ -362,7 +360,7 @@ class VectorContainer:
         # its entirety
         if isinstance(key, str):
             if key not in self.__dict__['index']:
-                raise KeyError("'{}' not recognised as a variable name".format(key))
+                raise KeyError(f"'{key}' not recognised as a variable name")
             self.__setattr__(key, value)
             return
 
@@ -386,12 +384,11 @@ class VectorContainer:
                 self.__dict__['_' + name][start_location:stop_location:step] = value
                 return
 
-            else:
-                location = self._locate_period_in_span(index)
-                self.__dict__['_' + name][location] = value
-                return
+            location = self._locate_period_in_span(index)
+            self.__dict__['_' + name][location] = value
+            return
 
-        raise TypeError('Invalid index type ({}): `{}`'.format(type(key), key))
+        raise TypeError(f'Invalid index type ({type(key)}): `{key}`')
 
     def replace_values(self, **new_values) -> None:
         """Convenience function to replace values in one or more series at once.
@@ -479,9 +476,8 @@ class VectorContainer:
         if isinstance(new_values, np.ndarray):
             if new_values.shape != self.values.shape:
                 raise DimensionError(
-                    'Replacement array is of shape {} but expected shape is {}'.format(
-                        new_values.shape, self.values.shape
-                    )
+                    f'Replacement array is of shape {new_values.shape} '
+                    f'but expected shape is {self.values.shape}'
                 )
 
             for name, series in zip(self.index, new_values):
@@ -802,9 +798,7 @@ class ModelInterface(VectorContainer):
         if len(set(names)) != len(names):
             duplicates = [k for k, v in Counter(names).items() if v > 1]
             raise DuplicateNameError(
-                'Found multiple instances of the following variable(s) in `NAMES`: {}'.format(
-                    ', '.join(duplicates)
-                )
+                f"Found multiple instances of the following variable(s) in `NAMES`: {', '.join(duplicates)}"
             )
 
         # If `strict`, check that any variables set via `initial_values` match
@@ -948,9 +942,8 @@ class ModelInterface(VectorContainer):
         if isinstance(new_values, np.ndarray):
             if new_values.shape != self.values.shape:
                 raise DimensionError(
-                    'Replacement array is of shape {} but expected shape is {}'.format(
-                        new_values.shape, self.values.shape
-                    )
+                    f'Replacement array is of shape {new_values.shape} '
+                    f'but expected shape is {self.values.shape}'
                 )
 
             for name, series in zip(self.names, new_values):
@@ -1126,9 +1119,8 @@ class SolverMixin:
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
-                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
-                    min_iter, max_iter
-                )
+                f'Value of `min_iter` ({min_iter}) cannot '
+                f'exceed value of `max_iter` ({max_iter})'
             )
 
         # Catch invalid `start` and `end` periods here e.g. to avoid later
@@ -1514,9 +1506,8 @@ class BaseModel(SolverMixin, ModelInterface):
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
-                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
-                    min_iter, max_iter
-                )
+                f'Value of `min_iter` ({min_iter}) '
+                f'cannot exceed value of `max_iter` ({max_iter})'
             )
 
         # Optionally copy initial values from another period
@@ -1528,21 +1519,17 @@ class BaseModel(SolverMixin, ModelInterface):
             # Error if `offset` points prior to the current model span
             if t_check + offset < 0:
                 raise IndexError(
-                    '`offset` argument ({}) for position `t` ({}) '
-                    'implies a period before the span of the current model instance: '
-                    '{} + {} -> position {} < 0'.format(
-                        offset, t, offset, t, offset + t_check
-                    )
+                    f'`offset` argument ({offset}) for position `t` ({t}) '
+                    f'implies a period before the span of the current model instance: '
+                    f'{offset} + {t} -> position {offset + t_check} < 0'
                 )
 
             # Error if `offset` points beyond the current model span
             if t_check + offset >= len(self.span):
                 raise IndexError(
-                    '`offset` argument ({}) for position `t` ({}) '
-                    'implies a period beyond the span of the current model instance: '
-                    '{} + {} -> position {} >= {} periods in span'.format(
-                        offset, t, offset, t, offset + t_check, len(self.span)
-                    )
+                    f'`offset` argument ({offset}) for position `t` ({t}) '
+                    f'implies a period beyond the span of the current model instance: '
+                    f'{offset} + {t} -> position {offset + t_check} >= {len(self.span)} periods in span'
                 )
 
             for name in self.ENDOGENOUS:
@@ -1555,9 +1542,9 @@ class BaseModel(SolverMixin, ModelInterface):
         # error checking is at its strictest ('raise')
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
-                'Pre-existing NaNs or infinities found '
-                'in one or more `CHECK` variables '
-                'in period with label: {} (index: {})'.format(self.span[t], t)
+                f'Pre-existing NaNs or infinities found '
+                f'in one or more `CHECK` variables '
+                f'in period with label: {self.span[t]} (index: {t})'
             )
 
         # Run any code prior to solution
@@ -1577,8 +1564,8 @@ class BaseModel(SolverMixin, ModelInterface):
                 )
             except Exception as e:
                 raise SolutionError(
-                    'Error in `solve_t_before()` '
-                    'in period with label: {} (index: {})'.format(self.span[t], t)
+                    f'Error in `solve_t_before()` '
+                    f'in period with label: {self.span[t]} (index: {t})'
                 ) from e
 
         for iteration in range(1, max_iter + 1):
@@ -1606,10 +1593,8 @@ class BaseModel(SolverMixin, ModelInterface):
                         self.iterations[t] = iteration
 
                     raise SolutionError(
-                        'Error after {} iterations(s) '
-                        'in period with label: {} (index: {})'.format(
-                            iteration, self.span[t], t
-                        )
+                        f'Error after {iteration} iterations(s) '
+                        f'in period with label: {self.span[t]} (index: {t})'
                     ) from e
 
             current_values = get_check_values()
@@ -1626,11 +1611,9 @@ class BaseModel(SolverMixin, ModelInterface):
                     self.iterations[t] = iteration
 
                     raise SolutionError(
-                        'Numerical solution error after {} iteration(s). '
-                        'Non-finite values (NaNs, Infs) generated '
-                        'in period with label: {} (index: {})'.format(
-                            iteration, self.span[t], t
-                        )
+                        f'Numerical solution error after {iteration} iteration(s). '
+                        f'Non-finite values (NaNs, Infs) generated '
+                        f'in period with label: {self.span[t]} (index: {t})'
                     )
 
                 elif errors == 'skip':
@@ -1652,7 +1635,7 @@ class BaseModel(SolverMixin, ModelInterface):
                         continue
 
                 else:
-                    raise ValueError('Invalid `errors` argument: {}'.format(errors))
+                    raise ValueError(f'Invalid `errors` argument: {errors}')
 
             if iteration < min_iter:
                 continue
@@ -1676,10 +1659,8 @@ class BaseModel(SolverMixin, ModelInterface):
                         )
                     except Exception as e:
                         raise SolutionError(
-                            'Error in `solve_t_after()` '
-                            'in period with label: {} (index: {})'.format(
-                                self.span[t], t
-                            )
+                            f'Error in `solve_t_after()` '
+                            f'in period with label: {self.span[t]} (index: {t})'
                         ) from e
 
                 status = SolutionStatus.SOLVED.value
@@ -1692,10 +1673,8 @@ class BaseModel(SolverMixin, ModelInterface):
 
         if status == SolutionStatus.FAILED.value and failures == 'raise':
             raise NonConvergenceError(
-                'Solution failed to converge after {} iterations(s) '
-                'in period with label: {} (index: {})'.format(
-                    iteration, self.span[t], t
-                )
+                f'Solution failed to converge after {iteration} iterations(s) '
+                f'in period with label: {self.span[t]} (index: {t})'
             )
 
         return status == SolutionStatus.SOLVED.value
@@ -1710,7 +1689,6 @@ class BaseModel(SolverMixin, ModelInterface):
         **kwargs: Dict[str, Any],
     ) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
-        pass
 
     def solve_t_after(
         self,
@@ -1722,7 +1700,6 @@ class BaseModel(SolverMixin, ModelInterface):
         **kwargs: Dict[str, Any],
     ) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
-        pass
 
     def _evaluate(
         self,
@@ -1829,17 +1806,10 @@ class BaseLinker(SolverMixin, ModelInterface):
             comparator = self.__dict__['submodels'][name]
             if comparator.span != base.span:
                 raise InitialisationError(
-                    '''\
+                    f'''\
 Spans of submodels differ:
- - '{}', {:,} period(s): {}
- - '{}', {:,} period(s): {}'''.format(
-                        base_name,
-                        len(base.span),
-                        base.span,
-                        name,
-                        len(comparator.span),
-                        comparator.span,
-                    )
+ - '{base_name}', {len(base.span):,} period(s): {base.span}
+ - '{name}', {len(comparator.span):,} period(s): {comparator.span}'''
                 )
 
             # Update longest lags and leads
@@ -2016,9 +1986,8 @@ Spans of submodels differ:
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
-                'Value of `min_iter` ({}) cannot exceed value of `max_iter` ({})'.format(
-                    min_iter, max_iter
-                )
+                f'Value of `min_iter` ({min_iter}) '
+                f'cannot exceed value of `max_iter` ({max_iter})'
             )
 
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
@@ -2147,7 +2116,7 @@ Spans of submodels differ:
             try:
                 submodel = self.__dict__['submodels'][name]
             except KeyError:
-                raise KeyError("'{}' not found in list of submodels".format(name))
+                raise KeyError(f"'{name}' not found in list of submodels")
 
             submodel.iterations[t] = 0
 
@@ -2195,7 +2164,7 @@ Spans of submodels differ:
                 continue
 
             diff = {
-                k: current_values[k] - previous_values[k] for k in current_values.keys()
+                k: current_values[k] - previous_values[k] for k in current_values
             }
             diff_squared = {k: v**2 for k, v in diff.items()}
 
@@ -2223,10 +2192,8 @@ Spans of submodels differ:
 
         if status == SolutionStatus.FAILED.value and failures == 'raise':
             raise NonConvergenceError(
-                'Solution failed to converge after {} iterations(s) '
-                'in period with label: {} (index: {})'.format(
-                    iteration, self.span[t], t
-                )
+                f'Solution failed to converge after {iteration} iterations(s) '
+                f'in period with label: {self.span[t]} (index: {t})'
             )
 
         return status == SolutionStatus.SOLVED.value
@@ -2307,7 +2274,6 @@ Spans of submodels differ:
         **kwargs: Dict[str, Any],
     ) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom linker behaviour."""
-        pass
 
     def solve_t_after(
         self,
@@ -2320,7 +2286,6 @@ Spans of submodels differ:
         **kwargs: Dict[str, Any],
     ) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom linker behaviour."""
-        pass
 
     def evaluate_t_before(
         self,
@@ -2333,7 +2298,6 @@ Spans of submodels differ:
         **kwargs: Dict[str, Any],
     ) -> None:
         """Evaluate any linker equations before solving the individual submodels. Over-ride to implement custom linker behaviour."""
-        pass
 
     def evaluate_t_after(
         self,
@@ -2346,4 +2310,3 @@ Spans of submodels differ:
         **kwargs: Dict[str, Any],
     ) -> None:
         """Evaluate any linker equations after solving the individual submodels. Over-ride to implement custom linker behaviour."""
-        pass

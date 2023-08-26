@@ -160,14 +160,16 @@ equation_re = re.compile(
 #
 # and errors in angle brackets: <epsilon>
 
+keyword_list = '|'.join(keyword.kwlist)
+
 term_re = re.compile(
     # Match verbatim code enclosed in backticks
     r'(?: (?P<_VERBATIM> [`] (.+?) [`]) )|'
     # Match attempts to use reserved Python keywords as variable names (to be
     # raised as errors elsewhere)
-    r'(?: (?P<_INVALID> (?: {}) \s* \[ .*? \]) )|'.format('|'.join(keyword.kwlist)) +
+    fr'(?: (?P<_INVALID> (?: {keyword_list}) \s* \[ .*? \]) )|' +
     # Match Python keywords
-    r'(?: \b (?P<_KEYWORD> {} ) \b )|'.format('|'.join(keyword.kwlist)) +
+    fr'(?: \b (?P<_KEYWORD> {keyword_list} ) \b )|' +
     # Valid terms for the parser
     r'''
         (?: (?P<_FUNCTION> [_A-Za-z][_A-Za-z0-9.]*[_A-Za-z0-9]* ) \s* (?= \( ) )|
@@ -228,11 +230,11 @@ class Term(NamedTuple):
             assert self.index_ is not None
 
             if self.index_ > 0:
-                index = '[t+{}]'.format(self.index_)
+                index = f'[t+{self.index_}]'
             elif self.index_ == 0:
                 index = '[t]'
             else:
-                index = '[t{}]'.format(self.index_)
+                index = f'[t{self.index_}]'
 
             expression += index
 
@@ -278,9 +280,8 @@ class Symbol(NamedTuple):
             if old is not None and new is not None:
                 if old != new:
                     raise ParserError(
-                        "Endogenous variable '{}' defined twice:\n    {}\n    {}".format(
-                            self.name, old, new
-                        )
+                        f"Endogenous variable '{self.name}' defined twice:"
+                        f"\n    {old}\n    {new}"
                     )
 
             elif old is None and new is not None:
@@ -298,15 +299,13 @@ class Symbol(NamedTuple):
                 Type.ENDOGENOUS,
             ) or other.type not in (Type.VARIABLE, Type.EXOGENOUS, Type.ENDOGENOUS):
                 raise SymbolError(
-                    '''\
+                    f'''\
 Unable to combine the following pair of symbols:
- - {}
- - {}
+ - {self}
+ - {other}
 
 Variables cannot appear in the input script as both endogenous/exogenous
-variables and parameters/errors etc.'''.format(
-                        self, other
-                    )
+variables and parameters/errors etc.'''
                 )
 
             combined_type = max(self.type, other.type)
@@ -346,8 +345,8 @@ def split_equations_iter(model: str) -> Iterator[str]:
         hash_position = line.find('#')
         if hash_position == -1:
             return line
-        else:
-            return line[:hash_position].rstrip()
+
+        return line[:hash_position].rstrip()
 
     # Conditions for extracting a complete set of statements:
     #  - unmatched_parentheses = 0 : no incomplete bracket pairs (typically for continuation lines)
@@ -371,8 +370,9 @@ def split_equations_iter(model: str) -> Iterator[str]:
             if len(buffer) == 1:  # Opening code fence
                 complete_verbatim_block = False
                 continue
-            else:  # Closing code fence
-                complete_verbatim_block = True
+
+            # Closing code fence
+            complete_verbatim_block = True
 
         # Count unmatched parentheses
         for char in line:
@@ -408,13 +408,11 @@ def split_equations_iter(model: str) -> Iterator[str]:
                     # Not compatible with Python 3.6: `if isinstance(match, re.Match):`
                     if match is not None:
                         raise IndentationError(
-                            "Found unnecessary leading whitespace in equation: '{}'".format(
-                                equation
-                            )
+                            f"Found unnecessary leading whitespace in equation: '{equation}'"
                         )
 
                     # Otherwise, raise the general error
-                    raise ParserError("Failed to parse equation: '{}'".format(equation))
+                    raise ParserError(f"Failed to parse equation: '{equation}'")
 
                 yield equation
 
@@ -425,8 +423,8 @@ def split_equations_iter(model: str) -> Iterator[str]:
     # been an error in the input script's syntax. Throw an error
     if unmatched_parentheses != 0:
         raise ParserError(
-            'Failed to identify any equations in the following, '
-            'owing to unmatched brackets: {}'.format('\n'.join(buffer))
+            f"Failed to identify any equations in the following, "
+            f"owing to unmatched brackets: " + '\n'.join(buffer)
         )
 
 
@@ -461,9 +459,8 @@ def parse_terms(expression: str) -> List[Term]:
                 index = int(index_)
             except ValueError:
                 raise ParserError(
-                    "Unable to parse index '{}' of '{}' in '{}'".format(
-                        index_, match.group(0), expression
-                    )
+                    f"Unable to parse index '{index_}' of "
+                    f"'{match.group(0)}' in '{expression}'"
                 )
 
         return Term(name=groupdict[type_key], type=Type[type_key[1:]], index_=index)
@@ -491,21 +488,21 @@ def parse_equation_terms(equation: str) -> List[Term]:
     except ParserError:
         # Catch any parser errors at a term level and raise a further exception
         # to print the expression that failed
-        raise ParserError("Failed to parse left-hand side of: '{}'".format(equation))
+        raise ParserError(f"Failed to parse left-hand side of: '{equation}'")
 
     try:
         rhs_terms = [replace_type(t, Type.EXOGENOUS) for t in parse_terms(right)]
     except ParserError:
         # Catch any parser errors at a term level and raise a further exception
         # to print the expression that failed
-        raise ParserError("Failed to parse right-hand side of: '{}'".format(equation))
+        raise ParserError(f"Failed to parse right-hand side of: '{equation}'")
 
     if any(filter(lambda x: x.type == Type.KEYWORD, lhs_terms)) or any(
         filter(lambda x: x.type == Type.INVALID, rhs_terms)
     ):
         raise ParserError(
             'Equation uses one or more reserved Python keywords as variable '
-            'names - these keywords are invalid for this purpose: `{}`'.format(equation)
+            f'names - these keywords are invalid for this purpose: `{equation}`'
         )
 
     return lhs_terms + rhs_terms
@@ -522,8 +519,8 @@ def parse_equation(equation: str) -> List[Symbol]:
     equations = split_equations(equation)
     if len(equations) != 1:
         raise ParserError(
-            '`parse_equation()` expects a string that defines a single equation '
-            'but found {} instead'.format(len(equations))
+            f'`parse_equation()` expects a string that defines a single equation '
+            f'but found {len(equations)} instead'
         )
 
     # Insert verbatim code straight into a Symbol object and return
@@ -556,9 +553,8 @@ def parse_equation(equation: str) -> List[Symbol]:
 
         if count != 0:
             raise ParserError(
-                "Found incomplete brackets ('{}', '{}') in equation: {}".format(
-                    opening, closing, equation
-                )
+                f"Found incomplete brackets ('{opening}', '{closing}') "
+                f"in equation: {equation}"
             )
 
     # Extract the terms from the equation
@@ -572,7 +568,7 @@ def parse_equation(equation: str) -> List[Symbol]:
             continue
 
         start, end = match.span()
-        template = '{}{}{}'.format(template[:start], '{}', template[end:])
+        template = f'{template[:start]}{{}}{template[end:]}'
 
     template = re.sub(r'\s+',   ' ', template)  # Remove repeated whitespace
     template = re.sub(r'\(\s+', '(', template)  # Remove space after opening brackets
@@ -688,15 +684,13 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
                             break
                         else:
                             raise ParserError(
-                                'Unexpected warning (error) when parsing: {}\n    {}'.format(
-                                    statement, w[0]
-                                )
+                                f'Unexpected warning (error) when parsing: '
+                                f'{statement}\n    {w[0]}'
                             )
                     else:
                         raise ParserError(
-                            'Unexpected number of warnings (errors) when parsing: {}'.format(
-                                statement
-                            )
+                            f'Unexpected number of warnings (errors) '
+                            f'when parsing: {statement}'
                         )
 
         symbols_by_equation.append(equation_symbols)
@@ -707,13 +701,13 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
         # attempted equation
         lines = []
         for s in problem_statements:
-            line = '    {}:  {}\n'.format(*s[:2])
+            line = f'    {s[0]}:  {[1]}\n'
             line += ' ' * line.index(':')
             line += '-> ' + s[-1]
             lines.append(line)
 
         raise ParserError(
-            'Failed to parse the following {} statement(s):\n'.format(len(lines))
+            f'Failed to parse the following {len(lines)} statement(s):\n'
             + '\n'.join(lines)
         )
 
@@ -851,7 +845,7 @@ def build_model_definition(
     min_lags: int = 0,
     min_leads: int = 0,
     converter: Optional[Callable[[Symbol], str]] = None,
-    with_type_hints: bool = True
+    with_type_hints: bool = True,
 ) -> str:
     """Return a model class definition string from the contents of `symbols` (with type hints, by default).
 
@@ -1065,7 +1059,7 @@ def build_model(
     min_lags: int = 0,
     min_leads: int = 0,
     converter: Optional[Callable[[Symbol], str]] = None,
-    with_type_hints: bool = True
+    with_type_hints: bool = True,
 ) -> 'BaseModel':
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
 
@@ -1128,7 +1122,7 @@ def build_model(
         if failed_execs:
             raise BuildError(
                 'Failed to `exec`ute the following `Symbol` object(s):\n'
-                + '\n'.join('    {}'.format(x) for x in failed_execs)
+                + '\n'.join('    {x}' for x in failed_execs)
             )
 
     # Otherwise, if here, assign the original code to an attribute and return
