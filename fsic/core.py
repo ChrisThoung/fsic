@@ -821,7 +821,7 @@ class ModelInterface(VectorContainer):
                         message_suggestions.append(
                             f" - {name} : did you mean '{suggestions[0]}'?"
                         )
-                    elif len(suggestion) > 1:
+                    elif len(suggestions) > 1:
                         raise NotImplementedError(
                             'Handling of multiple name matches not yet implemented'
                         )
