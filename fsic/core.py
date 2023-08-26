@@ -1799,15 +1799,15 @@ class BaseLinker(SolverMixin, ModelInterface):
 
         # Check for a common span across submodels (error if not) and work out
         # the longest lags and leads
-        for name in identifiers:
+        for id_ in identifiers:
             # Check spans are identical
-            comparator = self.__dict__['submodels'][name]
+            comparator = self.__dict__['submodels'][id_]
             if comparator.span != base.span:
                 raise InitialisationError(
                     f'''\
 Spans of submodels differ:
  - '{base_name}', {len(base.span):,} period(s): {base.span}
- - '{name}', {len(comparator.span):,} period(s): {comparator.span}'''
+ - '{id_}', {len(comparator.span):,} period(s): {comparator.span}'''
                 )
 
             # Update longest lags and leads
