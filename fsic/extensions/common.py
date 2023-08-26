@@ -346,6 +346,27 @@ class AliasMixin:
 
 
 class ProgressBarMixin:
+    """Mixin to add an (optional) `tqdm` progress bar during solution. **Requires `tqdm`**
+
+    Examples
+    --------
+    Add the mixin to the model class definition:
+
+        from fsic import BaseModel
+        from fsic.extensions import ProgressBarMixin
+
+        class ExampleModel(ProgressBarMixin, BaseModel):
+            ...
+
+    By default, behaviour is unchanged:
+
+    >>> model = ExampleModel(range(10))
+    >>> model.solve()
+
+    Passing `progress_bar=True` will print a `tqdm` progress bar to the screen:
+    >>> model.solve(progress_bar=True)
+    """
+
     def iter_periods(self, *args, progress_bar: bool = False, **kwargs):
         """Modified `iter_periods()` method: Display a `tqdm` progress bar if `progress_bar=True`. **Requires `tqdm`**"""
         # Get the original `PeriodIter` object
