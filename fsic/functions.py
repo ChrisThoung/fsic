@@ -68,9 +68,14 @@ def diff(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
         differenced[d:] = fill_value
         return differenced
 
+def dlog(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
+    """Return the `d`th difference of `log(x)`: `log(x) - log(x[-d])`."""
+    return diff(log(x), d=d, fill_value=fill_value)
+
 
 builtins = {
     'diff': diff,
+    'dlog': dlog,
     'exp': exp,
     'lag': lag,
     'lead': lead,

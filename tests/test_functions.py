@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 from fsic.core import VectorContainer
-from fsic.functions import diff, lag, lead
+from fsic.functions import diff, dlog, lag, lead
 
 
 class TestFunctions(unittest.TestCase):
@@ -50,6 +50,16 @@ class TestFunctions(unittest.TestCase):
         self.assertTrue(np.array_equal(diff(x, 2),
                                        np.array([np.nan, np.nan, 2.0, 2.0, 2.0], dtype=float),
                                        equal_nan=True))
+
+    def test_dlog(self):
+        # Check difference of log operations
+        x = np.arange(1, 5 + 1, dtype=float) ** 2
+
+        self.assertTrue(np.isnan(dlog(x)[0]))
+        self.assertTrue(np.allclose(dlog(x)[1:], np.array([np.log(4) - np.log(1),
+                                                           np.log(9) - np.log(4),
+                                                           np.log(16) - np.log(9),
+                                                           np.log(25) - np.log(16)])))
 
 
 class TestFunctionsEval(unittest.TestCase):
