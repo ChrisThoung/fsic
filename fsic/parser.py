@@ -103,6 +103,7 @@ import itertools
 import keyword
 import re
 import textwrap
+import warnings
 from typing import (
     Any,
     Callable,
@@ -114,12 +115,10 @@ from typing import (
     Optional,
     Tuple,
 )
-import warnings
 
 import numpy as np
 
 from .exceptions import BuildError, ParserError, SymbolError
-
 
 # Compiled regular expressions ------------------------------------------------
 

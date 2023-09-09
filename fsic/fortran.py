@@ -12,6 +12,8 @@ from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+from fsic import __version__
+
 from .core import BaseModel, SolutionStatus
 from .exceptions import (
     FortranEngineError,
@@ -20,10 +22,6 @@ from .exceptions import (
     SolutionError,
 )
 from .parser import Symbol, Type
-
-
-from fsic import __version__
-
 
 # Class implementing interface to Fortran code --------------------------------
 

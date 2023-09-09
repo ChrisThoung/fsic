@@ -11,13 +11,13 @@ Base classes:
   multi-region/entity model
 """
 
-from collections import Counter
 import copy
 import difflib
 import enum
 import re
-from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
 import warnings
+from collections import Counter
+from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -29,9 +29,8 @@ from .exceptions import (
     SolutionError,
 )
 from .functions import builtins as _builtins
-from .tools import model_to_dataframe as _model_to_dataframe
 from .tools import linker_to_dataframes as _linker_to_dataframes
-
+from .tools import model_to_dataframe as _model_to_dataframe
 
 # Labelled container for vector data (1D NumPy arrays) ------------------------
 
@@ -2161,9 +2160,7 @@ Spans of submodels differ:
             if iteration < min_iter:
                 continue
 
-            diff = {
-                k: current_values[k] - previous_values[k] for k in current_values
-            }
+            diff = {k: current_values[k] - previous_values[k] for k in current_values}
             diff_squared = {k: v**2 for k, v in diff.items()}
 
             if all(np.all(v < tol) for v in diff_squared.values()):

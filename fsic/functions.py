@@ -7,8 +7,8 @@ Operations (as functions) on NumPy arrays.
 
 from typing import Any
 
-from numpy import exp, log
 import numpy as np
+from numpy import exp, log
 
 
 def shift(x: np.ndarray, p: int, *, fill_value: Any = np.nan) -> np.ndarray:
@@ -67,6 +67,7 @@ def diff(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
         differenced = x - lead(x, d, fill_value=fill_value)
         differenced[d:] = fill_value
         return differenced
+
 
 def dlog(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
     """Return the `d`th difference of `log(x)`: `log(x) - log(x[-d])`."""

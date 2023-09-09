@@ -7,8 +7,7 @@ for dependencies additional to those of `fsic`.
 import re
 from typing import Any, Dict, Hashable, List
 
-from .parser import Symbol, Type
-from .parser import term_re
+from .parser import Symbol, Type, term_re
 
 
 def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':
