@@ -484,17 +484,17 @@ def parse_equation_terms(equation: str) -> List[Term]:
 
     try:
         lhs_terms = [replace_type(t, Type.ENDOGENOUS) for t in parse_terms(left)]
-    except ParserError:
+    except ParserError as e:
         # Catch any parser errors at a term level and raise a further exception
         # to print the expression that failed
-        raise ParserError(f"Failed to parse left-hand side of: '{equation}'")
+        raise ParserError(f"Failed to parse left-hand side of: '{equation}'") from e
 
     try:
         rhs_terms = [replace_type(t, Type.EXOGENOUS) for t in parse_terms(right)]
-    except ParserError:
+    except ParserError as e:
         # Catch any parser errors at a term level and raise a further exception
         # to print the expression that failed
-        raise ParserError(f"Failed to parse right-hand side of: '{equation}'")
+        raise ParserError(f"Failed to parse right-hand side of: '{equation}'") from e
 
     if any(filter(lambda x: x.type == Type.KEYWORD, lhs_terms)) or any(
         filter(lambda x: x.type == Type.INVALID, rhs_terms)
