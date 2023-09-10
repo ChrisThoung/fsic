@@ -25,8 +25,8 @@ import copy
 import functools
 import keyword
 import math
-import unittest
 import sys
+import unittest
 
 import numpy as np
 
@@ -765,8 +765,8 @@ H = H[-1] + YD - C
     def test_from_dataframe_timeseries_indexes(self):
         # Test instantiation from a `pandas` DataFrame (if installed),
         # preserving time-series indexes as `pandas` objects
-        from pandas import DataFrame
         import pandas as pd
+        from pandas import DataFrame
 
         test_cases = {
             'DatetimeIndex': pd.date_range(start='01/01/2000', periods=269, freq='M'),
