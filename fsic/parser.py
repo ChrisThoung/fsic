@@ -452,15 +452,16 @@ def parse_terms(expression: str) -> List[Term]:
         index_ = groupdict['INDEX']
         if type_key not in ('_FUNCTION', '_KEYWORD'):
             if index_ is None:
-                index_ = '0'
+                index = 0
 
-            try:
-                index = int(index_)
-            except ValueError:
-                raise ParserError(
-                    f"Unable to parse index '{index_}' of "
-                    f"'{match.group(0)}' in '{expression}'"
-                )
+            else:
+                try:
+                    index = int(index_)
+                except ValueError:
+                    raise ParserError(
+                        f"Unable to parse index '{index_}' of "
+                        f"'{match.group(0)}' in '{expression}'"
+                    )
 
         return Term(name=groupdict[type_key], type=Type[type_key[1:]], index_=index)
 
