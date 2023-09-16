@@ -13,6 +13,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Added new `functions` module for operations on NumPy arrays.
 - Added support for `functions` as standard in `eval()`.
+- Added support for named periods in `parser` model definitions (currently for
+  integers/years only).
 - Added exception chaining in `parser`.
 - Improved error messages when `strict=True`, to suggest alternative variables
   (similar to improved error messages in Python 3.10 onwards).

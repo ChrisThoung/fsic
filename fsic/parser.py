@@ -114,6 +114,7 @@ from typing import (
     NamedTuple,
     Optional,
     Tuple,
+    Union,
 )
 
 import numpy as np
@@ -218,16 +219,16 @@ class Term(NamedTuple):
 
     name: str
     type: Type
-    index_: Optional[int]
+    index_: Optional[Union[int, str]]
 
     def __str__(self) -> str:
         """Standardised representation of the term."""
-        expression = self.name
+        # If a function, keyword or verbatim block, just return the name
+        if self.type in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM):
+            return self.name
 
-        # If neither a function, keyword or verbatim block, add the index
-        if self.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM):
-            assert self.index_ is not None
-
+        # Otherwise, process and add the index
+        if isinstance(self.index_, int):
             if self.index_ > 0:
                 index = f'[t+{self.index_}]'
             elif self.index_ == 0:
@@ -235,9 +236,13 @@ class Term(NamedTuple):
             else:
                 index = f'[t{self.index_}]'
 
-            expression += index
+            return self.name + index
 
-        return expression
+        if isinstance(self.index_, str):
+            return f"{self.name}[{self.index_}]"
+
+        raise TypeError(f'Type of `self.index_` is {type(self.index_)} '
+                        'but expected either `int` or `str`')
 
     @property
     def code(self) -> str:
@@ -247,17 +252,18 @@ class Term(NamedTuple):
         # If a function or a keyword, update the name; otherwise amend to be an
         # object attribute
         if self.type in (Type.FUNCTION, Type.KEYWORD):
-            code = replacement_function_names.get(code, code)
+            return replacement_function_names.get(code, code)
 
         # If a block of verbatim code, drop the enclosing backticks
-        elif self.type in (Type.VERBATIM,):
-            code = code.strip('`')
+        if self.type in (Type.VERBATIM,):
+            return code.strip('`')
+
+        # If the index is a string, treat as a named period
+        if isinstance(self.index_, str):
+            return f"self['{self.name}', {self.index_}]"
 
         # Otherwise, access as a regular internal variable
-        else:
-            code = 'self._' + code
-
-        return code
+        return 'self._' + code
 
 
 class Symbol(NamedTuple):
@@ -309,17 +315,23 @@ variables and parameters/errors etc.'''
 
             combined_type = max(self.type, other.type)
 
-        if self.lags is None:
-            assert other.lags is None
-            lags = None
-        else:
-            lags = min(self.lags, other.lags, 0)
+        def resolve_by_type_pair(this, that, function) -> Optional[Union[int, str]]:
+            """Resolve the longest lag or lead according to the types of `this` and `that` (using `function()` if both are integers)."""
+            types = type(this), type(that)
 
-        if self.leads is None:
-            assert other.leads is None
-            leads = None
-        else:
-            leads = max(self.leads, other.leads, 0)
+            if types == (type(None), type(None)):
+                outcome = None
+            elif types == (int, int):
+                outcome = function(this, that, 0)
+            elif types == (str, str):
+                outcome = 0
+            else:
+                raise TypeError(f'Unhandled pair of types: {str(types)}')
+
+            return outcome
+
+        lags = resolve_by_type_pair(self.lags, other.lags, min)
+        leads = resolve_by_type_pair(self.leads, other.leads, max)
 
         equation = resolve_strings(self.equation, other.equation)
         code = resolve_strings(self.code, other.code)
@@ -447,12 +459,15 @@ def parse_terms(expression: str) -> List[Term]:
         type_key = type_key_list[0]
 
         # Add implicit index (0) to non-function terms
-        index: Optional[int] = None
+        index: Optional[Union[int, str]] = None
 
         index_ = groupdict['INDEX']
         if type_key not in ('_FUNCTION', '_KEYWORD'):
             if index_ is None:
                 index = 0
+
+            elif index_.startswith('`') and index_.endswith('`'):
+                index = index_[1:-1]
 
             else:
                 try:
