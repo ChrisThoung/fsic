@@ -463,16 +463,21 @@ def parse_terms(expression: str) -> List[Term]:
 
         index_ = groupdict['INDEX']
         if type_key not in ('_FUNCTION', '_KEYWORD'):
+            # 1. No index (e.g. 'C'): Assume 0 (contemporaneous)
             if index_ is None:
                 index = 0
 
+            # 2. Quoted period (e.g. 'C['2000']): Leave unchanged (as a string)
             elif ((index_.startswith("'") and index_.endswith("'")) or
                   (index_.startswith('"') and index_.endswith('"'))):
                 index = index_
 
+            # 3. Verbatim index (e.g. 'C[`2000`], to handle an integer period):
+            #    Strip backticks but retain as a string
             elif index_.startswith('`') and index_.endswith('`'):
                 index = index_[1:-1]
 
+            # 4. Anything else: Convert to `int`
             else:
                 try:
                     index = int(index_)
