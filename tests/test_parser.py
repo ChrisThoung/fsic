@@ -63,6 +63,31 @@ class TestParserPeriodIndexing(unittest.TestCase):
             np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         ))
 
+    def test_period_index_resolution(self):
+        # Check that the user can specify labelled periods as strings and that
+        # these resolve correctly when compared against standard variable
+        # indexes e.g. 'C' versus 'C['2000Q1']', which should give a `lags`
+        # value of 0
+        test_input = "Ci = C / C['2000Q1']"
+
+        # Check symbols are generated correctly
+        expected = [
+            fsic.parser.Symbol(name='Ci',
+                               type=fsic.parser.Type.ENDOGENOUS,
+                               lags=0,
+                               leads=0,
+                               equation="Ci[t] = C[t] / C['2000Q1']", code="self._Ci[t] = self._C[t] / self['C', '2000Q1']"),
+            fsic.parser.Symbol(name='C',
+                               type=fsic.parser.Type.EXOGENOUS,
+                               lags=0,
+                               leads=0,
+                               equation=None,
+                               code=None)
+        ]
+
+        symbols = fsic.parse_model(test_input)
+        self.assertEqual(symbols, expected)
+
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_period_index_pandas(self):
         # Check that the user can specify labelled periods as strings (`pandas`

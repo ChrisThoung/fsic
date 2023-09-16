@@ -325,6 +325,10 @@ variables and parameters/errors etc.'''
                 outcome = function(this, that, 0)
             elif types == (str, str):
                 outcome = 0
+            elif types == (int, str):
+                outcome = this
+            elif types == (str, int):
+                outcome = that
             else:
                 raise TypeError(f'Unhandled pair of types: {str(types)}')
 
