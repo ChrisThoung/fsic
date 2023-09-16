@@ -466,6 +466,10 @@ def parse_terms(expression: str) -> List[Term]:
             if index_ is None:
                 index = 0
 
+            elif ((index_.startswith("'") and index_.endswith("'")) or
+                  (index_.startswith('"') and index_.endswith('"'))):
+                index = index_
+
             elif index_.startswith('`') and index_.endswith('`'):
                 index = index_[1:-1]
 
