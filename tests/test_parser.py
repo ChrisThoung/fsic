@@ -106,6 +106,57 @@ class TestParserPeriodIndexing(unittest.TestCase):
             np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         ))
 
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_period_index_pandas_year(self):
+        # Check that the parser supports year indexes even if the frequency is
+        # something other than annual (not advisable but, in principle, this is
+        # a behaviour that would be consistent with period indexing in a
+        # `fsic`-based model...)
+        test_input = "Cb = sum(C['2000']) / 4"
+
+        # Check symbols are generated correctly
+        expected = [
+            fsic.parser.Symbol(name='Cb',
+                               type=fsic.parser.Type.ENDOGENOUS,
+                               lags=0,
+                               leads=0,
+                               equation="Cb[t] = sum(C['2000']) / 4", code="self._Cb[t] = sum(self['C', '2000']) / 4"),
+            fsic.parser.Symbol(name='sum',
+                               type=fsic.parser.Type.FUNCTION,
+                               lags=None,
+                               leads=None,
+                               equation=None,
+                               code=None),
+            fsic.parser.Symbol(name='C',
+                               type=fsic.parser.Type.EXOGENOUS,
+                               lags=0,
+                               leads=0,
+                               equation=None,
+                               code=None)
+        ]
+
+        symbols = fsic.parse_model(test_input)
+        self.assertEqual(symbols, expected)
+
+        # Create a model class definition
+        Model = fsic.build_model(symbols)
+
+        # Solve the model
+        model = Model(pd.period_range(start='2000Q1', end='2001Q2', freq='Q'))
+
+        model['C', '2000'] = 10
+        model.solve(start='2000Q2')
+
+        # Check results are as expected
+        self.assertTrue(np.allclose(
+            model.Cb,
+            np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
+        ))
+        self.assertTrue(np.allclose(
+            model.C,
+            np.array([10.0, 10.0, 10.0, 10.0, 0.0, 0.0])
+        ))
+
     def test_period_index_verbatim(self):
         # Check that the user can specify integer periods by enclosing them in
         # backticks
