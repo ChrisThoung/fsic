@@ -65,7 +65,8 @@ class TestParserPeriodIndexing(unittest.TestCase):
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_period_index_pandas(self):
-        # Check that the user can specify labelled periods as strings
+        # Check that the user can specify labelled periods as strings (`pandas`
+        # variant)
         test_input = "Cb = C['2000Q1']"
 
         # Check symbols are generated correctly
