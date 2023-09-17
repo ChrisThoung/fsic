@@ -5,7 +5,9 @@ for dependencies additional to those of `fsic`.
 """
 
 import re
-from typing import Any, Dict, Hashable, List
+from typing import Any, Dict, Hashable, List, Optional
+
+import numpy as np
 
 from .parser import Symbol, Type, term_re
 
@@ -29,11 +31,21 @@ def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:
     --------
     fsic.tools.symbols_to_dataframe()
     """
+    def convert_to_int_or_none(field: Any) -> Optional[int]:
+        """Convert NaNs to `None`; `int` otherwise."""
+        if np.isnan(field):
+            return None
+        return int(field)
+
     symbols = []
 
     for _, row in table.iterrows():
         entry = dict(row)
+
         entry['type'] = Type(entry['type'])  # Convert to `enum`erated variable type
+        entry['lags'] = convert_to_int_or_none(entry['lags'])
+        entry['leads'] = convert_to_int_or_none(entry['leads'])
+
         symbols.append(Symbol(**entry))
 
     return symbols

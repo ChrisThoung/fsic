@@ -22,18 +22,18 @@ except ModuleNotFoundError:
 @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
 class TestPandasFunctions(unittest.TestCase):
 
-    SYMBOLS = fsic.parse_model('Y = C + G')
+    SYMBOLS = fsic.parse_model('Y = C + float(G)')  # `float` has no material effect: Added just to have a function in the example
     MODEL = fsic.build_model(SYMBOLS)
 
     def test_symbols_to_dataframe(self):
         result = fsic.tools.symbols_to_dataframe(self.SYMBOLS)
         expected = pd.DataFrame({
-            'name': ['Y', 'C', 'G'],
-            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.EXOGENOUS],
-            'lags': 0,
-            'leads': 0,
-            'equation': ['Y[t] = C[t] + G[t]', None, None],
-            'code': ['self._Y[t] = self._C[t] + self._G[t]', None, None],
+            'name': ['Y', 'C', 'float', 'G'],
+            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.FUNCTION, fsic.parser.Type.EXOGENOUS],
+            'lags': [0, 0, None, 0],
+            'leads': [0, 0, None, 0],
+            'equation': ['Y[t] = C[t] + float(G[t])', None, None, None],
+            'code': ['self._Y[t] = self._C[t] + float(self._G[t])', None, None, None],
         })
 
         pd.testing.assert_frame_equal(result, expected)
@@ -42,12 +42,12 @@ class TestPandasFunctions(unittest.TestCase):
         # Check by way of a roundtrip: symbols -> DataFrame -> symbols
         result = fsic.tools.symbols_to_dataframe(self.SYMBOLS)
         expected = pd.DataFrame({
-            'name': ['Y', 'C', 'G'],
-            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.EXOGENOUS],
-            'lags': 0,
-            'leads': 0,
-            'equation': ['Y[t] = C[t] + G[t]', None, None],
-            'code': ['self._Y[t] = self._C[t] + self._G[t]', None, None],
+            'name': ['Y', 'C', 'float', 'G'],
+            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.FUNCTION, fsic.parser.Type.EXOGENOUS],
+            'lags': [0, 0, None, 0],
+            'leads': [0, 0, None, 0],
+            'equation': ['Y[t] = C[t] + float(G[t])', None, None, None],
+            'code': ['self._Y[t] = self._C[t] + float(self._G[t])', None, None, None],
         })
 
         # Initial (i.e. pre-)check only
