@@ -31,6 +31,7 @@ def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:
     --------
     fsic.tools.symbols_to_dataframe()
     """
+
     def convert_to_int_or_none(field: Any) -> Optional[int]:
         """Convert NaNs to `None`; `int` otherwise."""
         if np.isnan(field):
@@ -61,7 +62,7 @@ def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
     for e in equations:
         lhs, rhs = e.split('=', maxsplit=1)
         endogenous = [m.group(0) for m in term_re.finditer(lhs)]
-        exogenous =  [m.group(0) for m in term_re.finditer(rhs)]
+        exogenous  = [m.group(0) for m in term_re.finditer(rhs)]
 
         # Add the equations as node properties
         G.add_nodes_from(endogenous, equation=e)

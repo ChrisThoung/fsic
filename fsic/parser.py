@@ -241,8 +241,10 @@ class Term(NamedTuple):
         if isinstance(self.index_, str):
             return f"{self.name}[{self.index_}]"
 
-        raise TypeError(f'Type of `self.index_` is {type(self.index_)} '
-                        'but expected either `int` or `str`')
+        raise TypeError(
+            f'Type of `self.index_` is {type(self.index_)} '
+            'but expected either `int` or `str`'
+        )
 
     @property
     def code(self) -> str:
@@ -472,8 +474,9 @@ def parse_terms(expression: str) -> List[Term]:
                 index = 0
 
             # 2. Quoted period (e.g. 'C['2000']): Leave unchanged (as a string)
-            elif ((index_.startswith("'") and index_.endswith("'")) or
-                  (index_.startswith('"') and index_.endswith('"'))):
+            elif (index_.startswith("'") and index_.endswith("'")) or (
+                index_.startswith('"') and index_.endswith('"')
+            ):
                 index = index_
 
             # 3. Verbatim index (e.g. 'C[`2000`], to handle an integer period):
@@ -1033,6 +1036,7 @@ if _ > 0:  # Ignore negative values
         s for s in symbols if s.type not in (Type.FUNCTION, Type.KEYWORD, Type.VERBATIM)
     ]
 
+    # TODO: Force to int here?
     if lags is None:
         if len(non_indexed_symbols) > 0:
             lags = abs(min(s.lags for s in non_indexed_symbols))
@@ -1041,6 +1045,7 @@ if _ > 0:  # Ignore negative values
 
         lags = max(lags, min_lags)
 
+    # TODO: Force to int here?
     if leads is None:
         if len(non_indexed_symbols) > 0:
             leads = abs(max(s.leads for s in non_indexed_symbols))
