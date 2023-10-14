@@ -19,6 +19,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   (similar to improved error messages in Python 3.10 onwards).
 - Added `try...except` to catch indexing errors in
   `VectorContainer._locate_period_in_span()`, to then raise as `KeyError`s.
+- Added new `TracerMixin` extension for `BaseModel`-derived classes, to track
+  iteration-by-iteration variable results.
 
 ### Changed
 
