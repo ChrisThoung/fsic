@@ -141,8 +141,6 @@ def linker_to_dataframes(
     --------
     fsic.core.BaseLinker.to_dataframes()
     """
-    from pandas import DataFrame
-
     results = {linker.name: linker.to_dataframe(status=status, iterations=iterations)}
 
     for name, model in linker.submodels.items():
