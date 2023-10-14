@@ -147,5 +147,107 @@ H = H[-1] + YD - C
                           'iterations'])
 
 
+class TestTracerMixin(unittest.TestCase):
+
+    SCRIPT = '''\
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+    '''
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    SIM = fsic.build_model(SYMBOLS)
+
+    class Model(fsic.extensions.model.TracerMixin, SIM):
+        pass
+
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_solve_trace_all(self):
+        # Test `solve()` method with default trace settings
+
+        from pandas.testing import assert_frame_equal
+
+        # Standard model (to compare final results)
+        model_without_trace = self.SIM(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model_without_trace.solve()
+
+        # Model with trace
+        model_with_trace = self.Model(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+
+        # Check all `Trace` objects are empty
+        for period in model_with_trace.span:
+            with self.subTest(period=period):
+                self.assertTrue(model_with_trace['trace', period].is_empty())
+
+        # Solve model
+        model_with_trace.solve(trace=True)
+
+        # Check solved `Trace` objects are non-empty
+        for _, period in model_with_trace.iter_periods():
+            with self.subTest(period=period):
+                self.assertFalse(model_with_trace['trace', period].is_empty())
+
+        # Check that the model results are the same, with and without the trace
+        assert_frame_equal(model_with_trace.to_dataframe(),
+                           model_without_trace.to_dataframe())
+
+        # Check the `Trace` results
+        results = model_with_trace['trace', 5].to_dataframe()
+
+        self.assertTrue(np.allclose(results['alpha_1'], 0.6))
+        self.assertTrue(np.allclose(results['alpha_2'], 0.4))
+
+        self.assertTrue(np.allclose(results['G'], 20.0))
+        self.assertTrue(np.allclose(results['theta'], 0.2))
+
+        self.assertTrue(
+            np.allclose(results.loc[['start', 'before', 0], ['C', 'YD', 'H', 'Y', 'T']],
+                        0.0)
+        )
+        self.assertTrue(
+            np.allclose(results.loc[1, ['C', 'YD', 'H', 'Y', 'T']],
+                        [15.59609257, 0, 23.39413886, 35.59609257, 7.119218515])
+        )
+        self.assertTrue(
+            np.allclose(results.loc[74, ['C', 'YD', 'H', 'Y', 'T']],
+                        [48.45402418, 54.76321934, 45.2994266, 68.45402418, 13.69080484])
+        )
+        self.assertTrue(
+            np.allclose(results.loc['end', ['C', 'YD', 'H', 'Y', 'T']],
+                        [48.45402418, 54.76321934, 45.2994266, 68.45402418, 13.69080484])
+        )
+
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_solve_trace_off(self):
+        # Test `solve()` method with trace off
+
+        from pandas.testing import assert_frame_equal
+
+        # Standard model (to compare final results)
+        model_without_trace = self.SIM(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model_without_trace.solve()
+
+        # Model with trace
+        model_with_trace = self.Model(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+
+        # Check all `Trace` objects are empty
+        for period in model_with_trace.span:
+            with self.subTest(period=period):
+                self.assertTrue(model_with_trace['trace', period].is_empty())
+
+        # Solve model
+        model_with_trace.solve()  # Default is trace off
+
+        # Check all `Trace` objects are still empty
+        for period in model_with_trace.span:
+            with self.subTest(period=period):
+                self.assertTrue(model_with_trace['trace', period].is_empty())
+
+        # Check that the model results are the same, with and without the trace
+        assert_frame_equal(model_with_trace.to_dataframe(),
+                           model_without_trace.to_dataframe())
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -17,6 +17,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Added exception chaining in `parser`.
 - Improved error messages when `strict=True`, to suggest alternative variables
   (similar to improved error messages in Python 3.10 onwards).
+- Added new `TracerMixin` extension for `BaseModel`-derived classes, to track
+  iteration-by-iteration variable results.
 
 ### Changed
 

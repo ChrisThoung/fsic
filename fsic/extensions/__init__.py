@@ -4,3 +4,4 @@ Mixins to extend the functionality of the core model and linker classes.
 """
 
 from .common import *
+from .model import *
