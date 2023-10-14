@@ -275,7 +275,11 @@ class VectorContainer:
         for method in self._VALID_INDEX_METHODS:
             if hasattr(self.__dict__['span'], method):
                 index_function = getattr(self.__dict__['span'], method)
-                return index_function(period)
+
+                try:
+                    return index_function(period)
+                except Exception as e:
+                    raise KeyError(period) from e
 
         raise AttributeError(
             f'Unable to find valid search method in `span`; '

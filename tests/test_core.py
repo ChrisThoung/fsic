@@ -393,6 +393,29 @@ B = f(<C>, D)   # But here, C is an error
 
 class TestVectorContainer(unittest.TestCase):
 
+    def test_locate_period_in_span_error(self):
+        # Check that non-existent index keys raise an error
+        container = fsic.core.VectorContainer(range(5 + 1))
+        for i, a in enumerate('ABC'):
+            container.add_variable(a, i, dtype=float)
+
+        container['A', 5]  # This should work fine
+
+        with self.assertRaises(KeyError):
+            container['A', 6]
+
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_locate_period_in_span_pandas(self):
+        # Check that non-existent index keys raise an error
+        container = fsic.core.VectorContainer(pd.period_range(start='2000-01-01', end='2005-12-31', freq='Q'))
+        for i, a in enumerate('ABC'):
+            container.add_variable(a, i, dtype=float)
+
+        container['A', '2005']    # This should work fine
+
+        with self.assertRaises(KeyError):
+            container['A', '2006']
+
     def test_size(self):
         # Check that `size` returns the total number of array elements
         container = fsic.core.VectorContainer(range(20, 30))
