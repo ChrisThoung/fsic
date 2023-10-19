@@ -78,7 +78,7 @@ with open('sim_fortran.f95', 'w') as f:
     f.write(fortran_code)
 
 # Compile the Fortran code
-output = subprocess.run(['f2py', '-c', 'sim_fortran.f95', '-m', 'sim_fortran'],
+output = subprocess.run(['f2py', '-c', 'sim_fortran.f95', '--clean', '-m', 'sim_fortran'],
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output.check_returncode()
 
