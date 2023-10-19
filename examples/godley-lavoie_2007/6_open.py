@@ -203,7 +203,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Reproduce figures from Godley and Lavoie (2007)
     _, axes = plt.subplots(2, 3, figsize=(24, 14))
-    plt.suptitle('Model $\it{OPEN}$: Rejecting the Mundell–Fleming approach and adopting the compensation approach')
+    plt.suptitle(r'Model $\it{OPEN}$: Rejecting the Mundell–Fleming approach and adopting the compensation approach')
 
     # Figure 6.8: Evolution of GDP in the North and in the South countries,
     #             following an increase in the South propensity to import

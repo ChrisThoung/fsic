@@ -178,7 +178,7 @@ if __name__ == '__main__':
 
     # Reproduce the figures from Godley and Lavoie (2007) ---------------------
     _, axes = plt.subplots(1, 3, figsize=(24, 8))
-    plt.suptitle('Model $\it{DIS}$: Disequilibrium (of a kind) in the goods market')
+    plt.suptitle(r'Model $\it{DIS}$: Disequilibrium (of a kind) in the goods market')
 
     # Figure 9.1: Evolution of (Haig–Simons) real disposable income and of real
     #             consumption, following a one-shot increase in the costing
@@ -190,7 +190,7 @@ if __name__ == '__main__':
 
     axes[0].set_xlim(1955, 2000)
     axes[0].legend()
-    axes[0].set_title('Figure 9.1: Income and consumption effects of a one-shot\nincrease in the costing margin, $\phi$')
+    axes[0].set_title(r'Figure 9.1: Income and consumption effects of a one-shot\nincrease in the costing margin, $\phi$')
 
     # Figure 9.2: Evolution of (Haig–Simons) real disposable income and of real
     #             consumption, following an increase in the target inventories
@@ -202,7 +202,7 @@ if __name__ == '__main__':
 
     axes[1].set_xlim(1955, 2000)
     axes[1].legend()
-    axes[1].set_title('Figure 9.2: Income and consumption effects of an\nincrease in the target inventories-to-sales ratio, $\sigma^T$')
+    axes[1].set_title(r'Figure 9.2: Income and consumption effects of an\nincrease in the target inventories-to-sales ratio, $\sigma^T$')
 
     # Figure 9.3: Evolution of the desired increase in physical inventories and
     #             of the change in realized inventories, following an increase
@@ -216,6 +216,6 @@ if __name__ == '__main__':
 
     axes[2].set_xlim(1955, 2000)
     axes[2].legend()
-    axes[2].set_title('Figure 9.3: Inventory effects of an increase\nin the target inventories-to-sales ratio, $\sigma^T$')
+    axes[2].set_title(r'Figure 9.3: Inventory effects of an increase\nin the target inventories-to-sales ratio, $\sigma^T$')
 
     plt.savefig('figures-9.1t9.3.png')

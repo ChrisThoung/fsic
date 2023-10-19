@@ -232,7 +232,7 @@ if __name__ == '__main__':
 
     # Set up plot area
     _, axes = plt.subplots(4, 2, figsize=(12, 20))
-    plt.suptitle('Experiments with Model $\it{REG}$')
+    plt.suptitle(r'Experiments with Model $\it{REG}$')
 
     # Create individual plots
     make_scenario_charts(*axes[0], imports_results, baseline_results)

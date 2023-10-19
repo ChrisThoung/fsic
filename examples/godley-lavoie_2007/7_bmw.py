@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Reproduce the figures from Godley and Lavoie (2007)
     _, axes = plt.subplots(2, 4, figsize=(24, 12))
-    plt.suptitle('Model $\it{BMW}$: A simple model with private bank money')
+    plt.suptitle(r'Model $\it{BMW}$: A simple model with private bank money')
 
     axes[0, 0].set_ylabel('Increase in autonomous consumption expenditures')
     axes[1, 0].set_ylabel('Increase in the propensity to save')
