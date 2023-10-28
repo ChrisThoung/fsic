@@ -3,11 +3,11 @@
 Mixins to extend the functionality of the core model class.
 """
 
-from typing import Any, Hashable, Optional, Sequence, Union
+from typing import Any, Hashable, List, Optional, Sequence, Union
 
 import numpy as np
 
-from ..exceptions import DimensionError
+from ..exceptions import DimensionError, DuplicateNameError
 
 
 class Trace:
@@ -66,7 +66,7 @@ class Trace:
             # array
             self.values = np.hstack([self.values, values.reshape((-1, 1))])
 
-    def to_dataframe(self) -> 'DataFrame':
+    def to_dataframe(self) -> 'pandas.DataFrame':
         """Return a `DataFrame` of the current object's contents."""
         from pandas import DataFrame
 

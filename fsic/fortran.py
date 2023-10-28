@@ -14,7 +14,7 @@ import numpy as np
 
 from fsic import __version__
 
-from .core import BaseModel, SolutionStatus
+from .core import SolutionStatus
 from .exceptions import (
     FortranEngineError,
     InitialisationError,

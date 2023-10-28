@@ -98,6 +98,8 @@ original code is accessible using the `CODE` attribute
 (e.g. `Model.CODE`). Otherwise, the attribute is `None`.
 """
 
+# `noqa` comments below avoid linters mistakenly finding imports needed for
+# `exec` calls in this module
 import enum
 import itertools
 import keyword
@@ -105,7 +107,7 @@ import re
 import textwrap
 import warnings
 from typing import (
-    Any,
+    Any,         # noqa: F401
     Callable,
     Dict,
     Iterator,
@@ -117,7 +119,7 @@ from typing import (
     Union,
 )
 
-import numpy as np
+import numpy as np  # noqa: F401
 
 from .exceptions import BuildError, ParserError, SymbolError
 
@@ -1126,7 +1128,7 @@ def build_model(
     then raises a `BuildError`, printing any `Symbol`s that failed to
     `exec`ute.
     """
-    from .core import BaseModel
+    from .core import BaseModel  # noqa: F401
 
     # Construct the class definition
     model_definition_string = build_model_definition(
