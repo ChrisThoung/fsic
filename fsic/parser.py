@@ -442,8 +442,8 @@ def split_equations_iter(model: str) -> Iterator[str]:
     # been an error in the input script's syntax. Throw an error
     if unmatched_parentheses != 0:
         raise ParserError(
-            f"Failed to identify any equations in the following, "
-            f"owing to unmatched brackets: " + '\n'.join(buffer)
+            'Failed to identify any equations in the following, '
+            'owing to unmatched brackets: ' + '\n'.join(buffer)
         )
 
 
