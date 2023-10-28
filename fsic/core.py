@@ -313,7 +313,7 @@ class VectorContainer:
             # Only extend the limit for a regular index (`pandas`, for example,
             # already adjusts for this in its own API)
             # TODO: Check how generally this treatment applies i.e. beyond
-            # `pandas`
+            #       `pandas`
             stop_location += 1
 
         return start_location, stop_location, step
