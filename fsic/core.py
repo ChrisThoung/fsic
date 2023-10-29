@@ -583,6 +583,14 @@ class VectorContainer:
         index_re = re.compile(r'\[\s*(.+?)?\s*\]')
         return index_re.sub(resolve_indexes, expression)
 
+    def to_dataframe(self) -> 'pandas.DataFrame':
+        """Return the contents of the container as a `pandas` DataFrame, one column per variable. **Requires `pandas`**."""
+        from pandas import DataFrame
+
+        # NB Take variables one at a time, rather than use `self.values`. This
+        #    preserves the dtypes of the individual series.
+        return DataFrame({k: self[k] for k in self.index}, index=self.span)
+
     def eval(
         self,
         expression: str,
