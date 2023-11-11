@@ -705,6 +705,21 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(container.Y, 1))
         self.assertTrue(np.allclose(container.Z, 0))
 
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_to_dataframe(self):
+        # Check that `VectorContainer`s correctly return a DataFrame of values
+        from pandas import DataFrame
+        from pandas.testing import assert_frame_equal
+
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=True)
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        assert_frame_equal(container.to_dataframe(),
+                           DataFrame({'X': False, 'Y': 1, 'Z': 2.0},
+                                     index=range(1995, 2005 + 1)))
+
 
 class TestInit(unittest.TestCase):
 
