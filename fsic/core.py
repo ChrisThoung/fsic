@@ -626,7 +626,7 @@ class VectorContainer:
             #  - the default in `fill_value`
             value = fill_values.get(name, fill_value)
 
-            # Special handling for `bool` and `int`-like dtypes (neither of
+            # Special handling for `bool`, `int` and `str`-like dtypes (none of
             # which have support for NaN/None)
             if np.issubdtype(self[name].dtype, bool):
                 if value is None:
@@ -639,6 +639,12 @@ class VectorContainer:
                     value = 0
                 else:
                     value = int(value)
+
+            elif np.issubdtype(self[name].dtype, str):
+                if value is None:
+                    value = ''
+                else:
+                    value = str(value)
 
             # Initialise the replacement with the correct length, and the fill
             # value
@@ -1499,6 +1505,34 @@ class BaseModel(SolverMixin, ModelInterface):
 
         return cls(index, *args, **{k: v.values for k, v in data.items()}, **kwargs)
 
+    def reindex(
+            self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
+    ) -> 'BaseModel':
+        """Return a copy of the current object, adjusted to match `span`. Values in overlapping periods between the old and new objects are preserved (copied over).
+
+        Parameters
+        ----------
+        span : iterable
+            Sequence of periods defining the span of the object to be returned
+        fill_value :
+            Default fill value for new periods
+        **fill_values :
+            Variable-specific fill value(s)
+
+        Notes
+        -----
+        These attributes have the following defaults (which can be over-ridden
+        in the usual way, using `fill_values`):
+         - status: '-' (`SolutionStatus.UNSOLVED.value`)
+         - iterations: -1
+
+        TODO: Consider how to generalise defaults to support extensions
+        """
+        fill_values['status'] = fill_values.get('status', SolutionStatus.UNSOLVED.value)
+        fill_values['iterations'] = fill_values.get('iterations', -1)
+
+        return super().reindex(span, fill_value=fill_value, **fill_values)
+
     def to_dataframe(
         self, *, status: bool = True, iterations: bool = True
     ) -> 'pandas.DataFrame':
@@ -1958,6 +1992,13 @@ Spans of submodels differ:
 
     def __deepcopy__(self, *args, **kwargs) -> 'BaseLinker':
         return self.copy()
+
+    def reindex(
+            self, span: Sequence[Hashable], *args: Any, **kwargs: Any
+    ) -> 'BaseLinker':
+        # TODO: Still to consider design of the `BaseLinker` equivalent to the
+        #       (now implemented) `VectorContainer` and `BaseModel` versions
+        raise NotImplementedError('`reindex()` method not yet implemented in `BaseLinker`')
 
     def to_dataframe(
         self, *, status: bool = True, iterations: bool = True

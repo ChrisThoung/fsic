@@ -1449,6 +1449,80 @@ class TestModelContainerMethods(unittest.TestCase):
         with self.assertRaises(fsic.exceptions.DimensionError):
             model.values = np.zeros((3, 4))
 
+    def test_reindex_defaults(self):
+        # Check that `reindex()` works as expected, filling the 'status' and
+        # 'iterations' attributes correctly
+        model = self.Model(range(-5, 5 + 1))
+        self.assertFalse(model.strict)
+
+        self.assertEqual(model.values.shape, (5, 11))
+
+        self.assertTrue(np.allclose(model.C, 0.0))
+        self.assertTrue(np.allclose(model.YD, 0.0))
+        self.assertTrue(np.allclose(model.H, 0.0))
+        self.assertTrue(np.allclose(model.alpha_1, 0.0))
+        self.assertTrue(np.allclose(model.alpha_2, 0.0))
+
+        self.assertTrue((model.status == '-').all())
+        self.assertTrue((model.iterations == -1).all())
+
+        reindexed_model = model.reindex(range(0, 15 + 1))
+        self.assertFalse(model.strict)
+
+        self.assertEqual(reindexed_model.values.shape, (5, 16))
+
+        self.assertTrue(np.allclose(reindexed_model['C', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['YD', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['H', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_1', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_2', 0:5], 0.0))
+
+        self.assertTrue(np.isnan(reindexed_model['C', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['YD', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['H', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_1', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_2', 6:]).all())
+
+        self.assertTrue((reindexed_model.status == '-').all())
+        self.assertTrue((reindexed_model.iterations == -1).all())
+
+    def test_reindex_defaults_strict(self):
+        # Check that `reindex()` works as expected, filling the 'status' and
+        # 'iterations' attributes correctly with `strict=True`
+        model = self.Model(range(-5, 5 + 1), strict=True)
+        self.assertTrue(model.strict)
+
+        self.assertEqual(model.values.shape, (5, 11))
+
+        self.assertTrue(np.allclose(model.C, 0.0))
+        self.assertTrue(np.allclose(model.YD, 0.0))
+        self.assertTrue(np.allclose(model.H, 0.0))
+        self.assertTrue(np.allclose(model.alpha_1, 0.0))
+        self.assertTrue(np.allclose(model.alpha_2, 0.0))
+
+        self.assertTrue((model.status == '-').all())
+        self.assertTrue((model.iterations == -1).all())
+
+        reindexed_model = model.reindex(range(0, 15 + 1))
+        self.assertTrue(model.strict)
+
+        self.assertEqual(reindexed_model.values.shape, (5, 16))
+
+        self.assertTrue(np.allclose(reindexed_model['C', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['YD', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['H', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_1', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_2', 0:5], 0.0))
+
+        self.assertTrue(np.isnan(reindexed_model['C', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['YD', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['H', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_1', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_2', 6:]).all())
+
+        self.assertTrue((reindexed_model.status == '-').all())
+        self.assertTrue((reindexed_model.iterations == -1).all())
+
 
 class TestBuild(unittest.TestCase):
 
