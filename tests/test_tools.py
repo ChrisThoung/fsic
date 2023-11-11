@@ -6,7 +6,6 @@ Test suite for supporting fsic tools.
 """
 
 import unittest
-import warnings
 
 import fsic
 

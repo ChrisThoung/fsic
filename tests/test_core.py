@@ -22,7 +22,6 @@ programs:
 """
 
 import copy
-import functools
 import keyword
 import math
 import sys
@@ -2439,7 +2438,7 @@ class TestCustomOverrides(unittest.TestCase):
         class Model(fsic.BaseModel):
             def _evaluate(self, t, *args, **kwargs):
                 # In base Python, this raises a `ZeroDivisionError`
-                x = 1 / 0
+                x = 1 / 0  # noqa: F841
 
         model = Model(range(5))
 
@@ -2705,7 +2704,7 @@ class TestBuildErrors(unittest.TestCase):
     def test_extra_equals(self):
         symbols = fsic.parse_model('Y = C + I + G = X - M', check_syntax=False)
         with self.assertRaises(fsic.exceptions.BuildError):
-            Model = fsic.build_model(symbols)
+            Model = fsic.build_model(symbols)  # noqa: F841
 
 
 class TestSolutionErrorHandling(unittest.TestCase):
@@ -3091,7 +3090,7 @@ class TestLinkerInit(unittest.TestCase):
     def test_init_different_spans_error(self):
         # Check for an error if the submodel spans differ
         with self.assertRaises(fsic.exceptions.InitialisationError):
-            linker = fsic.BaseLinker({
+            linker = fsic.BaseLinker({  # noqa: F841
                 'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
                 'B': self.SubmodelNoLags(range(1991, 2005 + 1)),  # Start is 1990 for 'A'
             })
