@@ -20,6 +20,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+	- name: Install Meson
+	  run: sudo apt install meson
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
