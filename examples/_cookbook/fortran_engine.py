@@ -51,8 +51,22 @@ import statistics
 import subprocess
 import timeit
 from typing import List, Tuple
+import warnings
 
 import fsic
+
+
+# If available, use the old (deprecated) `numpy.distutils` module to compile
+# the Fortran code (pre-Python 3.12)
+# If not available, use the newer backend (which requires Meson)
+numpy_distutils_available = True
+
+try:
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+        import numpy.distutils
+except ModuleNotFoundError:
+    numpy_distutils_available = False
 
 
 # -----------------------------------------------------------------------------
@@ -78,7 +92,15 @@ with open('sim_fortran.f95', 'w') as f:
     f.write(fortran_code)
 
 # Compile the Fortran code
-output = subprocess.run(['f2py', '-c', 'sim_fortran.f95', '--clean', '-m', 'sim_fortran'],
+if numpy_distutils_available:
+    # Pre-Python 3.12 (numpy.distutils)
+    compiler_options = ['f2py', '-c', 'sim_fortran.f95',            '-m', 'sim_fortran']
+else:
+    # Python 3.12 onwards (Meson): Need to remove pre-existing files with
+    # '--clean'
+    compiler_options = ['f2py', '-c', 'sim_fortran.f95', '--clean', '-m', 'sim_fortran']
+
+output = subprocess.run(compiler_options,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output.check_returncode()
 
