@@ -1393,7 +1393,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
     @classmethod
     def from_dataframe(
-        cls: 'BaseModel', data: 'pandas.DataFrame', *args, **kwargs
+        cls: 'BaseModel', data: 'pandas.DataFrame', *args, **kwargs  # noqa: F821
     ) -> 'BaseModel':
         """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
 
@@ -1423,7 +1423,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
     def to_dataframe(
         self, *, status: bool = True, iterations: bool = True
-    ) -> 'pandas.DataFrame':
+    ) -> 'pandas.DataFrame':  # noqa: F821
         """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
         return _model_to_dataframe(self, status=status, iterations=iterations)
 
@@ -1645,7 +1645,7 @@ class BaseModel(SolverMixin, ModelInterface):
             diff = current_values - previous_values
 
             if np.all(np.abs(diff) < tol):
-                with warnings.catch_warnings(record=True) as w:
+                with warnings.catch_warnings(record=True) as w:  # noqa: F841
                     if errors == 'raise' and catch_first_error:
                         warnings.simplefilter('error')
                     else:
@@ -1883,13 +1883,13 @@ Spans of submodels differ:
 
     def to_dataframe(
         self, *, status: bool = True, iterations: bool = True
-    ) -> 'pandas.DataFrame':
+    ) -> 'pandas.DataFrame':  # noqa: F821
         """Return the values and solution information from the linker as a `pandas` DataFrame. **Requires `pandas`**."""
         return _model_to_dataframe(self, status=status, iterations=iterations)
 
     def to_dataframes(
         self, *, status: bool = True, iterations: bool = True
-    ) -> Dict[Hashable, 'pandas.DataFrame']:
+    ) -> Dict[Hashable, 'pandas.DataFrame']:  # noqa: F821
         """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames. **Requires `pandas`**."""
         return _linker_to_dataframes(self, status=status, iterations=iterations)
 

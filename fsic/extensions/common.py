@@ -284,7 +284,7 @@ class AliasMixin:
 
     def to_dataframe(
         self, *, use_aliases: bool = False, **kwargs: Any
-    ) -> 'pandas.DataFrame':
+    ) -> 'pandas.DataFrame':  # noqa: F821
         """Return the values and solution information from the model as a `pandas` DataFrame. If `use_aliases=True`, use any defined aliases as column titles. **Requires `pandas`**."""
         df = super().to_dataframe(**kwargs)
 

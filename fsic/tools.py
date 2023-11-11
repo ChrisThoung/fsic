@@ -12,7 +12,7 @@ import numpy as np
 from .parser import Symbol, Type, term_re
 
 
-def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':
+def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':  # noqa: F821
     """Convert the list of symbols to a `pandas` DataFrame. **Requires `pandas`**.
 
     See also
@@ -24,7 +24,7 @@ def symbols_to_dataframe(symbols: List[Symbol]) -> 'pandas.DataFrame':
     return DataFrame([s._asdict() for s in symbols])
 
 
-def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:
+def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:  # noqa: F821
     """Convert a `pandas` DataFrame to a list of symbols, reversing the operation of `symbols_to_dataframe()`. **Requires `pandas`**.
 
     See also
@@ -52,7 +52,7 @@ def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:
     return symbols
 
 
-def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
+def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':  # noqa: F821
     """Convert the list of symbols to a NetworkX DiGraph. **Requires `networkx`."""
     import networkx as nx
 
@@ -75,7 +75,9 @@ def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':
     return G
 
 
-def symbols_to_sympy(symbols: List[Symbol]) -> Dict['sympy.Symbol', 'sympy.Eq']:
+def symbols_to_sympy(
+    symbols: List[Symbol],
+) -> Dict['sympy.Symbol', 'sympy.Eq']:  # noqa: F821
     """Convert the system of equations into a dictionary of `SymPy` objects. **Requires `SymPy`**."""
     import sympy
     from sympy.core.numbers import ImaginaryUnit
@@ -111,8 +113,8 @@ def symbols_to_sympy(symbols: List[Symbol]) -> Dict['sympy.Symbol', 'sympy.Eq']:
 
 
 def model_to_dataframe(
-    model: 'BaseModel', *, status: bool = True, iterations: bool = True
-) -> 'pandas.DataFrame':
+    model: 'BaseModel', *, status: bool = True, iterations: bool = True  # noqa: F821
+) -> 'pandas.DataFrame':  # noqa: F821
     """Return the values and solution information from the model as a `pandas` DataFrame (also available as `fsic.BaseModel.to_dataframe()` / `fsic.core.BaseModel.to_dataframe()`). **Requires `pandas`**.
 
     See also
@@ -133,8 +135,8 @@ def model_to_dataframe(
 
 
 def linker_to_dataframes(
-    linker: 'BaseLinker', *, status: bool = True, iterations: bool = True
-) -> Dict[Hashable, 'pandas.DataFrame']:
+    linker: 'BaseLinker', *, status: bool = True, iterations: bool = True  # noqa: F821
+) -> Dict[Hashable, 'pandas.DataFrame']:  # noqa: F821
     """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames (also available as `fsic.BaseLinker.to_dataframes()` / `fsic.core.BaseLinker.to_dataframes()`). **Requires `pandas`**.
 
     See also

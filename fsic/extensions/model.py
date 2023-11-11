@@ -66,7 +66,7 @@ class Trace:
             # array
             self.values = np.hstack([self.values, values.reshape((-1, 1))])
 
-    def to_dataframe(self) -> 'pandas.DataFrame':
+    def to_dataframe(self) -> 'pandas.DataFrame':  # noqa: F821
         """Return a `DataFrame` of the current object's contents."""
         from pandas import DataFrame
 

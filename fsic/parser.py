@@ -1095,7 +1095,7 @@ def build_model(
     min_leads: int = 0,
     converter: Optional[Callable[[Symbol], str]] = None,
     with_type_hints: bool = True,
-) -> 'BaseModel':
+) -> 'BaseModel':  # noqa: F821
     """Return a model class definition from the contents of `symbols`. **Uses `exec()`.**
 
     Parameters
