@@ -584,6 +584,151 @@ class TestVectorContainer(unittest.TestCase):
         with self.assertRaises(fsic.exceptions.DimensionError):
             container.values = np.zeros((3, 4))
 
+    def test_reindex_defaults(self):
+        # Check that the `reindex()` method correctly reshapes the data
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1))
+        self.assertFalse(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == False).all())
+        self.assertTrue((reindexed_container['Y'][6:] == 0).all())
+        self.assertTrue(np.isnan(reindexed_container['Z'][6:]).all())
+
+    def test_reindex_defaults_strict(self):
+        # Check that the `reindex()` method correctly reshapes the data with
+        # `strict=True`
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=True)
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1))
+        self.assertTrue(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == False).all())
+        self.assertTrue((reindexed_container['Y'][6:] == 0).all())
+        self.assertTrue(np.isnan(reindexed_container['Z'][6:]).all())
+
+    def test_reindex_fill_values(self):
+        # Check that the `reindex()` method correctly reshapes the data,
+        # filling with user-specified values
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1),
+                                                X=-1, Y=-1, Z=0)
+        self.assertFalse(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == True).all())
+        self.assertTrue((reindexed_container['Y'][6:] == -1).all())
+        self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
+
+    def test_reindex_fill_values_strict(self):
+        # Check that the `reindex()` method correctly reshapes the data,
+        # filling with user-specified values
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=True)
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1),
+                                                X=-1, Y=-1, Z=0)
+        self.assertTrue(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == True).all())
+        self.assertTrue((reindexed_container['Y'][6:] == -1).all())
+        self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
+
     def test_eval_index(self):
         # Check `eval()` method with integer indexes
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
@@ -703,6 +848,21 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(container.X, 0))
         self.assertTrue(np.allclose(container.Y, 1))
         self.assertTrue(np.allclose(container.Z, 0))
+
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_to_dataframe(self):
+        # Check that `VectorContainer`s correctly return a DataFrame of values
+        from pandas import DataFrame
+        from pandas.testing import assert_frame_equal
+
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=True)
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        assert_frame_equal(container.to_dataframe(),
+                           DataFrame({'X': False, 'Y': 1, 'Z': 2.0},
+                                     index=range(1995, 2005 + 1)))
 
 
 class TestInit(unittest.TestCase):
@@ -1287,6 +1447,80 @@ class TestModelContainerMethods(unittest.TestCase):
 
         with self.assertRaises(fsic.exceptions.DimensionError):
             model.values = np.zeros((3, 4))
+
+    def test_reindex_defaults(self):
+        # Check that `reindex()` works as expected, filling the 'status' and
+        # 'iterations' attributes correctly
+        model = self.Model(range(-5, 5 + 1))
+        self.assertFalse(model.strict)
+
+        self.assertEqual(model.values.shape, (5, 11))
+
+        self.assertTrue(np.allclose(model.C, 0.0))
+        self.assertTrue(np.allclose(model.YD, 0.0))
+        self.assertTrue(np.allclose(model.H, 0.0))
+        self.assertTrue(np.allclose(model.alpha_1, 0.0))
+        self.assertTrue(np.allclose(model.alpha_2, 0.0))
+
+        self.assertTrue((model.status == '-').all())
+        self.assertTrue((model.iterations == -1).all())
+
+        reindexed_model = model.reindex(range(0, 15 + 1))
+        self.assertFalse(model.strict)
+
+        self.assertEqual(reindexed_model.values.shape, (5, 16))
+
+        self.assertTrue(np.allclose(reindexed_model['C', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['YD', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['H', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_1', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_2', 0:5], 0.0))
+
+        self.assertTrue(np.isnan(reindexed_model['C', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['YD', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['H', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_1', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_2', 6:]).all())
+
+        self.assertTrue((reindexed_model.status == '-').all())
+        self.assertTrue((reindexed_model.iterations == -1).all())
+
+    def test_reindex_defaults_strict(self):
+        # Check that `reindex()` works as expected, filling the 'status' and
+        # 'iterations' attributes correctly with `strict=True`
+        model = self.Model(range(-5, 5 + 1), strict=True)
+        self.assertTrue(model.strict)
+
+        self.assertEqual(model.values.shape, (5, 11))
+
+        self.assertTrue(np.allclose(model.C, 0.0))
+        self.assertTrue(np.allclose(model.YD, 0.0))
+        self.assertTrue(np.allclose(model.H, 0.0))
+        self.assertTrue(np.allclose(model.alpha_1, 0.0))
+        self.assertTrue(np.allclose(model.alpha_2, 0.0))
+
+        self.assertTrue((model.status == '-').all())
+        self.assertTrue((model.iterations == -1).all())
+
+        reindexed_model = model.reindex(range(0, 15 + 1))
+        self.assertTrue(model.strict)
+
+        self.assertEqual(reindexed_model.values.shape, (5, 16))
+
+        self.assertTrue(np.allclose(reindexed_model['C', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['YD', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['H', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_1', 0:5], 0.0))
+        self.assertTrue(np.allclose(reindexed_model['alpha_2', 0:5], 0.0))
+
+        self.assertTrue(np.isnan(reindexed_model['C', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['YD', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['H', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_1', 6:]).all())
+        self.assertTrue(np.isnan(reindexed_model['alpha_2', 6:]).all())
+
+        self.assertTrue((reindexed_model.status == '-').all())
+        self.assertTrue((reindexed_model.iterations == -1).all())
 
 
 class TestBuild(unittest.TestCase):

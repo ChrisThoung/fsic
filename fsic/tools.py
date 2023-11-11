@@ -126,6 +126,8 @@ def model_to_dataframe(
     """
     from pandas import DataFrame
 
+    # NB Take variables one at a time, rather than use `model.values`. This
+    #    preserves the dtypes of the individual series.
     df = DataFrame({k: model[k] for k in model.names}, index=model.span)
 
     if status:
