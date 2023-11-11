@@ -583,6 +583,76 @@ class VectorContainer:
         index_re = re.compile(r'\[\s*(.+?)?\s*\]')
         return index_re.sub(resolve_indexes, expression)
 
+    def reindex(
+            self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
+    ) -> 'VectorContainer':
+        """Return a copy of the current object, adjusted to match `span`. Values in overlapping periods between the old and new objects are preserved (copied over).
+
+        TODO: Consider implementing something closer to `pandas` `reindex()`
+              behaviour?
+
+        Parameters
+        ----------
+        span : iterable
+            Sequence of periods defining the span of the object to be returned
+        fill_value :
+            Default fill value for new periods
+        **fill_values :
+            Variable-specific fill value(s)
+        """
+        # Construct a mapping of:
+        #  - keys: positions in `span` (the new, reindexed object)
+        #  - values: the corresponding positions in `self.span` (i.e. where to
+        #            get the old values from)
+        positions = {}
+        for i, period in enumerate(span):
+            if period in self.span:
+                positions[i] = self._locate_period_in_span(period)
+
+        # Copy the current object and adjust:
+        #  - the span
+        #  - the individual underlying variables to conform to the new span
+        reindexed = self.copy()
+        reindexed.__dict__['span'] = span  # Use to bypass `strict`
+
+        for name in reindexed.index:
+            # Replace the underlying variable, to bypass dimension and type
+            # checks
+
+            # TODO: How to improve performance here?
+
+            # Get the fill value either as:
+            #  - specified (as a keyword argument in **fill_values)
+            #  - the default in `fill_value`
+            value = fill_values.get(name, fill_value)
+
+            # Special handling for `bool` and `int`-like dtypes (neither of
+            # which have support for NaN/None)
+            if np.issubdtype(self[name].dtype, bool):
+                if value is None:
+                    value = False
+                else:
+                    value = bool(value)
+
+            elif np.issubdtype(self[name].dtype, np.integer):
+                if value is None:
+                    value = 0
+                else:
+                    value = int(value)
+
+            # Initialise the replacement with the correct length, and the fill
+            # value
+            reindexed.__dict__[f'_{name}'] = np.full(
+                len(span), value, dtype=self[name].dtype
+            )
+
+            # Copy over individual values
+            # TODO: Vectorise this?
+            for new, old in positions.items():
+                reindexed[name][new] = self[name][old]
+
+        return reindexed
+
     def to_dataframe(self) -> 'pandas.DataFrame':
         """Return the contents of the container as a `pandas` DataFrame, one column per variable. **Requires `pandas`**."""
         from pandas import DataFrame

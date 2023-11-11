@@ -11,6 +11,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Added `reindex()` method to `VectorContainer`.
 - Added `to_dataframe()` method to `VectorContainer`.
 - Added new `functions` module for operations on NumPy arrays.
 - Added support for `functions` as standard in `eval()`.

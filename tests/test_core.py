@@ -585,6 +585,151 @@ class TestVectorContainer(unittest.TestCase):
         with self.assertRaises(fsic.exceptions.DimensionError):
             container.values = np.zeros((3, 4))
 
+    def test_reindex_defaults(self):
+        # Check that the `reindex()` method correctly reshapes the data
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1))
+        self.assertFalse(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == False).all())
+        self.assertTrue((reindexed_container['Y'][6:] == 0).all())
+        self.assertTrue(np.isnan(reindexed_container['Z'][6:]).all())
+
+    def test_reindex_defaults_strict(self):
+        # Check that the `reindex()` method correctly reshapes the data with
+        # `strict=True`
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=True)
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1))
+        self.assertTrue(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == False).all())
+        self.assertTrue((reindexed_container['Y'][6:] == 0).all())
+        self.assertTrue(np.isnan(reindexed_container['Z'][6:]).all())
+
+    def test_reindex_fill_values(self):
+        # Check that the `reindex()` method correctly reshapes the data,
+        # filling with user-specified values
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1),
+                                                X=-1, Y=-1, Z=0)
+        self.assertFalse(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == True).all())
+        self.assertTrue((reindexed_container['Y'][6:] == -1).all())
+        self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
+
+    def test_reindex_fill_values_strict(self):
+        # Check that the `reindex()` method correctly reshapes the data,
+        # filling with user-specified values
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=True)
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Reindex the container to a new span and check its contents
+        reindexed_container = container.reindex(range(2000, 2015 + 1),
+                                                X=-1, Y=-1, Z=0)
+        self.assertTrue(reindexed_container.strict)
+
+        self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
+        self.assertEqual(reindexed_container.values.shape, (3, 16))
+
+        # Check original container is unchanged
+        self.assertEqual(container.span, range(1995, 2005 + 1))
+        self.assertEqual(container.values.shape, (3, 11))
+
+        # Check the contents for the overlapping part match
+        self.assertTrue(np.allclose(container['X'][6:],
+                                    reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:],
+                                    reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:],
+                                    reindexed_container['Z'][:5]))
+
+        # Check the non-overlapping part of the reindexed container is filled
+        # correctly (bool: False; int: 0; anything else: NaN)
+        self.assertTrue((reindexed_container['X'][6:] == True).all())
+        self.assertTrue((reindexed_container['Y'][6:] == -1).all())
+        self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
+
     def test_eval_index(self):
         # Check `eval()` method with integer indexes
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
