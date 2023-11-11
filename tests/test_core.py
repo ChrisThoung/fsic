@@ -615,7 +615,7 @@ class TestVectorContainer(unittest.TestCase):
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
-        self.assertTrue((reindexed_container['X'][6:] == False).all())
+        self.assertFalse(reindexed_container['X'][6:].any())
         self.assertTrue((reindexed_container['Y'][6:] == 0).all())
         self.assertTrue(np.isnan(reindexed_container['Z'][6:]).all())
 
@@ -651,7 +651,7 @@ class TestVectorContainer(unittest.TestCase):
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
-        self.assertTrue((reindexed_container['X'][6:] == False).all())
+        self.assertFalse(reindexed_container['X'][6:].any())
         self.assertTrue((reindexed_container['Y'][6:] == 0).all())
         self.assertTrue(np.isnan(reindexed_container['Z'][6:]).all())
 
@@ -688,7 +688,7 @@ class TestVectorContainer(unittest.TestCase):
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
-        self.assertTrue((reindexed_container['X'][6:] == True).all())
+        self.assertTrue(reindexed_container['X'][6:].all())
         self.assertTrue((reindexed_container['Y'][6:] == -1).all())
         self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
 
@@ -725,7 +725,7 @@ class TestVectorContainer(unittest.TestCase):
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
-        self.assertTrue((reindexed_container['X'][6:] == True).all())
+        self.assertTrue(reindexed_container['X'][6:].all())
         self.assertTrue((reindexed_container['Y'][6:] == -1).all())
         self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
 

@@ -659,7 +659,7 @@ class VectorContainer:
 
         return reindexed
 
-    def to_dataframe(self) -> 'pandas.DataFrame':
+    def to_dataframe(self) -> 'pandas.DataFrame':  # noqa: F821
         """Return the contents of the container as a `pandas` DataFrame, one column per variable. **Requires `pandas`**."""
         from pandas import DataFrame
 
