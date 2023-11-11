@@ -10,3 +10,4 @@
 | [pandas_indexing.py](pandas_indexing.py) | How to use [`pandas`](https://pandas.pydata.org/) [`PeriodIndex`](https://pandas.pydata.org/docs/reference/api/pandas.PeriodIndex.html) objects in economic models |
 | [progress_bar.py](progress_bar.py)       | How to add a progress bar for model solution using [`tqdm`](https://github.com/tqdm/tqdm)                                                                          |
 | [quickstart.py](quickstart.py)           | Copy of the quickstart code from the README file                                                                                                                   |
+| [reindex.py](reindex.py)                 | How to use the `reindex()` method                                                                                                                                  |
