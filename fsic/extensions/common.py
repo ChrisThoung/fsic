@@ -225,8 +225,8 @@ class AliasMixin:
             if target in seen:
                 raise ValueError(
                     f"Name '{name}' is a duplicate reference: "
-                    f"one or more other names in `PREFERRED_NAMES` "
-                    f"point to the same underlying model variable"
+                    f'one or more other names in `PREFERRED_NAMES` '
+                    f'point to the same underlying model variable'
                 )
 
             seen.append(target)
@@ -336,10 +336,10 @@ class AliasMixin:
                 # Multiple instances: Error
                 names = ', '.join(f"'{x}'" for x in sorted(intersection))
                 raise ValueError(
-                    f"Found multiple entries in `self.preferred_names` "
-                    f"(which copies `PREFERRED_NAMES`, initially) "
+                    f'Found multiple entries in `self.preferred_names` '
+                    f'(which copies `PREFERRED_NAMES`, initially) '
                     f"pointing to '{target}' "
-                    f"- a unique correspondence is required: {names}"
+                    f'- a unique correspondence is required: {names}'
                 )
 
         return df.rename(columns=replacements)

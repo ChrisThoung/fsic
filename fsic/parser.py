@@ -169,9 +169,10 @@ term_re = re.compile(
     r'(?: (?P<_VERBATIM> [`] (.+?) [`]) )|'
     # Match attempts to use reserved Python keywords as variable names (to be
     # raised as errors elsewhere)
-    fr'(?: (?P<_INVALID> (?: {keyword_list}) \s* \[ .*? \]) )|' +
+    rf'(?: (?P<_INVALID> (?: {keyword_list}) \s* \[ .*? \]) )|' +
     # Match Python keywords
-    fr'(?: \b (?P<_KEYWORD> {keyword_list} ) \b )|' +
+    rf'(?: \b (?P<_KEYWORD> {keyword_list} ) \b )|'
+    +
     # Valid terms for the parser
     r'''
         (?: (?P<_FUNCTION> [_A-Za-z][_A-Za-z0-9.]*[_A-Za-z0-9]* ) \s* (?= \( ) )|
@@ -241,7 +242,7 @@ class Term(NamedTuple):
             return self.name + index
 
         if isinstance(self.index_, str):
-            return f"{self.name}[{self.index_}]"
+            return f'{self.name}[{self.index_}]'
 
         raise TypeError(
             f'Type of `self.index_` is {type(self.index_)} '
@@ -290,7 +291,7 @@ class Symbol(NamedTuple):
                 if old != new:
                     raise ParserError(
                         f"Endogenous variable '{self.name}' defined twice:"
-                        f"\n    {old}\n    {new}"
+                        f'\n    {old}\n    {new}'
                     )
 
             elif old is None and new is not None:
@@ -587,7 +588,7 @@ def parse_equation(equation: str) -> List[Symbol]:
         if count != 0:
             raise ParserError(
                 f"Found incomplete brackets ('{opening}', '{closing}') "
-                f"in equation: {equation}"
+                f'in equation: {equation}'
             )
 
     # Extract the terms from the equation

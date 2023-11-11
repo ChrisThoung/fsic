@@ -289,8 +289,8 @@ class TracerMixin:
         if self.TRACE_NAME in self.index:
             raise DuplicateNameError(
                 f"Unable to set trace variable name '{self.TRACE_NAME}' "
-                "(in `self.TRACE_NAME`). "
-                "Name is already defined in the current object."
+                '(in `self.TRACE_NAME`). '
+                'Name is already defined in the current object.'
             )
 
         # Add `Trace` objects to the model instance

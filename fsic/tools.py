@@ -113,7 +113,10 @@ def symbols_to_sympy(
 
 
 def model_to_dataframe(
-    model: 'BaseModel', *, status: bool = True, iterations: bool = True  # noqa: F821
+    model: 'BaseModel',  # noqa: F821
+    *,
+    status: bool = True,
+    iterations: bool = True,
 ) -> 'pandas.DataFrame':  # noqa: F821
     """Return the values and solution information from the model as a `pandas` DataFrame (also available as `fsic.BaseModel.to_dataframe()` / `fsic.core.BaseModel.to_dataframe()`). **Requires `pandas`**.
 
@@ -135,7 +138,10 @@ def model_to_dataframe(
 
 
 def linker_to_dataframes(
-    linker: 'BaseLinker', *, status: bool = True, iterations: bool = True  # noqa: F821
+    linker: 'BaseLinker',  # noqa: F821
+    *,
+    status: bool = True,
+    iterations: bool = True,  # noqa: F821
 ) -> Dict[Hashable, 'pandas.DataFrame']:  # noqa: F821
     """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames (also available as `fsic.BaseLinker.to_dataframes()` / `fsic.core.BaseLinker.to_dataframes()`). **Requires `pandas`**.
 

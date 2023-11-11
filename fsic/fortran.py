@@ -75,8 +75,8 @@ class FortranEngine:
         if engine == 'fortran' and self.ENGINE is None:
             raise InitialisationError(
                 f"`engine` argument is '{engine}' but class `ENGINE` attribute is `{self.ENGINE}`. "
-                f"Check that `ENGINE` has an assigned value (i.e. a module of solution routines); "
-                f"this typically uses a subclass"
+                f'Check that `ENGINE` has an assigned value (i.e. a module of solution routines); '
+                f'this typically uses a subclass'
             )
 
         super().__init__(
@@ -970,7 +970,7 @@ def build_fortran_definition(
             variable = f"solved_values({variables_to_numbers[match[1]]}, {match[2].replace('t', 'index')})"
             code = code[:start] + variable + code[end:]
 
-        block = f"! {equation}\n" + '  &\n&  '.join(
+        block = f'! {equation}\n' + '  &\n&  '.join(
             textwrap.wrap(code, width=wrap_width)
         )
         equation_code.append(textwrap.indent(block, '  '))

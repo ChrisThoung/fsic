@@ -1393,7 +1393,10 @@ class BaseModel(SolverMixin, ModelInterface):
 
     @classmethod
     def from_dataframe(
-        cls: 'BaseModel', data: 'pandas.DataFrame', *args, **kwargs  # noqa: F821
+        cls: 'BaseModel',
+        data: 'pandas.DataFrame',  # noqa: F821
+        *args,
+        **kwargs,
     ) -> 'BaseModel':
         """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
 
