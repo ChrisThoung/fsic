@@ -14,7 +14,6 @@ time, if not found):
 
 1. Clone the repository and, from the root of the folder, run any one of the
    following:
-    * `$ python setup.py install`
     * `$ pip install .`
     * `$ make install`
 2. Use `pip` to install from the GitHub repository (h/t [Anthony
