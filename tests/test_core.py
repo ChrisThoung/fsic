@@ -392,6 +392,45 @@ B = f(<C>, D)   # But here, C is an error
 
 class TestVectorContainer(unittest.TestCase):
 
+    def test_add_attribute(self):
+        # Check that attribute creation works as expected
+        container = fsic.core.VectorContainer(range(5 + 1))
+
+        container.A = False
+        container.B = 1
+        container.C = 2.0
+
+        self.assertTrue(isinstance(container.A, bool))
+        self.assertEqual(container.A, False)
+
+        self.assertTrue(isinstance(container.B, int))
+        self.assertEqual(container.B, 1)
+
+        self.assertTrue(isinstance(container.C, float))
+        self.assertEqual(container.C, 2.0)
+
+    def test_add_attribute_strict(self):
+        # Check that attribute creation works as expected with `strict=True`
+        container = fsic.core.VectorContainer(range(5 + 1), strict=True)
+
+        container.add_attribute('A', False)
+        container.add_attribute('B', 1)
+        container.add_attribute('C', 2.0)
+
+        self.assertTrue(isinstance(container.A, bool))
+        self.assertEqual(container.A, False)
+
+        self.assertTrue(isinstance(container.B, int))
+        self.assertEqual(container.B, 1)
+
+        self.assertTrue(isinstance(container.C, float))
+        self.assertEqual(container.C, 2.0)
+
+        with self.assertRaises(AttributeError):
+            container.D = 3.0
+
+        self.assertNotIn('D', container)
+
     def test_locate_period_in_span_error(self):
         # Check that non-existent index keys raise an error
         container = fsic.core.VectorContainer(range(5 + 1))
