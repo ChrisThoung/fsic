@@ -12,7 +12,7 @@ After model setup, the script has three steps:
     a. Increase in autonomous demand
     b. Increase in target inflation
     c. Increase in equilibrium output
-3. Create a chart of output and a graph representation of the model
+3. Create charts and a graph representation of the model
 
 References:
 
@@ -85,30 +85,37 @@ if __name__ == '__main__':
     higher_equilibrium_output.solve()
 
 
-    # 3. Create a chart of output and a graph representation of the model -----
-    _, (chart, graph) = plt.subplots(1, 2, figsize=(14, 6.5))
+    # 3. Create charts and a graph representation of the model ----------------
+    _, axes = plt.subplots(2, 2, figsize=(14, 13))
     plt.suptitle(r'New Keynesian three-equation model')
 
-    # Chart of output under different scenarios
-    chart.plot(equilibrium.span, equilibrium.y,
-               label='Initial equilibrium',
-               linewidth=0.5, linestyle='--', color='k')
+    # Chart results under different scenarios
+    def plot(variable, title, ylabel, ylim, axis):
+        """Plot `variable` to `axis`."""
+        axis.plot(equilibrium.span, equilibrium[variable],
+                  label='Initial equilibrium',
+                  linewidth=0.5, linestyle='--', color='k')
 
-    chart.plot(higher_aggregate_demand.span, higher_aggregate_demand.y,
-               label='Increase in autonomous demand', color='#33C3F0')
-    chart.plot(higher_inflation_target.span, higher_inflation_target.y,
-               label='Higher inflation target', color='#FF4F2E')
-    chart.plot(higher_equilibrium_output.span, higher_equilibrium_output.y,
-               label='Increase in equilibrium output', color='#4563F2')
+        axis.plot(higher_aggregate_demand.span, higher_aggregate_demand[variable],
+                  label='Increase in autonomous demand', color='#33C3F0')
+        axis.plot(higher_inflation_target.span, higher_inflation_target[variable],
+                  label='Higher inflation target', color='#FF4F2E')
+        axis.plot(higher_equilibrium_output.span, higher_equilibrium_output[variable],
+                  label='Increase in equilibrium output', color='#4563F2')
 
-    chart.set_xlim(1, 15)
-    chart.set_xlabel('Time')
+        axis.set_xlim(1, 15)
+        axis.set_xlabel('Time')
 
-    chart.set_ylim(3, 8)
-    chart.set_ylabel('Real output (y)')
+        axis.set_ylim(*ylim)
+        axis.set_ylabel(ylabel)
 
-    chart.legend(loc='lower right')
-    chart.set_title('Output under different scenarios')
+        axis.set_title(title)
+
+    plot('y', 'Output', 'Real output (y)', (3, 8), axes[0, 0])
+    plot('pi', 'Inflation', r'Inflation ($\pi$)', (0, 4), axes[0, 1])
+    plot('r', 'Policy rate', r'Policy rate (r)', (0, 30), axes[1, 0])
+
+    axes[0, 0].legend(loc='lower right')
 
     # Graph representation of the model
     G = fsic.tools.symbols_to_graph(SYMBOLS)
@@ -141,11 +148,11 @@ if __name__ == '__main__':
         'A[t]':    NodeSetting([3.50, 3.50], r'$A_t$',       '#4563F2'),
     }
 
-    nx.draw_networkx(G, ax=graph,
+    nx.draw_networkx(G, ax=axes[1, 1],
                      pos={k: v.position for k, v in node_settings.items()},
                      node_color=[node_settings[n].colour for n in G.nodes],
                      labels={k: v.label for k, v in node_settings.items()})
 
-    graph.set_title('Model structure')
+    axes[1, 1].set_title('Model structure')
 
     plt.savefig('new_keynesian_3_equation_model.png')
