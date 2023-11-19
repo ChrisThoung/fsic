@@ -1,0 +1,2 @@
+new_keynesian_3_equation_model.png : new_keynesian_3_equation_model.py
+	python new_keynesian_3_equation_model.py

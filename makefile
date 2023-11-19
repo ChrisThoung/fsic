@@ -20,6 +20,7 @@ examples :
 	cd examples/define && python define_simple.py
 	cd examples/godley-lavoie_2007 && make
 	cd examples/klein_1950 && make
+	cd examples/macrosimulation && make
 
 .PHONY: hashes
 hashes :

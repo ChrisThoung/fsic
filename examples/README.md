@@ -20,6 +20,7 @@ See the individual files and folders for other *ad hoc* dependencies.
 | [define](define/)                         | DEFINE-SIMPLE from Dafermos and Nikolaidi (2021)                 |
 | [godley-lavoie_2007](godley-lavoie_2007/) | Models from Godley and Lavoie (2007)                             |
 | [klein_1950](klein_1950/)                 | Klein Model I from Klein (1950)                                  |
+| [macrosimulation](macrosimulation/)       | Replications of models implemented by Prante and Kohler (2023)   |
 
 
 ## References
@@ -44,3 +45,8 @@ Klein, L. R. (1950)
 *Economic fluctuations in the United States, 1921-1941*,
 *Cowles Commission for Research in Economics*, **11**,
 New York: John Wiley & Sons / London: Chapman & Hall
+
+Prante, F., Kohler, K. (2023)
+'DIY macroeconomic model simulation'  
+[https://macrosimulation.org/](https://macrosimulation.org/)  
+[https://github.com/DIY-Macro-Sim/DIY-Macro-sim-website](https://github.com/DIY-Macro-Sim/DIY-Macro-sim-website)
