@@ -20,6 +20,9 @@ class TestFunctions(unittest.TestCase):
         x = np.arange(5, dtype=float)
         self.assertTrue(np.allclose(x, np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=float)))
 
+        # A lag order of 0 should leave the array unchanged
+        self.assertTrue(np.allclose(x, lag(x, 0)))
+
         self.assertTrue(np.array_equal(lag(x),
                                        np.array([np.nan, 0.0, 1.0, 2.0, 3.0], dtype=float),
                                        equal_nan=True))
@@ -32,6 +35,9 @@ class TestFunctions(unittest.TestCase):
         x = np.arange(5, dtype=float)
         self.assertTrue(np.allclose(x, np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=float)))
 
+        # A lead of 0 should leave the array unchanged
+        self.assertTrue(np.allclose(x, lead(x, 0)))
+
         self.assertTrue(np.array_equal(lead(x),
                                        np.array([1.0, 2.0, 3.0, 4.0, np.nan], dtype=float),
                                        equal_nan=True))
@@ -43,6 +49,9 @@ class TestFunctions(unittest.TestCase):
         # Check difference operations
         x = np.arange(5, dtype=float)
         self.assertTrue(np.allclose(x, np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=float)))
+
+        # A difference of 0 should leave the array unchanged
+        self.assertTrue(np.allclose(x, diff(x, 0)))
 
         self.assertTrue(np.array_equal(diff(x),
                                        np.array([np.nan, 1.0, 1.0, 1.0, 1.0], dtype=float),
