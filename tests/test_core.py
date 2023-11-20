@@ -2296,6 +2296,55 @@ H = H[-1] + YD - C
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
+    def test_solve_change_lags(self):
+        # Check that changing the object-level `lags` attribute alters the
+        # solution span
+        model = self.Model(range(10))
+        results = model.solve()
+
+        self.assertEqual(model.lags, 1)
+        self.assertEqual(results[0], list(range(1, 9 + 1)))
+
+        model.lags = 2
+        results = model.solve()
+
+        self.assertEqual(model.lags, 2)
+        self.assertEqual(results[0], list(range(2, 9 + 1)))
+
+    def test_solve_change_leads(self):
+        # Check that changing the object-level `leads` attribute alters the
+        # solution span
+        model = self.Model(range(10))
+        results = model.solve()
+
+        self.assertEqual(model.leads, 0)
+        self.assertEqual(results[0], list(range(1, 9 + 1)))
+
+        model.leads = 1
+        results = model.solve()
+
+        self.assertEqual(model.leads, 1)
+        self.assertEqual(results[0], list(range(1, 8 + 1)))
+
+    def test_solve_change_lags_and_leads(self):
+        # Check that changing the object-level `lags` and `leads` attributes
+        # alters the solution span
+        model = self.Model(range(10))
+        results = model.solve()
+
+        self.assertEqual(model.lags, 1)
+        self.assertEqual(model.leads, 0)
+
+        self.assertEqual(results[0], list(range(1, 9 + 1)))
+
+        model.lags = 2
+        model.leads = 1
+        results = model.solve()
+
+        self.assertEqual(model.lags, 2)
+        self.assertEqual(model.leads, 1)
+        self.assertEqual(results[0], list(range(2, 8 + 1)))
+
     def test_solve_keyword_passthrough(self):
         # Check that keyword arguments pass through the solution stack without
         # triggering any errors
