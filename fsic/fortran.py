@@ -185,9 +185,9 @@ class FortranEngine:
 
         # Set default start and end periods if no others supplied
         if start is None:
-            start = self.span[self.LAGS]
+            start = self.span[self.lags]
         if end is None:
-            end = self.span[-1 - self.LEADS]
+            end = self.span[-1 - self.leads]
 
         # Convert to an integer range and assemble accompanying list of labels
         indexes = list(
