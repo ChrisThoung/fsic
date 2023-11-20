@@ -27,7 +27,7 @@ def shift(x: np.ndarray, p: int, *, fill_value: Any = np.nan) -> np.ndarray:
     if p > 0:  # Lags
         shifted[:p] = fill_value
 
-    elif p < 0:  # Leads
+    else:  # Leads (p < 0)
         shifted[p:] = fill_value
 
     return shifted
@@ -57,16 +57,16 @@ def diff(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
     elif d > 0:  # Lags
         differenced = x - lag(x, d, fill_value=fill_value)
         differenced[:d] = fill_value
-        return differenced
 
-    elif d < 0:  # Leads
+    else:  # Leads (d < 0)
         # TODO: Review
         raise NotImplementedError(
             '`diff()` not currently(?) implemented for `d < 0` (leads)'
         )
         differenced = x - lead(x, d, fill_value=fill_value)
         differenced[d:] = fill_value
-        return differenced
+
+    return differenced
 
 
 def dlog(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
