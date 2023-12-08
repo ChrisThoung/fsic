@@ -538,7 +538,7 @@ if __name__ == '__main__':
     axes[4].set_title('Figure 5: $CO_2$ intensity')
     axes[4].set_xlim(2018, 2100)
     axes[4].set_ylim(0, None)
-    axes[4].set_ylabel('$CO_2$ intensity (Gt$CO_2$ / \$tn)')
+    axes[4].set_ylabel(r'$CO_2$ intensity (Gt$CO_2$ / \$tn)')
 
     axes[4].legend(loc='lower right')
 
