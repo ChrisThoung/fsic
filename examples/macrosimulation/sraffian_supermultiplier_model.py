@@ -31,7 +31,7 @@ import fsic
 
 SCRIPT = '''
 # 1. Profit rate
-r = pi * u
+r = {pi} * u
 
 # 2. Saving rate
 s = -z + {s_r} * r
@@ -137,16 +137,16 @@ if __name__ == '__main__':
         'c[t]':     NodeSetting([2.25, 2.25], r'$c_t$',       '#FF992E'),
 
         'g[t]':     NodeSetting([1.50, 2.50], r'$g_t$',       '#FF992E'),
-        'g[t-1]':   NodeSetting([1.00, 1.50], r'$g_{t-1}$',   '#4563F2'),
+        'g[t-1]':   NodeSetting([1.00, 1.50], r'$g_{t-1}$',   '#33C3F0'),
 
-        'g_0[t]':   NodeSetting([1.00, 2.00], r'$g_{0,t}$',   '#FF992E'),
-        'g_0[t-1]': NodeSetting([0.75, 1.79], r'$g_{0,t-1}$', '#777777'),
+        'g_0[t]':   NodeSetting([1.00, 2.00], r'$g_{0,t}$',   '#77C3AF'),
+        'g_0[t-1]': NodeSetting([0.75, 1.79], r'$g_{0,t-1}$', '#33C3F0'),
 
-        'g_1[t]':   NodeSetting([1.79, 2.75], r'$g_{1,t}$',   '#777777'),
+        'g_1[t]':   NodeSetting([1.79, 2.75], r'$g_{1,t}$',   '#4563F2'),
         'g_z[t-1]': NodeSetting([1.29, 1.25], r'$g_{z,t-1}$', '#4563F2'),
 
-        'mu[t]':    NodeSetting([0.75, 2.21], r'$\mu_t$',     '#777777'),
-        'pi[t]':    NodeSetting([1.50, 2.00], r'$\pi_t$',     '#777777'),
+        'mu[t]':    NodeSetting([0.75, 2.21], r'$\mu_t$',     '#4563F2'),
+        'pi[t]':    NodeSetting([1.50, 2.00], r'$\pi_t$',     '#4563F2'),
         'r[t]':     NodeSetting([1.75, 2.25], r'$r_t$',       '#FF992E'),
 
         's[t]':     NodeSetting([2.00, 2.00], r'$s_t$',       '#FF992E'),
