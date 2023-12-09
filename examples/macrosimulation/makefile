@@ -1,2 +1,7 @@
+all : new_keynesian_3_equation_model.png sraffian_supermultiplier_model.png
+
 new_keynesian_3_equation_model.png : new_keynesian_3_equation_model.py
 	python new_keynesian_3_equation_model.py
+
+sraffian_supermultiplier_model.png : sraffian_supermultiplier_model.py
+	python sraffian_supermultiplier_model.py
