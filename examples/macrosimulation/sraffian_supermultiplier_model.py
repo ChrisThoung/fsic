@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
         axis.set_title(title)
 
-    plot('u', 'Capacity utilisation', 'Capacity utilisation (u)', (0.2, 1.0), axes[0, 0])
+    plot('u', 'Capacity utilisation', 'Capacity utilisation (u)', (0.4, 0.9), axes[0, 0])
     plot('g', 'Capital stock growth', 'Capital stock growth (g)', (-0.05, 0.05), axes[0, 1])
     plot('z', 'Autonomous demand growth', 'Autonomous demand growth (z)', (0.15, 0.25), axes[1, 0])
 
