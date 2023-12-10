@@ -209,6 +209,7 @@ class AliasMixin:
 
         # Remove any variables that point to themselves and then store
         aliases = {k: v for k, v in aliases.items() if k != v}
+        # Set using `__dict__` because `super().__init__()` comes later
         self.__dict__['aliases'] = aliases
 
         # Check that preferred names point uniquely to model variables with no
@@ -231,6 +232,7 @@ class AliasMixin:
 
             seen.append(target)
 
+        # Set using `__dict__` because `super().__init__()` comes later
         self.__dict__['preferred_names'] = preferred_names
 
         # Instantiate the object as usual, but replace aliases with actual
