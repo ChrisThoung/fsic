@@ -111,9 +111,24 @@ class VectorContainer:
             If `False`, further attributes can be added ad hoc at runtime in
             the usual way for Python objects e.g. `model.A = ...`.
         """
+        # At initialisation, manually add core attributes to the object...
         self.__dict__['span'] = span
         self.__dict__['index'] = []
         self.__dict__['_strict'] = strict
+
+        # ...alongside their accompanying entries in the attributes list
+        self.__dict__['_attributes'] = ['_attributes', 'span', 'index', '_strict']
+
+    def add_attribute(self, name: str, value: Any) -> None:
+        """Add an attribute to the container."""
+        if name in self.__dict__['index']:
+            raise DuplicateNameError(f"Variable with name '{name}' already defined in current object")
+
+        if name in self.__dict__['_attributes']:
+            raise DuplicateNameError(f"Attribute with name '{name}' already defined in current object")
+
+        super().__setattr__(name, value)
+        self.__dict__['_attributes'].append(name)
 
     def add_variable(
         self, name: str, value: Union[Any, Sequence[Any]], *, dtype: Any = None
@@ -218,6 +233,7 @@ class VectorContainer:
         return []
 
     def __getattr__(self, name: str) -> Any:
+        # TODO: Update to handle `_attributes`, too?
         if name in self.__dict__['index']:
             return self.__dict__['_' + name]
 
@@ -229,6 +245,7 @@ class VectorContainer:
             name != 'strict'
             and self.__dict__['_strict']
             and name not in self.__dict__['index']
+            and name not in self.__dict__['_attributes']  # TODO: Check inclusion here
         ):
             message = f"Unable to add new attribute '{name}' with `strict=True`"
 
@@ -244,8 +261,16 @@ class VectorContainer:
 
             raise AttributeError(message)
 
+        # If `name` doesn't refer to a container variable...
         if name not in self.__dict__['index']:
-            super().__setattr__(name, value)
+            # ...check for an existing attribute and modify...
+            if name in self.__dict__['_attributes']:
+                super().__setattr__(name, value)
+
+            # ...otherwise, add as a new attribute
+            else:
+                self.add_attribute(name, value)
+
             return
 
         if isinstance(value, Sequence) and not isinstance(value, str):
@@ -441,7 +466,11 @@ class VectorContainer:
         return self.copy()
 
     def __dir__(self) -> List[str]:
-        return sorted(dir(type(self)) + self.__dict__['index'] + ['span', 'index'])
+        # Return the names of the object's contents alongside the variable
+        # names (in `index`) and attributes (in `_attributes`)
+        return sorted(
+            dir(type(self)) + self.__dict__['index'] + self.__dict__['_attributes']
+        )
 
     def _ipython_key_completions_(self) -> List[str]:
         return self.__dict__['index']
@@ -867,9 +896,9 @@ class ModelInterface(VectorContainer):
         # Set up data container
         super().__init__(span, strict=strict)
 
-        # Store the `dtype` as the default for future values e.g. using
+        # Store the `dtype` as the default for future values e.g. when using
         # `add_variable()` after initialisation
-        self.__dict__['dtype'] = dtype
+        self.add_attribute('dtype', dtype)
 
         # Use the base class version of `add_variable()` because `self.names`
         # is set separately (whereas this class's version would attempt to
@@ -921,13 +950,13 @@ class ModelInterface(VectorContainer):
                 )
 
         # Add model variables
-        self.__dict__['names'] = names
+        self.add_attribute('names', names)
 
-        for name in self.__dict__['names']:
+        for name in self.names:
             super().add_variable(
                 name,
                 initial_values.get(name, default_value),
-                dtype=self.__dict__['dtype'],
+                dtype=self.dtype,
             )
 
     def add_variable(
@@ -1004,9 +1033,6 @@ class ModelInterface(VectorContainer):
     def __contains__(self, key: str) -> bool:
         return key in self.__dict__['names']
 
-    def __dir__(self) -> List[str]:
-        return sorted(super().__dir__() + ['names'])
-
     @property
     def values(self) -> np.ndarray:
         """Model variable values as a 2D (names x span) array."""
@@ -1075,6 +1101,13 @@ class SolverMixin:
     LAGS: int = 0
     LEADS: int = 0
 
+    def __init__(self, *args, **kwargs) -> None:
+        """Set up the object and copy class-level lags and leads to object-level attributes."""
+        super().__init__(*args, **kwargs)
+
+        self.add_attribute('lags', self.LAGS)
+        self.add_attribute('leads', self.LEADS)
+
     def iter_periods(
         self,
         *,
@@ -1104,9 +1137,9 @@ class SolverMixin:
         """
         # Default start and end periods
         if start is None:
-            start = self.span[self.LAGS]
+            start = self.span[self.lags]
         if end is None:
-            end = self.span[-1 - self.LEADS]
+            end = self.span[-1 - self.leads]
 
         # Convert to an integer range
         indexes = range(
@@ -1465,8 +1498,6 @@ class BaseModel(SolverMixin, ModelInterface):
         **initial_values : keyword arguments of variable names and values
             Values with which to initialise specific named model variables
         """
-        self.__dict__['engine'] = engine
-
         super().__init__(
             span=span,
             strict=strict,
@@ -1474,6 +1505,8 @@ class BaseModel(SolverMixin, ModelInterface):
             default_value=default_value,
             **initial_values,
         )
+
+        self.add_attribute('engine', engine)
 
     @classmethod
     def from_dataframe(

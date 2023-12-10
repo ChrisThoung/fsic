@@ -28,6 +28,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Switched from dated 'setup.py' configuration to more modern pyproject.toml.
 - Removed `NotImplementedError`s from over-rideable methods.
+- Changed treatment of attribute addition, to use new `add_attribute()` method
+  in `VectorContainer`.
+- Changed treatment of lags and leads to derive instance-level attributes from
+  class-level defaults in both `BaseModel` and `BaseLinker`.
 
 ### Deprecated
 ### Removed
