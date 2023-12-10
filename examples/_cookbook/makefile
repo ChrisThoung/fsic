@@ -1,0 +1,8 @@
+all :
+	python aliases.py
+	python eval.py
+	python fortran_engine.py
+	python pandas_indexing.py
+	python progress_bar.py
+	python quickstart.py
+	python reindex.py
