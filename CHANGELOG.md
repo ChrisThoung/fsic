@@ -26,6 +26,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Changed
 
+- Switched from dated 'setup.py' configuration to more modern pyproject.toml.
 - Removed `NotImplementedError`s from over-rideable methods.
 
 ### Deprecated
