@@ -17,7 +17,7 @@ sandbox :
 examples :
 	cd examples/_cookbook && make
 	cd examples/almon_2017 && make
-	cd examples/define && python define_simple.py
+	cd examples/define && make
 	cd examples/godley-lavoie_2007 && make
 	cd examples/klein_1950 && make
 	cd examples/macrosimulation && make
