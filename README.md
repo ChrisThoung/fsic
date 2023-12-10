@@ -50,6 +50,8 @@ Available files:
 * dependencies to run the examples: [examples.txt](requirements/examples.txt)
 * dependencies to run experimental (sandbox) code:
   [sandbox.txt](requirements/sandbox.txt)
+* useful dependencies for development:
+  [development.txt](requirements/development.txt)
 
 ### ...find more examples
 
