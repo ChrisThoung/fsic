@@ -3417,6 +3417,10 @@ class TestLinkerInit(unittest.TestCase):
                 'B': self.SubmodelNoLags(range(1991, 2005 + 1)),  # Start is 1990 for 'A'
             })
 
+    def test_init_no_submodels(self):
+        # Check linker initialisation if no submodels passed
+        linker = fsic.BaseLinker({})
+
 
 class TestLinkerSolve(unittest.TestCase):
 
