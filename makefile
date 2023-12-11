@@ -1,3 +1,6 @@
+.PHONY: help
+help :
+
 .PHONY: install
 install :
 	pip install -U .
