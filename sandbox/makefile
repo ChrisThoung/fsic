@@ -1,2 +1,2 @@
 all :
-	python progress_bar.py
+	cd progress-bar && python example.py
