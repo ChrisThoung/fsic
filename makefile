@@ -15,6 +15,7 @@ test :
 
 .PHONY: sandbox
 sandbox :
+	cd sandbox && make
 
 .PHONY: examples
 examples :

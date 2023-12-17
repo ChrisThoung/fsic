@@ -17,7 +17,7 @@ import enum
 import re
 import warnings
 from collections import Counter
-from typing import Any, Dict, Hashable, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Hashable, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -1114,7 +1114,7 @@ class SolverMixin:
         start: Optional[Hashable] = None,
         end: Optional[Hashable] = None,
         **kwargs: Any,
-    ) -> Iterator[Tuple[int, Hashable]]:
+    ) -> Iterable[Tuple[int, Hashable]]:
         """Return pairs of period indexes and labels.
 
         Parameters

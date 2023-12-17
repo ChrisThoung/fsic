@@ -11,6 +11,6 @@ about, *inter alia*:
 
 ## Contents
 
-| File                       | Description                                              |
-| -------------------------- | -------------------------------------------------------- |
-|                            |                                                          |
+| File                             | Description                              |
+| -------------------------------- | ---------------------------------------- |
+| [progress_bar.py](progress-bar/) | Experiments extending `ProgressBarMixin` |
