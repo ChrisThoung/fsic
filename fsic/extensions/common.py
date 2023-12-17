@@ -5,7 +5,7 @@ Mixins compatible with both model and linker classes.
 
 import copy
 import itertools
-from typing import Any, Dict, Hashable, List, Sequence, Tuple, Union
+from typing import Any, Dict, Hashable, Iterable, List, Sequence, Tuple, Union
 
 
 class AliasMixin:
@@ -367,7 +367,7 @@ class ProgressBarMixin:
     >>> model.solve(progress_bar=True)
     """
 
-    def iter_periods(self, *args, progress_bar: bool = False, **kwargs):
+    def iter_periods(self, *args, progress_bar: bool = False, **kwargs) -> Iterable[Tuple[int, Hashable]]:
         """Modified `iter_periods()` method: Display a `tqdm` progress bar if `progress_bar=True`. **Requires `tqdm`**"""
         # Get the original `PeriodIter` object
         period_iter = super().iter_periods(*args, **kwargs)
