@@ -6,7 +6,7 @@ fsic implementations of models covered by Prante and Kohler (2023).
 ## Contents
 
 | File                                                                   | Description                                                                                                     |
-|------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------|
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | [new_keynesian_3_equation_model.py](new_keynesian_3_equation_model.py) | Replication of [A New Keynesian 3-equation model](https://macrosimulation.org/a_new_keynesian_3_equation_model) |
 | [sraffian_supermultiplier_model.py](sraffian_supermultiplier_model.py) | Replication of [A Sraffian supermultiplier model](https://macrosimulation.org/a_sraffian_supermultiplier_model) |
 
