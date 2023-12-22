@@ -217,7 +217,7 @@ class VectorContainer:
         # Form lookup of lowercase versions of the names
         candidates = {}
         for x in possibilities:
-            candidates[x.lower()] = candidates.get(x, []) + [x]
+            candidates[x.lower()] = candidates.get(x.lower(), []) + [x]
 
         # Match using `difflib`
         closest_match = difflib.get_close_matches(
