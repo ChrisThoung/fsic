@@ -1294,6 +1294,32 @@ class TestModelContainerMethods(unittest.TestCase):
                     self.assertEqual(model.get_closest_match(x),
                                      [expected])
 
+    def test_get_closest_match_multiple(self):
+        # Check that `get_closest_match()` handles multiple match candidates
+        # correctly (currently, by raising a `NotImplementedError`)
+
+        # yd_r/YD_r problem uncovered while attempting to implement Model
+        # *INSOUT* from Chapter 10 of Godley and Lavoie (2007)
+
+        # Use `strict=True` to test by failed attribute assignment
+        model = self.Model(range(1995, 2005 + 1), strict=True)
+        model.add_variable('YD_r', 0)
+        model.add_variable('yd_r', 0)
+
+        with self.assertRaises(NotImplementedError,
+                               msg='Handling of multiple name matches not yet implemented'):
+            model.yd_k_r = 1
+
+        # Reverse the order of variable addition and test the same again (an
+        # earlier bug meant this behaved differently to the order above)
+        model = self.Model(range(1995, 2005 + 1), strict=True)
+        model.add_variable('yd_r', 0)
+        model.add_variable('YD_r', 0)
+
+        with self.assertRaises(NotImplementedError,
+                               msg='Handling of multiple name matches not yet implemented'):
+            model.yd_k_r = 1
+
     def test_getitem_by_name(self):
         # Test variable access by name
         model = self.Model(['{}Q{}'.format(y, q)
