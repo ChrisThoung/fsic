@@ -1957,7 +1957,7 @@ class BaseLinker(SolverMixin, ModelInterface):
             base = self.__dict__['submodels'][base_name]
 
             if span is None:
-                span = base.span
+                span = copy.deepcopy(base.span)
             else:
                 raise NotImplementedError('Custom `span` handling not yet implemented')
 
