@@ -29,6 +29,7 @@ import unittest
 
 import numpy as np
 
+from fsic.exceptions import SolutionError
 import fsic
 
 
@@ -3419,7 +3420,20 @@ class TestLinkerInit(unittest.TestCase):
 
     def test_init_no_submodels(self):
         # Check linker initialisation if no submodels passed
-        linker = fsic.BaseLinker({})
+
+        # All of the below should initialise without error, but raise a
+        # `SolutionError` if attempting to solve
+        linker = fsic.BaseLinker()  # No `submodels` argument
+        with self.assertRaises(SolutionError, msg='Object `span` is empty: No periods to solve'):
+            linker.solve()
+
+        linker = fsic.BaseLinker(None)  # `submodels=None`
+        with self.assertRaises(SolutionError, msg='Object `span` is empty: No periods to solve'):
+            linker.solve()
+
+        linker = fsic.BaseLinker({})  # `submodels={}'
+        with self.assertRaises(SolutionError, msg='Object `span` is empty: No periods to solve'):
+            linker.solve()
 
 
 class TestLinkerSolve(unittest.TestCase):

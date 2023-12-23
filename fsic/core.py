@@ -1135,6 +1135,9 @@ class SolverMixin:
         A `PeriodIter` object, which is iterable and returns the period (index,
         label) pairs in sequence.
         """
+        if len(self.span) == 0:
+            raise SolutionError('Object `span` is empty: No periods to solve')
+
         # Default start and end periods
         if start is None:
             start = self.span[self.lags]
@@ -1906,8 +1909,9 @@ class BaseLinker(SolverMixin, ModelInterface):
 
     def __init__(
         self,
-        submodels: Dict[Hashable, BaseModel],
+        submodels: Optional[Dict[Hashable, BaseModel]] = None,
         *,
+        span: Optional[Sequence[Hashable]] = None,
         name: Hashable = '_',
         dtype: Any = float,
         default_value: Union[int, float] = 0.0,
@@ -1917,9 +1921,12 @@ class BaseLinker(SolverMixin, ModelInterface):
 
         Parameters
         ----------
-        submodels : dict
+        submodels : dict (or `None`)
             Mapping of submodel identifiers (keys) to submodel instances
             (values)
+        span : iterable
+            Optional sequence of periods to set the timespan of the linked
+            model (rather than infer it from the submodels)
         name :
             Identifier for the model embedded in the linker (in the same way
             that the submodels each have an identifier/key, as in `submodels`)
@@ -1935,35 +1942,50 @@ class BaseLinker(SolverMixin, ModelInterface):
         For now, the submodels must have identical `span` attributes. Method
         raises an `InitialisationError` if not.
         """
+        if submodels is None or len(submodels) == 0:
+            submodels = {}
+
         self.__dict__['submodels'] = submodels
         self.__dict__['name'] = name
 
-        # Get a list of submodel IDs and pop the first submodel as the one to
-        # compare all the others against
-        identifiers = iter(self.__dict__['submodels'])
+        if len(submodels):
+            # Get a list of submodel IDs and pop the first submodel as the one
+            # to compare all the others against
+            identifiers = iter(self.__dict__['submodels'])
 
-        base_name = next(identifiers)
-        base = self.__dict__['submodels'][base_name]
+            base_name = next(identifiers)
+            base = self.__dict__['submodels'][base_name]
 
-        lags = base.LAGS
-        leads = base.LEADS
+            if span is None:
+                span = base.span
+            else:
+                raise NotImplementedError('Custom `span` handling not yet implemented')
 
-        # Check for a common span across submodels (error if not) and work out
-        # the longest lags and leads
-        for id_ in identifiers:
-            # Check spans are identical
-            comparator = self.__dict__['submodels'][id_]
-            if comparator.span != base.span:
-                raise InitialisationError(
-                    f'''\
+            lags = base.LAGS
+            leads = base.LEADS
+
+            # Check for a common span across submodels (error if not) and work
+            # out the longest lags and leads
+            for id_ in identifiers:
+                # Check spans are identical
+                comparator = self.__dict__['submodels'][id_]
+                if comparator.span != base.span:
+                    raise InitialisationError(
+                        f'''\
 Spans of submodels differ:
  - '{base_name}', {len(base.span):,} period(s): {base.span}
  - '{id_}', {len(comparator.span):,} period(s): {comparator.span}'''
-                )
+                    )
 
-            # Update longest lags and leads
-            lags = max(lags, comparator.LAGS)
-            leads = max(leads, comparator.LEADS)
+                # Update longest lags and leads
+                lags =  max(lags, comparator.LAGS)
+                leads = max(leads, comparator.LEADS)
+
+        else:
+            if span is None:
+                span = []
+
+            lags = leads = 0
 
         # Store lags and leads
         self.__dict__['_LAGS'] = lags
@@ -1972,7 +1994,7 @@ Spans of submodels differ:
         # Initialise internal store for the core of the model (which is
         # separate from the individual submodels)
         super().__init__(
-            span=base.span, dtype=dtype, default_value=default_value, **initial_values
+            span=span, dtype=dtype, default_value=default_value, **initial_values
         )
 
     @property

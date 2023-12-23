@@ -13,6 +13,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 - Added `reindex()` methods to `VectorContainer` and `BaseModel`.
 - Added `to_dataframe()` method to `VectorContainer`.
+- Added support for empty linkers i.e. linker instances with no submodels.
 - Added new `functions` module for operations on NumPy arrays.
 - Added support for `functions` as standard in `eval()`.
 - Added support for named periods in `parser` model definitions.
@@ -21,6 +22,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   (similar to improved error messages in Python 3.10 onwards).
 - Added `try...except` to catch indexing errors in
   `VectorContainer._locate_period_in_span()`, to then raise as `KeyError`s.
+- Added check (and error) in `iter_periods()` if attempting to solve an
+  instance with an empty span i.e. if there are no periods to solve.
 - Added new `TracerMixin` extension for `BaseModel`-derived classes, to track
   iteration-by-iteration variable results.
 
