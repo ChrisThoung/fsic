@@ -838,7 +838,20 @@ class VectorContainer:
         if locals is not None:
             locals_.update(locals)
 
-        return eval(expression, globals, locals_)
+        # Either...
+        try:
+            # ...return the result...
+            return eval(expression, globals, locals_)
+
+        except NameError as e:
+            # ...or catch a name error (the expression contains an undefined
+            # variable) and try to suggest to the user a valid alternative
+            name = e.name
+            suggestions = self.get_closest_match(name)
+
+            raise AttributeError(
+                f"Object has no attribute '{name}'. Did you mean: '{suggestions[0]}'?"
+            ) from e
 
     def exec(self, expression: str) -> None:
         raise NotImplementedError('`exec()` method not implemented yet')

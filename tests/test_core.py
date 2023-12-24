@@ -872,6 +872,15 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(container.eval('(Z[:`2001`:2] + X[-1]) / np.exp(3)', locals={'np': np}),
                                     np.array([7, 7, 9, 7], dtype=float) / np.exp(3)))
 
+    def test_eval_undefined_variable_error(self):
+        # Check that `eval` returns a suggested alternative in the event of a
+        # `NameError`
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+        container.add_variable('X', 0, dtype=float)
+
+        with self.assertRaises(AttributeError, msg="Object has no attribute 'X'. Did you mean: 'x'?"):
+            container.eval('x * 2')
+
     @unittest.expectedFailure
     def test_exec(self):
         # Check `exec()` method
