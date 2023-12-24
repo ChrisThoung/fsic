@@ -873,7 +873,7 @@ class TestVectorContainer(unittest.TestCase):
                                     np.array([7, 7, 9, 7], dtype=float) / np.exp(3)))
 
     def test_eval_undefined_variable_error(self):
-        # Check that `eval` returns a suggested alternative in the event of a
+        # Check that `eval()` returns a suggested alternative in the event of a
         # `NameError`
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
         container.add_variable('X', 0, dtype=float)
