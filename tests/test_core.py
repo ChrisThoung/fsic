@@ -881,6 +881,14 @@ class TestVectorContainer(unittest.TestCase):
         with self.assertRaises(AttributeError, msg="Object has no attribute 'X'. Did you mean: 'x'?"):
             container.eval('x * 2')
 
+    def test_eval_undefined_variable_error_empty_container(self):
+        # Check that `eval()` raises an undefined variable error when trying to
+        # suggest an alternative
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1))
+
+        with self.assertRaises(AttributeError, msg="Object is empty and thus has no attribute with name 'x'"):
+            container.eval('x * 2')
+
     @unittest.expectedFailure
     def test_exec(self):
         # Check `exec()` method

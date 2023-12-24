@@ -209,6 +209,7 @@ class VectorContainer:
             Closest match(es) to `name` in `possibilities` (multiple matches
             arise if `possibilities` has duplicate names, once converted to
             lower case)
+            If no suitable match is found, the result is an empty list
         """
         # Set default list if none provided
         if possibilities is None:
@@ -849,9 +850,14 @@ class VectorContainer:
             name = e.name
             suggestions = self.get_closest_match(name)
 
-            raise AttributeError(
-                f"Object has no attribute '{name}'. Did you mean: '{suggestions[0]}'?"
-            ) from e
+            if len(suggestions) == 0:
+                raise AttributeError(
+                    f"Object is empty and thus has no attribute '{name}'"
+                ) from e
+            else:
+                raise AttributeError(
+                    f"Object has no attribute '{name}'. Did you mean: '{suggestions[0]}'?"
+                ) from e
 
     def exec(self, expression: str) -> None:
         raise NotImplementedError('`exec()` method not implemented yet')
@@ -1034,6 +1040,7 @@ class ModelInterface(VectorContainer):
             Closest match(es) to `name` in `possibilities` (multiple matches
             arise if `possibilities` has duplicate names, once converted to
             lower case)
+            If no suitable match is found, the result is an empty list
         """
         # Set default list if none provided
         if possibilities is None:
