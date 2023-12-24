@@ -829,7 +829,9 @@ class VectorContainer:
 
         # Set builtins
         if builtins is None:
-            builtins = _builtins
+            # Copy the builtins to avoid changing global package state
+            # TODO: Review performance implications of copying
+            builtins = copy.deepcopy(_builtins)
         locals_ = builtins
 
         # Update with model variables
