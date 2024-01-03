@@ -463,7 +463,7 @@ class VectorContainer:
 
     __copy__ = copy
 
-    def __deepcopy__(self, *args, **kwargs) -> 'VectorContainer':
+    def __deepcopy__(self, *args: Any, **kwargs: Any) -> 'VectorContainer':
         return self.copy()
 
     def __dir__(self) -> List[str]:
@@ -1100,7 +1100,7 @@ class ModelInterface(VectorContainer):
 class PeriodIter:
     """Iterator of (index, label) pairs returned by `SolverMixin.iter_periods()`. Compatible with `len()`."""
 
-    def __init__(self, *args):
+    def __init__(self, *args: Any):
         self._length = len(args[0])
         self._iter = list(zip(*args))
 
@@ -1123,7 +1123,7 @@ class SolverMixin:
     LAGS: int = 0
     LEADS: int = 0
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Set up the object and copy class-level lags and leads to object-level attributes."""
         super().__init__(*args, **kwargs)
 
@@ -1185,7 +1185,7 @@ class SolverMixin:
         failures: str = 'raise',
         errors: str = 'raise',
         catch_first_error: bool = True,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
@@ -1312,7 +1312,7 @@ class SolverMixin:
         failures: str = 'raise',
         errors: str = 'raise',
         catch_first_error: bool = True,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> bool:
         """Solve a single period.
 
@@ -1407,7 +1407,7 @@ class SolverMixin:
         failures: str = 'raise',
         errors: str = 'raise',
         catch_first_error: bool = True,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
@@ -1537,8 +1537,8 @@ class BaseModel(SolverMixin, ModelInterface):
     def from_dataframe(
         cls: 'BaseModel',
         data: 'pandas.DataFrame',  # noqa: F821
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ) -> 'BaseModel':
         """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
 
@@ -1611,7 +1611,7 @@ class BaseModel(SolverMixin, ModelInterface):
         failures: str = 'raise',
         errors: str = 'raise',
         catch_first_error: bool = True,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
@@ -1861,7 +1861,7 @@ class BaseModel(SolverMixin, ModelInterface):
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
 
@@ -1872,7 +1872,7 @@ class BaseModel(SolverMixin, ModelInterface):
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
 
@@ -1883,7 +1883,7 @@ class BaseModel(SolverMixin, ModelInterface):
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
@@ -2070,7 +2070,7 @@ Spans of submodels differ:
 
     __copy__ = copy
 
-    def __deepcopy__(self, *args, **kwargs) -> 'BaseLinker':
+    def __deepcopy__(self, *args: Any, **kwargs: Any) -> 'BaseLinker':
         return self.copy()
 
     def reindex(
@@ -2105,7 +2105,7 @@ Spans of submodels differ:
         failures: str = 'raise',
         errors: str = 'raise',
         catch_first_error: bool = True,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the linker and its constituent submodels. Use default periods if none provided.
 
@@ -2226,7 +2226,7 @@ Spans of submodels differ:
         failures: str = 'raise',
         errors: str = 'raise',
         catch_first_error: bool = True,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> bool:
         """Solve for the period at integer position `t` in the linker's `span`.
 
@@ -2404,7 +2404,7 @@ Spans of submodels differ:
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the linker's `span`.
 
@@ -2469,7 +2469,7 @@ Spans of submodels differ:
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom linker behaviour."""
 
@@ -2481,7 +2481,7 @@ Spans of submodels differ:
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom linker behaviour."""
 
@@ -2493,7 +2493,7 @@ Spans of submodels differ:
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Evaluate any linker equations before solving the individual submodels. Over-ride to implement custom linker behaviour."""
 
@@ -2505,6 +2505,6 @@ Spans of submodels differ:
         errors: str = 'raise',
         catch_first_error: bool = True,
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Evaluate any linker equations after solving the individual submodels. Over-ride to implement custom linker behaviour."""

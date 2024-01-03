@@ -301,10 +301,10 @@ class TracerMixin:
         self,
         period: Hashable,
         label: Any,
-        *args,
+        *args: Any,
         trace: Optional[Union[bool, str, Sequence[str]]] = None,
         reset: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ):
         """Store current results for the period with label `period`.
 
@@ -342,10 +342,10 @@ class TracerMixin:
         self,
         t: int,
         label: Any,
-        *args,
+        *args: Any,
         trace: Optional[Union[bool, str, Sequence[str]]] = None,
         reset: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ):
         """Store current results for the period at integer position `t` in the model's `span`.
 
@@ -398,10 +398,10 @@ class TracerMixin:
     def solve_t(
         self,
         t: int,
-        *args,
+        *args: Any,
         trace: Optional[Union[bool, str, Sequence[str]]] = None,
         reset: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 

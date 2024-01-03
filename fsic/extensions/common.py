@@ -369,7 +369,7 @@ class ProgressBarMixin:
     >>> model.solve(progress_bar=True)
     """
 
-    def iter_periods(self, *args, progress_bar: bool = False, **kwargs) -> Iterable[Tuple[int, Hashable]]:
+    def iter_periods(self, *args: Any, progress_bar: bool = False, **kwargs: Any) -> Iterable[Tuple[int, Hashable]]:
         """Modified `iter_periods()` method: Display a `tqdm` progress bar if `progress_bar=True`. **Requires `tqdm`**"""
         # Get the original `PeriodIter` object
         period_iter = super().iter_periods(*args, **kwargs)

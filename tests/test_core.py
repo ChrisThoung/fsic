@@ -1624,15 +1624,15 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -1743,15 +1743,15 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -1800,15 +1800,15 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -1861,15 +1861,15 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -1926,15 +1926,15 @@ class TestBuild(unittest.TestCase):
     LAGS: int = 0
     LEADS: int = 0
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -1990,15 +1990,15 @@ self.T[t] = self.theta[t] * self.Y[t]
     LAGS: int = 0
     LEADS: int = 0
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters

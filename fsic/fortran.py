@@ -99,7 +99,7 @@ class FortranEngine:
         offset: int = 0,
         failures: str = 'raise',
         errors: str = 'raise',
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> Tuple[List[Hashable], List[int], List[bool]]:
         """Solve the model. Use default periods if none provided.
 
@@ -307,7 +307,7 @@ class FortranEngine:
         offset: int = 0,
         failures: str = 'raise',
         errors: str = 'raise',
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> bool:
         """Solve for the period at integer position `t` in the model's `span`.
 
@@ -478,7 +478,7 @@ class FortranEngine:
         *,
         errors: str = 'raise',
         iteration: Optional[int] = None,
-        **kwargs: Dict[str, Any],
+        **kwargs: Any,
     ) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 

@@ -34,7 +34,7 @@ and convert it to the corresponding Python code:
         LAGS: int = 0
         LEADS: int = 0
 
-        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Any) -> None:
             # Y[t] = C[t] + I[t] + G[t]
             self._Y[t] = self._C[t] + self._I[t] + self._G[t]
 
@@ -89,7 +89,7 @@ and to then convert those symbols into the final class definition, whether:
         LAGS: int = 0
         LEADS: int = 0
 
-        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Any) -> None:
             # Y[t] = C[t] + I[t] + G[t]
             self._Y[t] = self._C[t] + self._I[t] + self._G[t]
 
@@ -778,15 +778,15 @@ class Model(BaseModel):
     LAGS: int = {lags}
     LEADS: int = {leads}
 
-    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_before(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Pre-solution method: This runs each period, before the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def solve_t_after(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Post-solution method: This runs each period, after the iterative solution. Over-ride to implement custom behaviour."""
         pass
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Any) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -959,7 +959,7 @@ if _ > 0:  # Ignore negative values
         LAGS: int = 0
         LEADS: int = 0
 
-        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Any) -> None:
             # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
             self._Y[t] = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
 
@@ -1005,7 +1005,7 @@ if _ > 0:  # Ignore negative values
         LAGS: int = 0
         LEADS: int = 0
 
-        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+        def _evaluate(self, t: int, *, errors: str = 'raise', iteration: Optional[int] = None, **kwargs: Any) -> None:
             # Y[t] = C[t] + I[t] + G[t] + X[t] - M[t]
             _ = self._C[t] + self._I[t] + self._G[t] + self._X[t] - self._M[t]
             if _ > 0:  # Ignore negative values
