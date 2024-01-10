@@ -117,7 +117,7 @@ from typing import (
     Optional,
     Tuple,
     Union,
-)
+)  # fmt: skip
 
 import numpy as np  # noqa: F401
 
@@ -148,7 +148,7 @@ equation_re = re.compile(
         (?: ^    \S+? \s* [=] \s*    .*?    (?= \s* ) $ )   # Equation on a single line
     ''',
     re.DOTALL | re.MULTILINE | re.VERBOSE,
-)
+)  # fmt: skip
 
 # Terms are valid Python identifiers. If they aren't functions, they may also
 # have an index. For example:
@@ -185,7 +185,7 @@ term_re = re.compile(
         (?: \[ \s* (?P<INDEX> .*? ) \s* \] )?
     ''',
     re.VERBOSE,
-)
+)  # fmt: skip
 
 
 # Containers for term and symbol information ----------------------------------
@@ -316,7 +316,7 @@ Unable to combine the following pair of symbols:
 
 Variables cannot appear in the input script as both endogenous/exogenous
 variables and parameters/errors etc.'''
-                )
+                )  # fmt: skip
 
             combined_type = max(self.type, other.type)
 
@@ -604,9 +604,11 @@ def parse_equation(equation: str) -> List[Symbol]:
         start, end = match.span()
         template = f'{template[:start]}{{}}{template[end:]}'
 
+    # fmt: off
     template = re.sub(r'\s+',   ' ', template)  # Remove repeated whitespace
     template = re.sub(r'\(\s+', '(', template)  # Remove space after opening brackets
     template = re.sub(r'\s+\)', ')', template)  # Remove space before closing brackets
+    # fmt: on
 
     equation = template.format(*[str(t) for t in terms])
     code = template.format(*[t.code for t in terms])
@@ -1018,7 +1020,7 @@ if _ > 0:  # Ignore negative values
 {}
 {}'''.format(
             '\n'.join('# ' + x for x in symbol.equation.splitlines()), symbol.code
-        )
+        )  # fmt: skip
 
     if converter is None:
         converter = default_converter
@@ -1029,10 +1031,12 @@ if _ > 0:  # Ignore negative values
         model_template = model_template_untyped
 
     # Separate variable names according to variable type
+    # fmt: off
     endogenous = [s.name for s in symbols if s.type == Type.ENDOGENOUS]
     exogenous  = [s.name for s in symbols if s.type == Type.EXOGENOUS]
     parameters = [s.name for s in symbols if s.type == Type.PARAMETER]
     errors     = [s.name for s in symbols if s.type == Type.ERROR]
+    # fmt: on
 
     # Set longest lag and lead
     non_indexed_symbols = [

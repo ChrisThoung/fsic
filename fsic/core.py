@@ -122,10 +122,14 @@ class VectorContainer:
     def add_attribute(self, name: str, value: Any) -> None:
         """Add an attribute to the container."""
         if name in self.__dict__['index']:
-            raise DuplicateNameError(f"Variable with name '{name}' already defined in current object")
+            raise DuplicateNameError(
+                f"Variable with name '{name}' already defined in current object"
+            )
 
         if name in self.__dict__['_attributes']:
-            raise DuplicateNameError(f"Attribute with name '{name}' already defined in current object")
+            raise DuplicateNameError(
+                f"Attribute with name '{name}' already defined in current object"
+            )
 
         super().__setattr__(name, value)
         self.__dict__['_attributes'].append(name)
@@ -614,7 +618,7 @@ class VectorContainer:
         return index_re.sub(resolve_indexes, expression)
 
     def reindex(
-            self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
+        self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
     ) -> 'VectorContainer':
         """Return a copy of the current object, adjusted to match `span`. Values in overlapping periods between the old and new objects are preserved (copied over).
 
@@ -1280,9 +1284,11 @@ class SolverMixin:
 
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
+        # fmt: off
         indexes = [None] * len(period_iter)
         labels  = [None] * len(period_iter)
         solved  = [None] * len(period_iter)
+        # fmt: on
 
         for i, (t, period) in enumerate(period_iter):
             indexes[i] = t
@@ -1567,7 +1573,7 @@ class BaseModel(SolverMixin, ModelInterface):
         return cls(index, *args, **{k: v.values for k, v in data.items()}, **kwargs)
 
     def reindex(
-            self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
+        self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
     ) -> 'BaseModel':
         """Return a copy of the current object, adjusted to match `span`. Values in overlapping periods between the old and new objects are preserved (copied over).
 
@@ -1997,11 +2003,13 @@ class BaseLinker(SolverMixin, ModelInterface):
 Spans of submodels differ:
  - '{base_name}', {len(base.span):,} period(s): {base.span}
  - '{id_}', {len(comparator.span):,} period(s): {comparator.span}'''
-                    )
+                    )  # fmt: skip
 
                 # Update longest lags and leads
+                # fmt: off
                 lags =  max(lags, comparator.LAGS)
                 leads = max(leads, comparator.LEADS)
+                # fmt: on
 
         else:
             if span is None:
@@ -2074,11 +2082,13 @@ Spans of submodels differ:
         return self.copy()
 
     def reindex(
-            self, span: Sequence[Hashable], *args: Any, **kwargs: Any
+        self, span: Sequence[Hashable], *args: Any, **kwargs: Any
     ) -> 'BaseLinker':
         # TODO: Still to consider design of the `BaseLinker` equivalent to the
         #       (now implemented) `VectorContainer` and `BaseModel` versions
-        raise NotImplementedError('`reindex()` method not yet implemented in `BaseLinker`')
+        raise NotImplementedError(
+            '`reindex()` method not yet implemented in `BaseLinker`'
+        )
 
     def to_dataframe(
         self, *, status: bool = True, iterations: bool = True
@@ -2192,9 +2202,11 @@ Spans of submodels differ:
 
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
+        # fmt: off
         indexes = [None] * len(period_iter)
         labels  = [None] * len(period_iter)
         solved  = [None] * len(period_iter)
+        # fmt: on
 
         for i, (t, period) in enumerate(period_iter):
             indexes[i] = t

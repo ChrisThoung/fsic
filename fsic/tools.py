@@ -62,7 +62,7 @@ def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':  # noqa: F821
     for e in equations:
         lhs, rhs = e.split('=', maxsplit=1)
         endogenous = [m.group(0) for m in term_re.finditer(lhs)]
-        exogenous  = [m.group(0) for m in term_re.finditer(rhs)]
+        exogenous  = [m.group(0) for m in term_re.finditer(rhs)]  # fmt: skip
 
         # Add the equations as node properties
         G.add_nodes_from(endogenous, equation=e)

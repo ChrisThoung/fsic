@@ -31,6 +31,7 @@ class FortranEngine:
 
     ENGINE: Optional[ModuleType] = None
 
+    # fmt: off
     _FAILURE_OPTIONS: Dict[str, int] = {
         'raise':   0,
         'ignore':  2,
@@ -42,6 +43,7 @@ class FortranEngine:
         'ignore':  2,
         'replace': 3,
     }
+    # fmt: on
 
     def __init__(
         self,
@@ -891,7 +893,7 @@ subroutine solve(initial_values, indexes,                                       
   end do
 
 end subroutine solve
-'''
+'''  # fmt: skip
 
 
 def build_fortran_definition(
@@ -918,10 +920,12 @@ def build_fortran_definition(
         Wrap lines to be at most `wrap_width` characters in length
     """
     # Separate variable names according to variable type
+    # fmt: off
     endogenous = [s.name for s in symbols if s.type == Type.ENDOGENOUS]
     exogenous  = [s.name for s in symbols if s.type == Type.EXOGENOUS]
     parameters = [s.name for s in symbols if s.type == Type.PARAMETER]
     errors     = [s.name for s in symbols if s.type == Type.ERROR]
+    # fmt: on
 
     # Set longest lag and lead
     non_indexed_symbols = [
