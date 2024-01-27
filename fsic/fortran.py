@@ -527,7 +527,7 @@ class FortranEngine:
 
 # Fortran code generator ------------------------------------------------------
 
-fortran_template = '''\
+FORTRAN_TEMPLATE = '''\
 ! This file of Fortran code has been generated programmatically by
 ! `fsic.fortran`, a module of `fsic` (Version {version}).
 !
@@ -1000,7 +1000,7 @@ def build_fortran_definition(
 
         return definition
 
-    fortran_definition_string = fortran_template.format(
+    fortran_definition_string = FORTRAN_TEMPLATE.format(
         system='\n'.join('!   ' + x for x in equation_summary),
         equations='\n\n'.join(equation_code),
         lags=lags,

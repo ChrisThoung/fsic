@@ -162,16 +162,16 @@ equation_re = re.compile(
 #
 # and errors in angle brackets: <epsilon>
 
-keyword_list = '|'.join(keyword.kwlist)
+KEYWORD_LIST = '|'.join(keyword.kwlist)
 
 term_re = re.compile(
     # Match verbatim code enclosed in backticks
     r'(?: (?P<_VERBATIM> [`] (.+?) [`]) )|'
     # Match attempts to use reserved Python keywords as variable names (to be
     # raised as errors elsewhere)
-    rf'(?: (?P<_INVALID> (?: {keyword_list}) \s* \[ .*? \]) )|' +
+    rf'(?: (?P<_INVALID> (?: {KEYWORD_LIST}) \s* \[ .*? \]) )|' +
     # Match Python keywords
-    rf'(?: \b (?P<_KEYWORD> {keyword_list} ) \b )|'
+    rf'(?: \b (?P<_KEYWORD> {KEYWORD_LIST} ) \b )|'
     +
     # Valid terms for the parser
     r'''
@@ -766,7 +766,7 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
 
 # Model class generator -------------------------------------------------------
 
-model_template_typed = '''\
+MODEL_TEMPLATE_TYPED = '''\
 class Model(BaseModel):
     ENDOGENOUS: List[str] = {endogenous}
     EXOGENOUS: List[str] = {exogenous}
@@ -819,7 +819,7 @@ class Model(BaseModel):
 {equations}\
 '''
 
-model_template_untyped = '''\
+MODEL_TEMPLATE_UNTYPED = '''\
 class Model(BaseModel):
     ENDOGENOUS = {endogenous}
     EXOGENOUS = {exogenous}
@@ -1026,9 +1026,9 @@ if _ > 0:  # Ignore negative values
         converter = default_converter
 
     if with_type_hints:
-        model_template = model_template_typed
+        model_template = MODEL_TEMPLATE_TYPED
     else:
-        model_template = model_template_untyped
+        model_template = MODEL_TEMPLATE_UNTYPED
 
     # Separate variable names according to variable type
     # fmt: off
