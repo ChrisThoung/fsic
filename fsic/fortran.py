@@ -67,8 +67,13 @@ class FortranEngine:
             If `True`, the only way to add attributes to the object is with
             `add_variable()` i.e. as new container variables. Ad hoc attributes
             are expressly blocked.
+            If `False`, further attributes can be added ad hoc at runtime in
+            the usual way for Python objects e.g. `model.A = ...`.
+            On instantiation, `strict=True` also checks that any variables set
+            with `initial_values` are in the class's `NAMES` attribute, raising
+            an `InitialisationError` if not.
         dtype : variable type
-            Data type to impose on model variables (in NumPy arrays)
+            Default data type to impose on model variables (in NumPy arrays)
         default_value : number
             Value with which to initialise model variables
         **initial_values : keyword arguments of variable names and values
@@ -168,8 +173,8 @@ class FortranEngine:
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
-                f'Value of `min_iter` ({min_iter}) '
-                f'cannot exceed value of `max_iter` ({max_iter})'
+                f'Value of `min_iter` ({min_iter}) cannot '
+                f'exceed value of `max_iter` ({max_iter})'
             )
 
         # Catch invalid `start` and `end` periods here e.g. to avoid later
@@ -354,21 +359,6 @@ class FortranEngine:
         Returns
         -------
         `True` if the model solved for the current period; `False` otherwise.
-
-        Notes
-        -----
-        As of version 0.3.0, fsic provides (some) support (escape hatches) for
-        numerical errors in solution.
-
-        For example, there may be an equation that involves a division
-        operation but the equation that determines the divisor follows
-        later. If that divisor was initialised to zero, this leads to a
-        divide-by-zero operation that NumPy evaluates to a NaN. This becomes
-        problematic if the NaNs then propagate through the solution. Similar
-        problems come about with infinities e.g. from log(0).
-
-        The `solve_t()` method now catches such operations (after a full pass
-        through / iteration over the system of equations).
         """
 
         def get_check_values() -> np.ndarray:
@@ -378,7 +368,8 @@ class FortranEngine:
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
             raise ValueError(
-                f'Value of `min_iter` ({min_iter}) cannot exceed value of `max_iter` ({max_iter})'
+                f'Value of `min_iter` ({min_iter}) '
+                f'cannot exceed value of `max_iter` ({max_iter})'
             )
 
         if errors not in self._ERROR_OPTIONS:
@@ -417,6 +408,7 @@ class FortranEngine:
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
                 f'Pre-existing NaNs or infinities found '
+                f'in one or more `CHECK` variables '
                 f'in period with label: {self.span[t]} (index: {t})'
             )
 
