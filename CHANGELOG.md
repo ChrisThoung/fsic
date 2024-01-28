@@ -30,6 +30,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 ### Changed
 
 - Switched from dated 'setup.py' configuration to more modern pyproject.toml.
+- Switched to uppercase constant names.
 - Removed `NotImplementedError`s from over-rideable methods.
 - Changed treatment of attribute addition, to use new `add_attribute()` method
   in `VectorContainer`.
