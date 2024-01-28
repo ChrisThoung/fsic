@@ -213,7 +213,7 @@ class FortranEngine:
             max_iter,
             tol,
             offset,
-            [self.names.index(x) for x in self.CHECK],
+            [self.names.index(x) for x in self.check],
             self._FAILURE_OPTIONS[failures],
             self._ERROR_OPTIONS[errors],
         )
@@ -363,7 +363,7 @@ class FortranEngine:
 
         def get_check_values() -> np.ndarray:
             """Return a 1D NumPy array of variable values for checking in the current period."""
-            return np.array([self.__dict__['_' + name][t] for name in self.CHECK])
+            return np.array([self.__dict__['_' + name][t] for name in self.check])
 
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
@@ -397,7 +397,7 @@ class FortranEngine:
                     f'{offset} + {t} -> position {offset + t_check} >= {len(self.span)} periods in span'
                 )
 
-            for name in self.ENDOGENOUS:
+            for name in self.endogenous:
                 self.__dict__['_' + name][t] = self.__dict__['_' + name][t + offset]
 
         status = SolutionStatus.UNSOLVED.value
@@ -421,7 +421,7 @@ class FortranEngine:
             max_iter,
             tol,
             offset,
-            [self.names.index(x) for x in self.CHECK],
+            [self.names.index(x) for x in self.check],
             self._ERROR_OPTIONS[errors],
         )
 

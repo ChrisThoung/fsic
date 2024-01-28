@@ -11,6 +11,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Added (lowercase) `endogenous` and `check` as instance-level attributes in
+  `BaseModel` and `BaseLinker`, initially copied on instantiation from the
+  class-level versions.
 - Added `reindex()` methods to `VectorContainer` and `BaseModel`.
 - Added `to_dataframe()` method to `VectorContainer`.
 - Added support for empty linkers i.e. linker instances with no submodels.

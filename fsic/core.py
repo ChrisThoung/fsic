@@ -32,6 +32,7 @@ from .functions import builtins as _builtins
 from .tools import linker_to_dataframes as _linker_to_dataframes
 from .tools import model_to_dataframe as _model_to_dataframe
 
+
 # Labelled container for vector data (1D NumPy arrays) ------------------------
 
 
@@ -1537,6 +1538,9 @@ class BaseModel(SolverMixin, ModelInterface):
             **initial_values,
         )
 
+        self.add_attribute('endogenous', self.ENDOGENOUS)
+        self.add_attribute('check', self.CHECK)
+
         self.add_attribute('engine', engine)
 
     @classmethod
@@ -1682,7 +1686,7 @@ class BaseModel(SolverMixin, ModelInterface):
 
         def get_check_values() -> np.ndarray:
             """Return a 1D NumPy array of variable values for checking in the current period."""
-            return np.array([self.__dict__['_' + name][t] for name in self.CHECK])
+            return np.array([self.__dict__['_' + name][t] for name in self.check])
 
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
@@ -1713,7 +1717,7 @@ class BaseModel(SolverMixin, ModelInterface):
                     f'{offset} + {t} -> position {offset + t_check} >= {len(self.span)} periods in span'
                 )
 
-            for name in self.ENDOGENOUS:
+            for name in self.endogenous:
                 self.__dict__['_' + name][t] = self.__dict__['_' + name][t + offset]
 
         status = SolutionStatus.UNSOLVED.value
@@ -1724,7 +1728,7 @@ class BaseModel(SolverMixin, ModelInterface):
         if errors == 'raise' and np.any(~np.isfinite(current_values)):
             raise SolutionError(
                 f'Pre-existing NaNs or infinities found '
-                f'in one or more `CHECK` variables '
+                f'in one or more `check` variables '
                 f'in period with label: {self.span[t]} (index: {t})'
             )
 
@@ -2027,6 +2031,9 @@ Spans of submodels differ:
             span=span, dtype=dtype, default_value=default_value, **initial_values
         )
 
+        self.add_attribute('endogenous', self.ENDOGENOUS)
+        self.add_attribute('check', self.CHECK)
+
     @property
     def sizes(self) -> Dict[Hashable, int]:
         """Dictionary of the number of elements in the linker and each model's vector arrays."""
@@ -2308,13 +2315,13 @@ Spans of submodels differ:
         def get_check_values() -> Dict[Hashable, np.ndarray]:
             """Return NumPy arrays of variable values for the current period, for checking."""
             check_values = {
-                '_': np.array([self.__dict__['_' + name][t] for name in self.CHECK]),
+                '_': np.array([self.__dict__['_' + name][t] for name in self.check]),
             }
 
             for k, submodel in self.submodels.items():
                 if k in submodels:
                     check_values[k] = np.array(
-                        [submodel[name][t] for name in submodel.CHECK]
+                        [submodel[name][t] for name in submodel.check]
                     )
 
             return check_values
