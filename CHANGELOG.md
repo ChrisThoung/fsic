@@ -27,6 +27,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `VectorContainer._locate_period_in_span()`, to then raise as `KeyError`s.
 - Added check (and error) in `iter_periods()` if attempting to solve an
   instance with an empty span i.e. if there are no periods to solve.
+- Added new `PandasIndexFeaturesMixin` extension for more sophisticated `span`
+  handling.
 - Added new `TracerMixin` extension for `BaseModel`-derived classes, to track
   iteration-by-iteration variable results.
 
