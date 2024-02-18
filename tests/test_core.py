@@ -1008,7 +1008,7 @@ H = H[-1] + YD - C
         from pandas import DataFrame
 
         test_cases = {
-            'DatetimeIndex': pd.date_range(start='01/01/2000', periods=269, freq='M'),
+            'DatetimeIndex': pd.date_range(start='01/01/2000', periods=269, freq='ME'),
             'MultiIndex.from_tuples': pd.MultiIndex.from_tuples(
                 [(year, term) for year in range(2000, 2005 + 1) for term in range(1, 3 + 1)],
                 names=['year', 'term']),
