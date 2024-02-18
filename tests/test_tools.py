@@ -20,34 +20,59 @@ except ModuleNotFoundError:
 
 @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
 class TestPandasFunctions(unittest.TestCase):
-
-    SYMBOLS = fsic.parse_model('Y = C + float(G)')  # `float` has no material effect: Added just to have a function in the example
+    SYMBOLS = fsic.parse_model(
+        'Y = C + float(G)'
+    )  # `float` has no material effect: Added just to have a function in the example
     MODEL = fsic.build_model(SYMBOLS)
 
     def test_symbols_to_dataframe(self):
         result = fsic.tools.symbols_to_dataframe(self.SYMBOLS)
-        expected = pd.DataFrame({
-            'name': ['Y', 'C', 'float', 'G'],
-            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.FUNCTION, fsic.parser.Type.EXOGENOUS],
-            'lags': [0, 0, None, 0],
-            'leads': [0, 0, None, 0],
-            'equation': ['Y[t] = C[t] + float(G[t])', None, None, None],
-            'code': ['self._Y[t] = self._C[t] + float(self._G[t])', None, None, None],
-        })
+        expected = pd.DataFrame(
+            {
+                'name': ['Y', 'C', 'float', 'G'],
+                'type': [
+                    fsic.parser.Type.ENDOGENOUS,
+                    fsic.parser.Type.EXOGENOUS,
+                    fsic.parser.Type.FUNCTION,
+                    fsic.parser.Type.EXOGENOUS,
+                ],
+                'lags': [0, 0, None, 0],
+                'leads': [0, 0, None, 0],
+                'equation': ['Y[t] = C[t] + float(G[t])', None, None, None],
+                'code': [
+                    'self._Y[t] = self._C[t] + float(self._G[t])',
+                    None,
+                    None,
+                    None,
+                ],
+            }
+        )
 
         pd.testing.assert_frame_equal(result, expected)
 
     def test_dataframe_to_symbols(self):
         # Check by way of a roundtrip: symbols -> DataFrame -> symbols
         result = fsic.tools.symbols_to_dataframe(self.SYMBOLS)
-        expected = pd.DataFrame({
-            'name': ['Y', 'C', 'float', 'G'],
-            'type': [fsic.parser.Type.ENDOGENOUS, fsic.parser.Type.EXOGENOUS, fsic.parser.Type.FUNCTION, fsic.parser.Type.EXOGENOUS],
-            'lags': [0, 0, None, 0],
-            'leads': [0, 0, None, 0],
-            'equation': ['Y[t] = C[t] + float(G[t])', None, None, None],
-            'code': ['self._Y[t] = self._C[t] + float(self._G[t])', None, None, None],
-        })
+        expected = pd.DataFrame(
+            {
+                'name': ['Y', 'C', 'float', 'G'],
+                'type': [
+                    fsic.parser.Type.ENDOGENOUS,
+                    fsic.parser.Type.EXOGENOUS,
+                    fsic.parser.Type.FUNCTION,
+                    fsic.parser.Type.EXOGENOUS,
+                ],
+                'lags': [0, 0, None, 0],
+                'leads': [0, 0, None, 0],
+                'equation': ['Y[t] = C[t] + float(G[t])', None, None, None],
+                'code': [
+                    'self._Y[t] = self._C[t] + float(self._G[t])',
+                    None,
+                    None,
+                    None,
+                ],
+            }
+        )
 
         # Initial (i.e. pre-)check only
         pd.testing.assert_frame_equal(result, expected)
@@ -69,13 +94,10 @@ class TestPandasFunctions(unittest.TestCase):
         self.assertEqual(model.names, model.NAMES)
 
         result = fsic.tools.model_to_dataframe(model)
-        expected = pd.DataFrame({
-            'Y': 0.0,
-            'C': 0.0,
-            'G': 0.0,
-            'status': '-',
-            'iterations': -1
-        }, index=range(5))
+        expected = pd.DataFrame(
+            {'Y': 0.0, 'C': 0.0, 'G': 0.0, 'status': '-', 'iterations': -1},
+            index=range(5),
+        )
 
         pd.testing.assert_frame_equal(result, expected)
 
@@ -96,7 +118,9 @@ class TestPandasFunctions(unittest.TestCase):
         # Check list of names is unchanged
         self.assertEqual(model.names, model.NAMES)
 
-        expected = fsic.tools.model_to_dataframe(model).drop('iterations', axis='columns')
+        expected = fsic.tools.model_to_dataframe(model).drop(
+            'iterations', axis='columns'
+        )
         result = fsic.tools.model_to_dataframe(model, iterations=False)
 
         pd.testing.assert_frame_equal(result, expected)
@@ -107,7 +131,9 @@ class TestPandasFunctions(unittest.TestCase):
         # Check list of names is unchanged
         self.assertEqual(model.names, model.NAMES)
 
-        expected = fsic.tools.model_to_dataframe(model).drop(['status', 'iterations'], axis='columns')
+        expected = fsic.tools.model_to_dataframe(model).drop(
+            ['status', 'iterations'], axis='columns'
+        )
         result = fsic.tools.model_to_dataframe(model, status=False, iterations=False)
 
         pd.testing.assert_frame_equal(result, expected)
@@ -139,7 +165,7 @@ class TestPandasFunctions(unittest.TestCase):
             'L': False,  # bool
             'status': '-',
             'iterations': -1
-        }, index=range(5))
+        }, index=range(5))  # fmt: skip
 
         pd.testing.assert_frame_equal(result, expected)
 
@@ -150,13 +176,10 @@ class TestPandasFunctions(unittest.TestCase):
         self.assertEqual(model.names, model.NAMES)
 
         result = model.to_dataframe()
-        expected = pd.DataFrame({
-            'Y': 0.0,
-            'C': 0.0,
-            'G': 0.0,
-            'status': '-',
-            'iterations': -1
-        }, index=range(5))
+        expected = pd.DataFrame(
+            {'Y': 0.0, 'C': 0.0, 'G': 0.0, 'status': '-', 'iterations': -1},
+            index=range(5),
+        )
 
         pd.testing.assert_frame_equal(result, expected)
 
@@ -167,12 +190,9 @@ class TestPandasFunctions(unittest.TestCase):
         self.assertEqual(model.names, model.NAMES)
 
         result = model.to_dataframe(status=False)
-        expected = pd.DataFrame({
-            'Y': 0.0,
-            'C': 0.0,
-            'G': 0.0,
-            'iterations': -1
-        }, index=range(5))
+        expected = pd.DataFrame(
+            {'Y': 0.0, 'C': 0.0, 'G': 0.0, 'iterations': -1}, index=range(5)
+        )
 
         pd.testing.assert_frame_equal(result, expected)
 
@@ -183,12 +203,15 @@ class TestPandasFunctions(unittest.TestCase):
         self.assertEqual(model.names, model.NAMES)
 
         result = model.to_dataframe(iterations=False)
-        expected = pd.DataFrame({
-            'Y': 0.0,
-            'C': 0.0,
-            'G': 0.0,
-            'status': '-',
-        }, index=range(5))
+        expected = pd.DataFrame(
+            {
+                'Y': 0.0,
+                'C': 0.0,
+                'G': 0.0,
+                'status': '-',
+            },
+            index=range(5),
+        )
 
         pd.testing.assert_frame_equal(result, expected)
 
@@ -199,11 +222,14 @@ class TestPandasFunctions(unittest.TestCase):
         self.assertEqual(model.names, model.NAMES)
 
         result = model.to_dataframe(status=False, iterations=False)
-        expected = pd.DataFrame({
-            'Y': 0.0,
-            'C': 0.0,
-            'G': 0.0,
-        }, index=range(5))
+        expected = pd.DataFrame(
+            {
+                'Y': 0.0,
+                'C': 0.0,
+                'G': 0.0,
+            },
+            index=range(5),
+        )
 
         pd.testing.assert_frame_equal(result, expected)
 
@@ -234,66 +260,92 @@ class TestPandasFunctions(unittest.TestCase):
             'L': False,  # bool
             'status': '-',
             'iterations': -1
-        }, index=range(5))
+        }, index=range(5))  # fmt: skip
 
         pd.testing.assert_frame_equal(result, expected)
 
     def test_linker_to_dataframe(self):
         Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
 
-        model = fsic.BaseLinker({
-            'A': Submodel(range(1990, 2005 + 1)),
-            'B': Submodel(range(1990, 2005 + 1)),
-            'C': Submodel(range(1990, 2005 + 1)),
-        }, name='test')
+        model = fsic.BaseLinker(
+            {
+                'A': Submodel(range(1990, 2005 + 1)),
+                'B': Submodel(range(1990, 2005 + 1)),
+                'C': Submodel(range(1990, 2005 + 1)),
+            },
+            name='test',
+        )
         model.add_variable('D', 0.0)
 
         linker_results = fsic.tools.model_to_dataframe(model)
 
-        pd.testing.assert_frame_equal(linker_results,
-                                      pd.DataFrame({'D': 0.0,
-                                                    'status': '-',
-                                                    'iterations': -1, },
-                                                   index=range(1990, 2005 + 1)))
+        pd.testing.assert_frame_equal(
+            linker_results,
+            pd.DataFrame(
+                {
+                    'D': 0.0,
+                    'status': '-',
+                    'iterations': -1,
+                },
+                index=range(1990, 2005 + 1),
+            ),
+        )
 
     def test_linker_to_dataframe_core(self):
         Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
 
-        model = fsic.BaseLinker({
-            'A': Submodel(range(1990, 2005 + 1)),
-            'B': Submodel(range(1990, 2005 + 1)),
-            'C': Submodel(range(1990, 2005 + 1)),
-        }, name='test')
+        model = fsic.BaseLinker(
+            {
+                'A': Submodel(range(1990, 2005 + 1)),
+                'B': Submodel(range(1990, 2005 + 1)),
+                'C': Submodel(range(1990, 2005 + 1)),
+            },
+            name='test',
+        )
         model.add_variable('D', 0.0)
 
         linker_results = model.to_dataframe()
 
-        pd.testing.assert_frame_equal(linker_results,
-                                      pd.DataFrame({'D': 0.0,
-                                                    'status': '-',
-                                                    'iterations': -1, },
-                                                   index=range(1990, 2005 + 1)))
+        pd.testing.assert_frame_equal(
+            linker_results,
+            pd.DataFrame(
+                {
+                    'D': 0.0,
+                    'status': '-',
+                    'iterations': -1,
+                },
+                index=range(1990, 2005 + 1),
+            ),
+        )
 
     def test_linker_to_dataframes(self):
         Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
 
-        model = fsic.BaseLinker({
-            'A': Submodel(range(1990, 2005 + 1)),
-            'B': Submodel(range(1990, 2005 + 1)),
-            'C': Submodel(range(1990, 2005 + 1)),
-        }, name='test')
+        model = fsic.BaseLinker(
+            {
+                'A': Submodel(range(1990, 2005 + 1)),
+                'B': Submodel(range(1990, 2005 + 1)),
+                'C': Submodel(range(1990, 2005 + 1)),
+            },
+            name='test',
+        )
         model.add_variable('D', 0.0)
 
         results = fsic.tools.linker_to_dataframes(model)
 
-        pd.testing.assert_frame_equal(results['test'],
-                                      pd.DataFrame({'D': 0.0,
-                                                    'status': '-',
-                                                    'iterations': -1, },
-                                                   index=range(1990, 2005 + 1)))
+        pd.testing.assert_frame_equal(
+            results['test'],
+            pd.DataFrame(
+                {
+                    'D': 0.0,
+                    'status': '-',
+                    'iterations': -1,
+                },
+                index=range(1990, 2005 + 1),
+            ),
+        )
 
-        expected = pd.DataFrame({x: 0.0 for x in 'YCIGXM'},
-                                index=range(1990, 2005 + 1))
+        expected = pd.DataFrame({x: 0.0 for x in 'YCIGXM'}, index=range(1990, 2005 + 1))
         expected['status'] = '-'
         expected['iterations'] = -1
 
@@ -304,23 +356,31 @@ class TestPandasFunctions(unittest.TestCase):
     def test_linker_to_dataframes_core(self):
         Submodel = fsic.build_model(fsic.parse_model('Y = C + I + G + X - M'))
 
-        model = fsic.BaseLinker({
-            'A': Submodel(range(1990, 2005 + 1)),
-            'B': Submodel(range(1990, 2005 + 1)),
-            'C': Submodel(range(1990, 2005 + 1)),
-        }, name='test')
+        model = fsic.BaseLinker(
+            {
+                'A': Submodel(range(1990, 2005 + 1)),
+                'B': Submodel(range(1990, 2005 + 1)),
+                'C': Submodel(range(1990, 2005 + 1)),
+            },
+            name='test',
+        )
         model.add_variable('D', 0.0)
 
         results = model.to_dataframes()
 
-        pd.testing.assert_frame_equal(results['test'],
-                                      pd.DataFrame({'D': 0.0,
-                                                    'status': '-',
-                                                    'iterations': -1, },
-                                                   index=range(1990, 2005 + 1)))
+        pd.testing.assert_frame_equal(
+            results['test'],
+            pd.DataFrame(
+                {
+                    'D': 0.0,
+                    'status': '-',
+                    'iterations': -1,
+                },
+                index=range(1990, 2005 + 1),
+            ),
+        )
 
-        expected = pd.DataFrame({x: 0.0 for x in 'YCIGXM'},
-                                index=range(1990, 2005 + 1))
+        expected = pd.DataFrame({x: 0.0 for x in 'YCIGXM'}, index=range(1990, 2005 + 1))
         expected['status'] = '-'
         expected['iterations'] = -1
 
@@ -339,7 +399,6 @@ except ModuleNotFoundError:
 
 @unittest.skipIf(not networkx_installed, 'Requires `networkx`')
 class TestNetworkXFunctions(unittest.TestCase):
-
     SYMBOLS = fsic.parse_model('Y = C + G')
 
     def test_symbols_to_graph(self):
@@ -364,7 +423,6 @@ except ModuleNotFoundError:
 
 @unittest.skipIf(not sympy_installed, 'Requires `SymPy`')
 class TestSympyFunctions(unittest.TestCase):
-
     def test_symbols_to_sympy(self):
         result = fsic.tools.symbols_to_sympy(fsic.parse_model('Y = C + G'))
         expected = {
