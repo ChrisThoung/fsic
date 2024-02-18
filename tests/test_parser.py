@@ -21,24 +21,28 @@ except ModuleNotFoundError:
 
 
 class TestParserPeriodIndexing(unittest.TestCase):
-
     def test_period_index(self):
         # Check that the user can specify labelled periods as strings
         test_input = "Cb = C['2000Q1']"
 
         # Check symbols are generated correctly
         expected = [
-            fsic.parser.Symbol(name='Cb',
-                               type=fsic.parser.Type.ENDOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation="Cb[t] = C['2000Q1']", code="self._Cb[t] = self['C', '2000Q1']"),
-            fsic.parser.Symbol(name='C',
-                               type=fsic.parser.Type.EXOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation=None,
-                               code=None)
+            fsic.parser.Symbol(
+                name='Cb',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation="Cb[t] = C['2000Q1']",
+                code="self._Cb[t] = self['C', '2000Q1']",
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         symbols = fsic.parse_model(test_input)
@@ -54,14 +58,10 @@ class TestParserPeriodIndexing(unittest.TestCase):
         model.solve(start='2000Q2')
 
         # Check results are as expected
-        self.assertTrue(np.allclose(
-            model.Cb,
-            np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
-        ))
-        self.assertTrue(np.allclose(
-            model.C,
-            np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        ))
+        self.assertTrue(
+            np.allclose(model.Cb, np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0]))
+        )
+        self.assertTrue(np.allclose(model.C, np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])))
 
     def test_period_index_resolution(self):
         # Check that the user can specify labelled periods as strings and that
@@ -72,17 +72,22 @@ class TestParserPeriodIndexing(unittest.TestCase):
 
         # Check symbols are generated correctly
         expected = [
-            fsic.parser.Symbol(name='Ci',
-                               type=fsic.parser.Type.ENDOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation="Ci[t] = C[t] / C['2000Q1']", code="self._Ci[t] = self._C[t] / self['C', '2000Q1']"),
-            fsic.parser.Symbol(name='C',
-                               type=fsic.parser.Type.EXOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation=None,
-                               code=None)
+            fsic.parser.Symbol(
+                name='Ci',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation="Ci[t] = C[t] / C['2000Q1']",
+                code="self._Ci[t] = self._C[t] / self['C', '2000Q1']",
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         symbols = fsic.parse_model(test_input)
@@ -96,17 +101,22 @@ class TestParserPeriodIndexing(unittest.TestCase):
 
         # Check symbols are generated correctly
         expected = [
-            fsic.parser.Symbol(name='Cb',
-                               type=fsic.parser.Type.ENDOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation="Cb[t] = C['2000Q1']", code="self._Cb[t] = self['C', '2000Q1']"),
-            fsic.parser.Symbol(name='C',
-                               type=fsic.parser.Type.EXOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation=None,
-                               code=None)
+            fsic.parser.Symbol(
+                name='Cb',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation="Cb[t] = C['2000Q1']",
+                code="self._Cb[t] = self['C', '2000Q1']",
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         symbols = fsic.parse_model(test_input)
@@ -122,14 +132,10 @@ class TestParserPeriodIndexing(unittest.TestCase):
         model.solve(start='2000Q2')
 
         # Check results are as expected
-        self.assertTrue(np.allclose(
-            model.Cb,
-            np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
-        ))
-        self.assertTrue(np.allclose(
-            model.C,
-            np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        ))
+        self.assertTrue(
+            np.allclose(model.Cb, np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0]))
+        )
+        self.assertTrue(np.allclose(model.C, np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])))
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_period_index_pandas_year(self):
@@ -141,23 +147,30 @@ class TestParserPeriodIndexing(unittest.TestCase):
 
         # Check symbols are generated correctly
         expected = [
-            fsic.parser.Symbol(name='Cb',
-                               type=fsic.parser.Type.ENDOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation="Cb[t] = sum(C['2000']) / 4", code="self._Cb[t] = sum(self['C', '2000']) / 4"),
-            fsic.parser.Symbol(name='sum',
-                               type=fsic.parser.Type.FUNCTION,
-                               lags=None,
-                               leads=None,
-                               equation=None,
-                               code=None),
-            fsic.parser.Symbol(name='C',
-                               type=fsic.parser.Type.EXOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation=None,
-                               code=None)
+            fsic.parser.Symbol(
+                name='Cb',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation="Cb[t] = sum(C['2000']) / 4",
+                code="self._Cb[t] = sum(self['C', '2000']) / 4",
+            ),
+            fsic.parser.Symbol(
+                name='sum',
+                type=fsic.parser.Type.FUNCTION,
+                lags=None,
+                leads=None,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         symbols = fsic.parse_model(test_input)
@@ -173,14 +186,12 @@ class TestParserPeriodIndexing(unittest.TestCase):
         model.solve(start='2000Q2')
 
         # Check results are as expected
-        self.assertTrue(np.allclose(
-            model.Cb,
-            np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
-        ))
-        self.assertTrue(np.allclose(
-            model.C,
-            np.array([10.0, 10.0, 10.0, 10.0, 0.0, 0.0])
-        ))
+        self.assertTrue(
+            np.allclose(model.Cb, np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0]))
+        )
+        self.assertTrue(
+            np.allclose(model.C, np.array([10.0, 10.0, 10.0, 10.0, 0.0, 0.0]))
+        )
 
     def test_period_index_verbatim(self):
         # Check that the user can specify integer periods by enclosing them in
@@ -189,17 +200,22 @@ class TestParserPeriodIndexing(unittest.TestCase):
 
         # Check symbols are generated correctly
         expected = [
-            fsic.parser.Symbol(name='Cb',
-                               type=fsic.parser.Type.ENDOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation="Cb[t] = C[2000]", code="self._Cb[t] = self['C', 2000]"),
-            fsic.parser.Symbol(name='C',
-                               type=fsic.parser.Type.EXOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation=None,
-                               code=None)
+            fsic.parser.Symbol(
+                name='Cb',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='Cb[t] = C[2000]',
+                code="self._Cb[t] = self['C', 2000]",
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         symbols = fsic.parse_model(test_input)
@@ -215,14 +231,10 @@ class TestParserPeriodIndexing(unittest.TestCase):
         model.solve(start=2001)
 
         # Check results are as expected
-        self.assertTrue(np.allclose(
-            model.Cb,
-            np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
-        ))
-        self.assertTrue(np.allclose(
-            model.C,
-            np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        ))
+        self.assertTrue(
+            np.allclose(model.Cb, np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0]))
+        )
+        self.assertTrue(np.allclose(model.C, np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])))
 
     def test_period_index_verbatim_str_single_quote(self):
         # Check that the user can specify periods by enclosing them in
@@ -231,17 +243,22 @@ class TestParserPeriodIndexing(unittest.TestCase):
 
         # Check symbols are generated correctly
         expected = [
-            fsic.parser.Symbol(name='Cb',
-                               type=fsic.parser.Type.ENDOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation="Cb[t] = C['2000']", code="self._Cb[t] = self['C', '2000']"),
-            fsic.parser.Symbol(name='C',
-                               type=fsic.parser.Type.EXOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation=None,
-                               code=None)
+            fsic.parser.Symbol(
+                name='Cb',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation="Cb[t] = C['2000']",
+                code="self._Cb[t] = self['C', '2000']",
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         symbols = fsic.parse_model(test_input)
@@ -257,14 +274,10 @@ class TestParserPeriodIndexing(unittest.TestCase):
         model.solve(start='2001')
 
         # Check results are as expected
-        self.assertTrue(np.allclose(
-            model.Cb,
-            np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
-        ))
-        self.assertTrue(np.allclose(
-            model.C,
-            np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        ))
+        self.assertTrue(
+            np.allclose(model.Cb, np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0]))
+        )
+        self.assertTrue(np.allclose(model.C, np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])))
 
     def test_period_index_verbatim_str_double_quote(self):
         # Check that the user can specify periods by enclosing them in
@@ -273,18 +286,23 @@ class TestParserPeriodIndexing(unittest.TestCase):
 
         # Check symbols are generated correctly
         expected = [
-            fsic.parser.Symbol(name='Cb',
-                               type=fsic.parser.Type.ENDOGENOUS,
-                               lags=0,
-                               leads=0,
-                               # TODO: Standardise on either single or double quotes?
-                               equation='Cb[t] = C["2000"]', code="self._Cb[t] = self['C', \"2000\"]"),
-            fsic.parser.Symbol(name='C',
-                               type=fsic.parser.Type.EXOGENOUS,
-                               lags=0,
-                               leads=0,
-                               equation=None,
-                               code=None)
+            fsic.parser.Symbol(
+                name='Cb',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                # TODO: Standardise on either single or double quotes?
+                equation='Cb[t] = C["2000"]',
+                code='self._Cb[t] = self[\'C\', "2000"]',
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         symbols = fsic.parse_model(test_input)
@@ -300,14 +318,10 @@ class TestParserPeriodIndexing(unittest.TestCase):
         model.solve(start='2001')
 
         # Check results are as expected
-        self.assertTrue(np.allclose(
-            model.Cb,
-            np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])
-        ))
-        self.assertTrue(np.allclose(
-            model.C,
-            np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        ))
+        self.assertTrue(
+            np.allclose(model.Cb, np.array([0.0, 10.0, 10.0, 10.0, 10.0, 10.0]))
+        )
+        self.assertTrue(np.allclose(model.C, np.array([10.0, 0.0, 0.0, 0.0, 0.0, 0.0])))
 
 
 if __name__ == '__main__':

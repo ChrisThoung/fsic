@@ -42,11 +42,10 @@ except ModuleNotFoundError:
 
 
 class TestRegexes(unittest.TestCase):
-
     def test_equation_re(self):
         # Test that the equation regex correctly identifies individual
         # equations in a system
-        script = '''
+        script = """
 (C =
      {alpha_1} * YD +
      {alpha_2} * H[-1])
@@ -70,46 +69,50 @@ self.Y[t] = (self.C[t] +
 self._Y[t] = (self._C[t] +
               self._G[t])
 ```
-'''
+"""
         expected = [
             '(C =\n     {alpha_1} * YD +\n     {alpha_2} * H[-1])',
             'YD = (Y -\n      T)',
             'Y = C + G',
             'T = {theta} * Y',
             'H = (\n     H[-1] + YD - C\n)',
-
             '`self.Y[t] = self.C[t] + self.G[t]`',
             '`self._Y[t] = self._C[t] + self._G[t]`',
-
-            '''```
+            """```
 self.Y[t] = (self.C[t] +
              self.G[t])
-```''',
-            '''```
+```""",
+            """```
 self._Y[t] = (self._C[t] +
               self._G[t])
-```''',
+```""",
         ]
 
-        self.assertEqual([match.group(0) for match in fsic.parser.equation_re.finditer(script)],
-                         expected)
+        self.assertEqual(
+            [match.group(0) for match in fsic.parser.equation_re.finditer(script)],
+            expected,
+        )
 
 
 class TestTerm(unittest.TestCase):
-
     def test_str(self):
         # Check that `str` representations are as expected
-        self.assertEqual(str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE, -1)), 'C[t-1]')
-        self.assertEqual(str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE,  0)), 'C[t]')
-        self.assertEqual(str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE,  1)), 'C[t+1]')
+        self.assertEqual(
+            str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE, -1)), 'C[t-1]'
+        )
+        self.assertEqual(
+            str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE, 0)), 'C[t]'
+        )
+        self.assertEqual(
+            str(fsic.parser.Term('C', fsic.parser.Type.VARIABLE, 1)), 'C[t+1]'
+        )
 
 
 class TestParsers(unittest.TestCase):
-
     def test_split_equations(self):
         # Test that `split_equations()` correctly identifies individual
         # equations in a system
-        script = '''
+        script = """
 (C =
      {alpha_1} * YD +
      {alpha_2} * H[-1])
@@ -127,7 +130,7 @@ H = H[-1] + (  # Also use to check comments handling
     YD - C)
 H = (H[-1] +
      YD) - C
-'''
+"""
         expected = [
             '(C =\n     {alpha_1} * YD +\n     {alpha_2} * H[-1])',
             'YD = (Y -\n      T)',
@@ -181,20 +184,74 @@ H = (H[-1] +
         # make up an equation
         equation = 'C = exp({alpha_1} * log(YD) + {alpha_2} * log(H[-1]) + <epsilon>)'
         expected = [
-            fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                        equation='C[t] = exp(alpha_1[t] * log(YD[t]) + '
-                                            'alpha_2[t] * log(H[t-1]) + '
-                                            'epsilon[t])',
-                        code='self._C[t] = np.exp(self._alpha_1[t] * np.log(self._YD[t]) + '
-                                                 'self._alpha_2[t] * np.log(self._H[t-1]) + '
-                                                 'self._epsilon[t])'),
-            fsic.parser.Symbol(name='exp', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.parser.Symbol(name='alpha_1', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='log', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.parser.Symbol(name='YD', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='alpha_2', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='H', type=fsic.parser.Type.EXOGENOUS, lags=-1, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='epsilon', type=fsic.parser.Type.ERROR, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='C[t] = exp(alpha_1[t] * log(YD[t]) + '
+                'alpha_2[t] * log(H[t-1]) + '
+                'epsilon[t])',
+                code='self._C[t] = np.exp(self._alpha_1[t] * np.log(self._YD[t]) + '
+                'self._alpha_2[t] * np.log(self._H[t-1]) + '
+                'self._epsilon[t])',
+            ),
+            fsic.parser.Symbol(
+                name='exp',
+                type=fsic.parser.Type.FUNCTION,
+                lags=None,
+                leads=None,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='alpha_1',
+                type=fsic.parser.Type.PARAMETER,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='log',
+                type=fsic.parser.Type.FUNCTION,
+                lags=None,
+                leads=None,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='YD',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='alpha_2',
+                type=fsic.parser.Type.PARAMETER,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='H',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=-1,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='epsilon',
+                type=fsic.parser.Type.ERROR,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         self.assertEqual(fsic.parser.parse_equation(equation), expected)
@@ -204,9 +261,14 @@ H = (H[-1] +
         # of verbatim code
         equation = '`self.Y[t] = self.C[t] + self.G[t]`'
         expected = [
-            fsic.parser.Symbol(name=None, type=fsic.parser.Type.VERBATIM, lags=None, leads=None,
-                               equation='`self.Y[t] = self.C[t] + self.G[t]`',
-                               code='self.Y[t] = self.C[t] + self.G[t]')
+            fsic.parser.Symbol(
+                name=None,
+                type=fsic.parser.Type.VERBATIM,
+                lags=None,
+                leads=None,
+                equation='`self.Y[t] = self.C[t] + self.G[t]`',
+                code='self.Y[t] = self.C[t] + self.G[t]',
+            )
         ]
 
         self.assertEqual(fsic.parser.parse_equation(equation), expected)
@@ -216,11 +278,22 @@ H = (H[-1] +
         # code unchanged in an equation
         equation = "Cp = C / `self['C', 1960]`"
         expected = [
-            fsic.parser.Symbol(name='Cp', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                               equation="Cp[t] = C[t] / `self['C', 1960]`",
-                               code="self._Cp[t] = self._C[t] / self['C', 1960]"),
-            fsic.parser.Symbol(name='C', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0,
-                               equation=None, code=None),
+            fsic.parser.Symbol(
+                name='Cp',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation="Cp[t] = C[t] / `self['C', 1960]`",
+                code="self._Cp[t] = self._C[t] / self['C', 1960]",
+            ),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         self.assertEqual(fsic.parser.parse_equation(equation), expected)
@@ -251,13 +324,46 @@ H = (H[-1] +
         #  - np.log -> np.log  (unchanged)
         equation = 'C = log(A) + np.log(B)'
         expected = [
-            fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                        equation='C[t] = log(A[t]) + np.log(B[t])',
-                        code='self._C[t] = np.log(self._A[t]) + np.log(self._B[t])'),
-            fsic.parser.Symbol(name='log', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.parser.Symbol(name='A', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='np.log', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.parser.Symbol(name='B', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='C[t] = log(A[t]) + np.log(B[t])',
+                code='self._C[t] = np.log(self._A[t]) + np.log(self._B[t])',
+            ),
+            fsic.parser.Symbol(
+                name='log',
+                type=fsic.parser.Type.FUNCTION,
+                lags=None,
+                leads=None,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='A',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='np.log',
+                type=fsic.parser.Type.FUNCTION,
+                lags=None,
+                leads=None,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='B',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         self.assertEqual(fsic.parser.parse_equation(equation), expected)
@@ -267,11 +373,30 @@ H = (H[-1] +
         # are left unchanged
         equation = 'Y = np.mean(X)'
         expected = [
-            fsic.parser.Symbol(name='Y', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                        equation='Y[t] = np.mean(X[t])',
-                        code='self._Y[t] = np.mean(self._X[t])'),
-            fsic.parser.Symbol(name='np.mean', type=fsic.parser.Type.FUNCTION, lags=None, leads=None, equation=None, code=None),
-            fsic.parser.Symbol(name='X', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(
+                name='Y',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='Y[t] = np.mean(X[t])',
+                code='self._Y[t] = np.mean(self._X[t])',
+            ),
+            fsic.parser.Symbol(
+                name='np.mean',
+                type=fsic.parser.Type.FUNCTION,
+                lags=None,
+                leads=None,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='X',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         self.assertEqual(fsic.parser.parse_equation(equation), expected)
@@ -279,33 +404,86 @@ H = (H[-1] +
     def test_parse_model(self):
         # Test that `parse_model()` correctly identifies the symbols that make
         # up a system of equations
-        model = '''
+        model = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
         expected = [
-            fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                        equation='C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]',
-                        code='self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]'),
-            fsic.parser.Symbol(name='alpha_1', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='YD', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                        equation='YD[t] = Y[t] - T[t]',
-                        code='self._YD[t] = self._Y[t] - self._T[t]'),
-            fsic.parser.Symbol(name='alpha_2', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='H', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0,
-                        equation='H[t] = H[t-1] + YD[t] - C[t]',
-                        code='self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]'),
-            fsic.parser.Symbol(name='Y', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                        equation='Y[t] = C[t] + G[t]',
-                        code='self._Y[t] = self._C[t] + self._G[t]'),
-            fsic.parser.Symbol(name='T', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0,
-                        equation='T[t] = theta[t] * Y[t]',
-                        code='self._T[t] = self._theta[t] * self._Y[t]'),
-            fsic.parser.Symbol(name='G', type=fsic.parser.Type.EXOGENOUS, lags=0, leads=0, equation=None, code=None),
-            fsic.parser.Symbol(name='theta', type=fsic.parser.Type.PARAMETER, lags=0, leads=0, equation=None, code=None),
+            fsic.parser.Symbol(
+                name='C',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]',
+                code='self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]',
+            ),
+            fsic.parser.Symbol(
+                name='alpha_1',
+                type=fsic.parser.Type.PARAMETER,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='YD',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='YD[t] = Y[t] - T[t]',
+                code='self._YD[t] = self._Y[t] - self._T[t]',
+            ),
+            fsic.parser.Symbol(
+                name='alpha_2',
+                type=fsic.parser.Type.PARAMETER,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='H',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=-1,
+                leads=0,
+                equation='H[t] = H[t-1] + YD[t] - C[t]',
+                code='self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]',
+            ),
+            fsic.parser.Symbol(
+                name='Y',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='Y[t] = C[t] + G[t]',
+                code='self._Y[t] = self._C[t] + self._G[t]',
+            ),
+            fsic.parser.Symbol(
+                name='T',
+                type=fsic.parser.Type.ENDOGENOUS,
+                lags=0,
+                leads=0,
+                equation='T[t] = theta[t] * Y[t]',
+                code='self._T[t] = self._theta[t] * self._Y[t]',
+            ),
+            fsic.parser.Symbol(
+                name='G',
+                type=fsic.parser.Type.EXOGENOUS,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
+            fsic.parser.Symbol(
+                name='theta',
+                type=fsic.parser.Type.PARAMETER,
+                lags=0,
+                leads=0,
+                equation=None,
+                code=None,
+            ),
         ]
 
         self.assertEqual(fsic.parse_model(model), expected)
@@ -313,18 +491,26 @@ H = H[-1] + YD - C
     def test_parse_model_verbatim(self):
         # Check that the parser can extract a block of verbatim code from a
         # string
-        script = '''
+        script = """
 ```
 self.T[t] = self.theta[t] * self.Y[t]
 ```
-'''
-        self.assertEqual(fsic.parse_model(script),
-                         [fsic.parser.Symbol(
-                             name=None, type=fsic.parser.Type.VERBATIM, lags=None, leads=None,
-                             equation='''```
+"""
+        self.assertEqual(
+            fsic.parse_model(script),
+            [
+                fsic.parser.Symbol(
+                    name=None,
+                    type=fsic.parser.Type.VERBATIM,
+                    lags=None,
+                    leads=None,
+                    equation="""```
 self.T[t] = self.theta[t] * self.Y[t]
-```''',
-                             code='self.T[t] = self.theta[t] * self.Y[t]')])
+```""",
+                    code='self.T[t] = self.theta[t] * self.Y[t]',
+                )
+            ],
+        )
 
     def test_parser_no_lhs(self):
         # Check that invalid equations (missing a left-hand side expression)
@@ -360,19 +546,23 @@ self.T[t] = self.theta[t] * self.Y[t]
         # Check for an error if a variable is defined in multiple ways e.g. as
         # both an endogenous/exogenous variable and a parameter
         with self.assertRaises(fsic.exceptions.SymbolError):
-            fsic.parse_model('''
+            fsic.parse_model(
+                """
 A = f(B, {C})  # C is a parameter
 B = f(C, D)    # But here, C is an exogenous variable
-''')
+"""
+            )
 
     def test_inconsistent_variable_type_right(self):
         # Check for an error if a variable is defined in multiple ways e.g. as
         # both an endogenous/exogenous variable and a parameter
         with self.assertRaises(fsic.exceptions.SymbolError):
-            fsic.parse_model('''
+            fsic.parse_model(
+                """
 A = f(B, C, D)  # C is an exogenous variable
 B = f(<C>, D)   # But here, C is an error
-''')
+"""
+            )
 
     def test_leading_whitespace(self):
         # Check that an equation with unnecessary leading whitespace raises an
@@ -392,7 +582,6 @@ B = f(<C>, D)   # But here, C is an error
 
 
 class TestVectorContainer(unittest.TestCase):
-
     def test_add_attribute(self):
         # Check that attribute creation works as expected
         container = fsic.core.VectorContainer(range(5 + 1))
@@ -446,11 +635,13 @@ class TestVectorContainer(unittest.TestCase):
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_locate_period_in_span_pandas(self):
         # Check that non-existent index keys raise an error
-        container = fsic.core.VectorContainer(pd.period_range(start='2000-01-01', end='2005-12-31', freq='Q'))
+        container = fsic.core.VectorContainer(
+            pd.period_range(start='2000-01-01', end='2005-12-31', freq='Q')
+        )
         for i, a in enumerate('ABC'):
             container.add_variable(a, i, dtype=float)
 
-        container['A', '2005']    # This should work fine
+        container['A', '2005']  # This should work fine
 
         with self.assertRaises(KeyError):
             container['A', '2006']
@@ -478,27 +669,23 @@ class TestVectorContainer(unittest.TestCase):
         for i, a in enumerate('ABC'):
             container.add_variable(a, i)
 
-        self.assertTrue(np.allclose(
-            container.values,
-            np.array([[0] * 20,
-                      [1] * 20,
-                      [2] * 20])))
+        self.assertTrue(
+            np.allclose(container.values, np.array([[0] * 20, [1] * 20, [2] * 20]))
+        )
 
         container.replace_values(A=5, C=list(range(20)))
 
-        self.assertTrue(np.allclose(
-            container.values,
-            np.array([[5] * 20,
-                      [1] * 20,
-                      list(range(20))])))
+        self.assertTrue(
+            np.allclose(
+                container.values, np.array([[5] * 20, [1] * 20, list(range(20))])
+            )
+        )
 
         container.replace_values(**{'B': 12, 'C': -1})
 
-        self.assertTrue(np.allclose(
-            container.values,
-            np.array([[5]  * 20,
-                      [12] * 20,
-                      [-1] * 20])))
+        self.assertTrue(
+            np.allclose(container.values, np.array([[5] * 20, [12] * 20, [-1] * 20]))
+        )
 
     def test_strict(self):
         # Check that a `VectorContainer` object raises an exception if
@@ -560,7 +747,7 @@ class TestVectorContainer(unittest.TestCase):
             'ABCD': ('ABCd', 'ABcd', 'Abcd',),
 
             'XYZ':  ('xyz', 'XyZ', 'xYz',),
-        }
+        }  # fmt: skip
 
         # Add variables to the container (from the keys above)
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
@@ -572,8 +759,7 @@ class TestVectorContainer(unittest.TestCase):
         for expected, undefined_names in inputs.items():
             for x in undefined_names:
                 with self.subTest(undefined_name=x):
-                    self.assertEqual(container.get_closest_match(x),
-                                     [expected])
+                    self.assertEqual(container.get_closest_match(x), [expected])
 
     def test_values_replacement_array(self):
         # Check that the `values` property can be replaced by an array of
@@ -646,12 +832,9 @@ class TestVectorContainer(unittest.TestCase):
         self.assertEqual(container.values.shape, (3, 11))
 
         # Check the contents for the overlapping part match
-        self.assertTrue(np.allclose(container['X'][6:],
-                                    reindexed_container['X'][:5]))
-        self.assertTrue(np.allclose(container['Y'][6:],
-                                    reindexed_container['Y'][:5]))
-        self.assertTrue(np.allclose(container['Z'][6:],
-                                    reindexed_container['Z'][:5]))
+        self.assertTrue(np.allclose(container['X'][6:], reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:], reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:], reindexed_container['Z'][:5]))
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
@@ -682,12 +865,9 @@ class TestVectorContainer(unittest.TestCase):
         self.assertEqual(container.values.shape, (3, 11))
 
         # Check the contents for the overlapping part match
-        self.assertTrue(np.allclose(container['X'][6:],
-                                    reindexed_container['X'][:5]))
-        self.assertTrue(np.allclose(container['Y'][6:],
-                                    reindexed_container['Y'][:5]))
-        self.assertTrue(np.allclose(container['Z'][6:],
-                                    reindexed_container['Z'][:5]))
+        self.assertTrue(np.allclose(container['X'][6:], reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:], reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:], reindexed_container['Z'][:5]))
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
@@ -707,8 +887,7 @@ class TestVectorContainer(unittest.TestCase):
         self.assertEqual(container.values.shape, (3, 11))
 
         # Reindex the container to a new span and check its contents
-        reindexed_container = container.reindex(range(2000, 2015 + 1),
-                                                X=-1, Y=-1, Z=0)
+        reindexed_container = container.reindex(range(2000, 2015 + 1), X=-1, Y=-1, Z=0)
         self.assertFalse(reindexed_container.strict)
 
         self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
@@ -719,12 +898,9 @@ class TestVectorContainer(unittest.TestCase):
         self.assertEqual(container.values.shape, (3, 11))
 
         # Check the contents for the overlapping part match
-        self.assertTrue(np.allclose(container['X'][6:],
-                                    reindexed_container['X'][:5]))
-        self.assertTrue(np.allclose(container['Y'][6:],
-                                    reindexed_container['Y'][:5]))
-        self.assertTrue(np.allclose(container['Z'][6:],
-                                    reindexed_container['Z'][:5]))
+        self.assertTrue(np.allclose(container['X'][6:], reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:], reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:], reindexed_container['Z'][:5]))
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
@@ -744,8 +920,7 @@ class TestVectorContainer(unittest.TestCase):
         self.assertEqual(container.values.shape, (3, 11))
 
         # Reindex the container to a new span and check its contents
-        reindexed_container = container.reindex(range(2000, 2015 + 1),
-                                                X=-1, Y=-1, Z=0)
+        reindexed_container = container.reindex(range(2000, 2015 + 1), X=-1, Y=-1, Z=0)
         self.assertTrue(reindexed_container.strict)
 
         self.assertEqual(reindexed_container.span, range(2000, 2015 + 1))
@@ -756,12 +931,9 @@ class TestVectorContainer(unittest.TestCase):
         self.assertEqual(container.values.shape, (3, 11))
 
         # Check the contents for the overlapping part match
-        self.assertTrue(np.allclose(container['X'][6:],
-                                    reindexed_container['X'][:5]))
-        self.assertTrue(np.allclose(container['Y'][6:],
-                                    reindexed_container['Y'][:5]))
-        self.assertTrue(np.allclose(container['Z'][6:],
-                                    reindexed_container['Z'][:5]))
+        self.assertTrue(np.allclose(container['X'][6:], reindexed_container['X'][:5]))
+        self.assertTrue(np.allclose(container['Y'][6:], reindexed_container['Y'][:5]))
+        self.assertTrue(np.allclose(container['Z'][6:], reindexed_container['Z'][:5]))
 
         # Check the non-overlapping part of the reindexed container is filled
         # correctly (bool: False; int: 0; anything else: NaN)
@@ -781,8 +953,12 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(container.Z, 2))
 
         # Test vector operations
-        self.assertTrue(np.allclose(container.eval('X + Y + Z'), np.array([3] * 11, dtype=float)))
-        self.assertTrue(np.allclose(container.eval('X + Y - Z'), np.array([-1] * 11, dtype=float)))
+        self.assertTrue(
+            np.allclose(container.eval('X + Y + Z'), np.array([3] * 11, dtype=float))
+        )
+        self.assertTrue(
+            np.allclose(container.eval('X + Y - Z'), np.array([-1] * 11, dtype=float))
+        )
 
         # Test index operations
         container.X += range(-5, 5 + 1)
@@ -790,15 +966,38 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(math.isclose(container.eval('X[-1]'), 5))
 
         # Test slice operations
-        self.assertTrue(np.allclose(container.eval('X[0:2] + Y[-2:]'), np.array([-4, -3], dtype=float)))
-        self.assertTrue(np.allclose(container.eval('X[:-1:2] + Y[1::2]'), np.array([-4, -2, 0, 2, 4], dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[0:2] + Y[-2:]'), np.array([-4, -3], dtype=float)
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[:-1:2] + Y[1::2]'),
+                np.array([-4, -2, 0, 2, 4], dtype=float),
+            )
+        )
 
         # Test mixed operations
-        self.assertTrue(np.allclose(container.eval('(X[0] + Y[-1::2]) * Z'), np.array([-8] * 11, dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('(X[0] + Y[-1::2]) * Z'),
+                np.array([-8] * 11, dtype=float),
+            )
+        )
 
         # Test external functions
-        self.assertTrue(math.isclose(container.eval('math.exp(X[0])', locals={'math': math}), math.exp(-5)))
-        self.assertTrue(np.allclose(container.eval('np.exp(Y)', locals={'math': math}), np.array([math.exp(1)] * 11)))
+        self.assertTrue(
+            math.isclose(
+                container.eval('math.exp(X[0])', locals={'math': math}), math.exp(-5)
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('np.exp(Y)', locals={'math': math}),
+                np.array([math.exp(1)] * 11),
+            )
+        )
 
     def test_eval_label(self):
         # Check `eval()` method with label indexes
@@ -817,19 +1016,41 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(math.isclose(container.eval('X[`2005`]'), 5))
 
         # Test slice operations
-        self.assertTrue(np.allclose(container.eval('X[`1995`:`1996`] + Y[`2004`:]'), np.array([-4, -3], dtype=float)))
-        self.assertTrue(np.allclose(container.eval('X[:`2004`:2] + Y[`1996`::2]'), np.array([-4, -2, 0, 2, 4], dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[`1995`:`1996`] + Y[`2004`:]'),
+                np.array([-4, -3], dtype=float),
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[:`2004`:2] + Y[`1996`::2]'),
+                np.array([-4, -2, 0, 2, 4], dtype=float),
+            )
+        )
 
         # Test mixed operations
-        self.assertTrue(np.allclose(container.eval('(X[`1995`] + Y[`2004`::2]) * Z'), np.array([-8] * 11, dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('(X[`1995`] + Y[`2004`::2]) * Z'),
+                np.array([-8] * 11, dtype=float),
+            )
+        )
 
         # Test external functions
-        self.assertTrue(math.isclose(container.eval('math.exp(X[`1995`])', locals={'math': math}), math.exp(-5)))
+        self.assertTrue(
+            math.isclose(
+                container.eval('math.exp(X[`1995`])', locals={'math': math}),
+                math.exp(-5),
+            )
+        )
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_eval_label_periodindex(self):
         # Check `eval()` method on pandas PeriodIndex objects
-        container = fsic.core.VectorContainer(pd.period_range(start='2000-01-01', end='2005-12-31', freq='Q'))
+        container = fsic.core.VectorContainer(
+            pd.period_range(start='2000-01-01', end='2005-12-31', freq='Q')
+        )
         container.add_variable('X', 0, dtype=float)
         container.add_variable('Y', 1, dtype=float)
         container.add_variable('Z', 2, dtype=float)
@@ -843,34 +1064,101 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(math.isclose(container.eval('X[`2005Q4`]'), 5))
 
         container.Y[-8:-4] = 10
-        self.assertTrue(np.allclose(container.eval('Y[`2004`]'), np.array([10] * 4, dtype=float)))
+        self.assertTrue(
+            np.allclose(container.eval('Y[`2004`]'), np.array([10] * 4, dtype=float))
+        )
 
         # Test slice operations
         container.Z[1:6] = range(1, 6)
-        self.assertTrue(np.allclose(container.eval('Z[`2000Q2`:`2001Q2`] * 2'), np.arange(2, 11, 2, dtype=float)))
-        self.assertTrue(np.allclose(container.eval('Z[`2001`:`2002`] + 1'), np.array([5, 6, 3, 3, 3, 3, 3, 3], dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[`2000Q2`:`2001Q2`] * 2'),
+                np.arange(2, 11, 2, dtype=float),
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[`2001`:`2002`] + 1'),
+                np.array([5, 6, 3, 3, 3, 3, 3, 3], dtype=float),
+            )
+        )
 
-        self.assertTrue(np.allclose(container.eval('X[`2005Q2`:] + 3'), np.array([3, 3, 8], dtype=float)))
-        self.assertTrue(np.allclose(container.eval('X[`2004`:] * 3'), np.array([0, 0, 0, 0, 0, 0, 0, 15], dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[`2005Q2`:] + 3'), np.array([3, 3, 8], dtype=float)
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[`2004`:] * 3'),
+                np.array([0, 0, 0, 0, 0, 0, 0, 15], dtype=float),
+            )
+        )
 
-        self.assertTrue(np.allclose(container.eval('Z[:`2001Q2`] - 3'), np.array([-1, -2, -1, 0, 1, 2], dtype=float)))
-        self.assertTrue(np.allclose(container.eval('Z[:`2001`] / 3'), np.array([2, 1, 2, 3, 4, 5, 2, 2], dtype=float) / 3))
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[:`2001Q2`] - 3'),
+                np.array([-1, -2, -1, 0, 1, 2], dtype=float),
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[:`2001`] / 3'),
+                np.array([2, 1, 2, 3, 4, 5, 2, 2], dtype=float) / 3,
+            )
+        )
 
-        self.assertTrue(np.allclose(container.eval('Z[`2000Q2`:`2001Q2`:2] * 2'), np.arange(2, 11, 4, dtype=float)))
-        self.assertTrue(np.allclose(container.eval('Z[`2001`:`2002`:2] + 1'), np.array([5, 3, 3, 3], dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[`2000Q2`:`2001Q2`:2] * 2'),
+                np.arange(2, 11, 4, dtype=float),
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[`2001`:`2002`:2] + 1'),
+                np.array([5, 3, 3, 3], dtype=float),
+            )
+        )
 
-        self.assertTrue(np.allclose(container.eval('X[`2005Q2`::2] + 3'), np.array([3, 8], dtype=float)))
-        self.assertTrue(np.allclose(container.eval('X[`2004`::2] * 3'), np.array([0, 0, 0, 0], dtype=float)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[`2005Q2`::2] + 3'), np.array([3, 8], dtype=float)
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('X[`2004`::2] * 3'), np.array([0, 0, 0, 0], dtype=float)
+            )
+        )
 
-        self.assertTrue(np.allclose(container.eval('Z[:`2001Q2`:2] - 3'), np.array([-1, -1, 1], dtype=float)))
-        self.assertTrue(np.allclose(container.eval('Z[:`2001`:2] / 3'), np.array([2, 2, 4, 2], dtype=float) / 3))
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[:`2001Q2`:2] - 3'), np.array([-1, -1, 1], dtype=float)
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                container.eval('Z[:`2001`:2] / 3'),
+                np.array([2, 2, 4, 2], dtype=float) / 3,
+            )
+        )
 
         # # Test mixed operations
-        self.assertTrue(np.allclose(container.eval('(Z[:`2001`:2] + X[-1]) / 3'), np.array([7, 7, 9, 7], dtype=float) / 3))
+        self.assertTrue(
+            np.allclose(
+                container.eval('(Z[:`2001`:2] + X[-1]) / 3'),
+                np.array([7, 7, 9, 7], dtype=float) / 3,
+            )
+        )
 
         # # Test external functions
-        self.assertTrue(np.allclose(container.eval('(Z[:`2001`:2] + X[-1]) / np.exp(3)', locals={'np': np}),
-                                    np.array([7, 7, 9, 7], dtype=float) / np.exp(3)))
+        self.assertTrue(
+            np.allclose(
+                container.eval('(Z[:`2001`:2] + X[-1]) / np.exp(3)', locals={'np': np}),
+                np.array([7, 7, 9, 7], dtype=float) / np.exp(3),
+            )
+        )
 
     def test_eval_undefined_variable_error(self):
         # Check that `eval()` returns a suggested alternative in the event of a
@@ -878,7 +1166,9 @@ class TestVectorContainer(unittest.TestCase):
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
         container.add_variable('X', 0, dtype=float)
 
-        with self.assertRaises(AttributeError, msg="Object has no attribute 'X'. Did you mean: 'x'?"):
+        with self.assertRaises(
+            AttributeError, msg="Object has no attribute 'X'. Did you mean: 'x'?"
+        ):
             container.eval('x * 2')
 
     def test_eval_undefined_variable_error_empty_container(self):
@@ -886,7 +1176,10 @@ class TestVectorContainer(unittest.TestCase):
         # suggest an alternative
         container = fsic.core.VectorContainer(range(1995, 2005 + 1))
 
-        with self.assertRaises(AttributeError, msg="Object is empty and thus has no attribute with name 'x'"):
+        with self.assertRaises(
+            AttributeError,
+            msg="Object is empty and thus has no attribute with name 'x'",
+        ):
             container.eval('x * 2')
 
     @unittest.expectedFailure
@@ -917,20 +1210,20 @@ class TestVectorContainer(unittest.TestCase):
         container.add_variable('Y', 1, dtype=int)
         container.add_variable('Z', 2.0, dtype=float)
 
-        assert_frame_equal(container.to_dataframe(),
-                           DataFrame({'X': False, 'Y': 1, 'Z': 2.0},
-                                     index=range(1995, 2005 + 1)))
+        assert_frame_equal(
+            container.to_dataframe(),
+            DataFrame({'X': False, 'Y': 1, 'Z': 2.0}, index=range(1995, 2005 + 1)),
+        )
 
 
 class TestInit(unittest.TestCase):
-
-    SCRIPT = '''
+    SCRIPT = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     SYMBOLS = fsic.parse_model(SCRIPT)
 
     def setUp(self):
@@ -947,19 +1240,24 @@ H = H[-1] + YD - C
     def test_init_with_arrays(self):
         model = self.Model(range(5), G=np.arange(0, 10, 2), alpha_1=[0.6] * 5)
         self.assertEqual(model.values.shape, (9, 5))
-        self.assertTrue(np.allclose(
-            model.values,
-            np.array([
-                [0.0] * 5,
-                [0.0] * 5,
-                [0.0] * 5,
-                [0.0] * 5,
-                [0.0] * 5,
-                [0.0, 2.0, 4.0, 6.0, 8.0],
-                [0.6] * 5,
-                [0.0] * 5,
-                [0.0] * 5,
-            ])))
+        self.assertTrue(
+            np.allclose(
+                model.values,
+                np.array(
+                    [
+                        [0.0] * 5,
+                        [0.0] * 5,
+                        [0.0] * 5,
+                        [0.0] * 5,
+                        [0.0] * 5,
+                        [0.0, 2.0, 4.0, 6.0, 8.0],
+                        [0.6] * 5,
+                        [0.0] * 5,
+                        [0.0] * 5,
+                    ]
+                ),
+            )
+        )
 
     def test_init_dimension_error(self):
         with self.assertRaises(fsic.exceptions.DimensionError):
@@ -978,10 +1276,15 @@ H = H[-1] + YD - C
         from pandas import DataFrame
 
         # Input data with the span (index) and values
-        data = DataFrame({
-            'alpha_1': 0.6, 'alpha_2': 0.4,
-            'G': 20, 'theta': 0.2,
-        }, index=range(-5, 10))
+        data = DataFrame(
+            {
+                'alpha_1': 0.6,
+                'alpha_2': 0.4,
+                'G': 20,
+                'theta': 0.2,
+            },
+            index=range(-5, 10),
+        )
 
         model = self.Model.from_dataframe(data)
 
@@ -1010,22 +1313,31 @@ H = H[-1] + YD - C
         test_cases = {
             'DatetimeIndex': pd.date_range(start='01/01/2000', periods=269, freq='ME'),
             'MultiIndex.from_tuples': pd.MultiIndex.from_tuples(
-                [(year, term) for year in range(2000, 2005 + 1) for term in range(1, 3 + 1)],
-                names=['year', 'term']),
+                [
+                    (year, term)
+                    for year in range(2000, 2005 + 1)
+                    for term in range(1, 3 + 1)
+                ],
+                names=['year', 'term'],
+            ),
             'MultiIndex.from_product': pd.MultiIndex.from_product(
-                [range(2000, 2005 + 1), range(1, 3 + 1)],
-                names=['year', 'term']),
+                [range(2000, 2005 + 1), range(1, 3 + 1)], names=['year', 'term']
+            ),
             'PeriodIndex': pd.period_range(start='1990Q1', end='2000Q4', freq='Q'),
             'TimedeltaIndex': pd.timedelta_range(start='1 day', periods=50),
         }
 
         for name, span in test_cases.items():
             with self.subTest(index=name):
-
-                data = DataFrame({
-                    'alpha_1': 0.6, 'alpha_2': 0.4,
-                    'G': 20, 'theta': 0.2,
-                }, index=span)
+                data = DataFrame(
+                    {
+                        'alpha_1': 0.6,
+                        'alpha_2': 0.4,
+                        'G': 20,
+                        'theta': 0.2,
+                    },
+                    index=span,
+                )
 
                 model = self.Model.from_dataframe(data)
 
@@ -1047,14 +1359,13 @@ H = H[-1] + YD - C
 
 
 class TestInterface(unittest.TestCase):
-
-    SCRIPT = '''
+    SCRIPT = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     SYMBOLS = fsic.parse_model(SCRIPT)
 
     def setUp(self):
@@ -1136,14 +1447,19 @@ H = H[-1] + YD - C
         self.assertEqual(len(model.iter_periods(end=2006)), 6)
         self.assertEqual(len(model.iter_periods(start=2001, end=2007)), 7)
 
-        self.assertEqual(list(model.iter_periods()),
-                         [(i, 2000 + i) for i in range(1, 9 + 1)])
+        self.assertEqual(
+            list(model.iter_periods()), [(i, 2000 + i) for i in range(1, 9 + 1)]
+        )
 
     def test_iter_periods_reuse(self):
         # Check that `PeriodIter` objects are reusable
-        model = self.Model(['{}Q{}'.format(year, quarter)
-                            for year in range(2000, 2005 + 1)
-                            for quarter in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(year, quarter)
+                for year in range(2000, 2005 + 1)
+                for quarter in range(1, 4 + 1)
+            ]
+        )
 
         period_iter = model.iter_periods()
 
@@ -1154,7 +1470,6 @@ H = H[-1] + YD - C
 
 
 class TestModelContainerMethods(unittest.TestCase):
-
     SCRIPT = 'C = {alpha_1} * YD + {alpha_2} * H[-1]'
     SYMBOLS = fsic.parse_model(SCRIPT)
 
@@ -1166,17 +1481,21 @@ class TestModelContainerMethods(unittest.TestCase):
         # excluding `status` and `iterations`
         model = self.Model(range(20, 30))
 
-        self.assertNotEqual(model.size, 70)  # If `status` and `iterations` were included
+        self.assertNotEqual(
+            model.size, 70
+        )  # If `status` and `iterations` were included
         self.assertEqual(model.size, 50)
 
     def test_nbytes(self):
         # Check that `nbytes` returns the total bytes consumed by the array
         # elements
         model = self.Model(range(20, 30))
-        self.assertEqual(model.nbytes,
-                         (50 * 8) +  # Array elements
-                         (10 * 8) +  # Iterations
-                         (10 * 4))   # Status
+        self.assertEqual(
+            model.nbytes,
+            (50 * 8)     # Array elements
+            + (10 * 8)   # Iterations
+            + (10 * 4),  # Status
+        )  # fmt: skip
 
     def test_add_variable(self):
         # Check that `add_variable()` extends the model object's store (both
@@ -1191,14 +1510,18 @@ class TestModelContainerMethods(unittest.TestCase):
         self.assertEqual(model.values.shape, (5, 10))
 
         # Add new variables of various types
+        # fmt: off
         model.add_variable('I', 0, dtype=int)       # Impose int
         model.add_variable('J', 0)                  # float, by default
         model.add_variable('K', 0, dtype=float)     # Impose float
         model.add_variable('L', False, dtype=bool)  # Import bool
+        # fmt: on
 
         # Check list of names is now changed
         self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
-        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L'])
+        self.assertEqual(
+            model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L']
+        )
 
         self.assertEqual(model.values.shape, (9, 10))
 
@@ -1215,14 +1538,35 @@ class TestModelContainerMethods(unittest.TestCase):
         self.assertEqual(model['L'].dtype, bool)
 
         # Check `add_variable()` for names longer than one character
+        # fmt: off
         model.add_variable('AB', 0, dtype=int)       # Impose int
         model.add_variable('CD', 0)                  # float, by default
         model.add_variable('EF', 0, dtype=float)     # Impose float
         model.add_variable('GH', False, dtype=bool)  # Import bool
+        # fmt: on
 
         # Check list of names is now changed
-        self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L', 'AB', 'CD', 'EF', 'GH'])
-        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L', 'AB', 'CD', 'EF', 'GH'])
+        self.assertEqual(
+            model.names, model.NAMES + ['I', 'J', 'K', 'L', 'AB', 'CD', 'EF', 'GH']
+        )
+        self.assertEqual(
+            model.names,
+            [
+                'C',
+                'YD',
+                'H',
+                'alpha_1',
+                'alpha_2',
+                'I',
+                'J',
+                'K',
+                'L',
+                'AB',
+                'CD',
+                'EF',
+                'GH',
+            ],
+        )
 
         self.assertEqual(model.values.shape, (13, 10))
 
@@ -1252,14 +1596,18 @@ class TestModelContainerMethods(unittest.TestCase):
         self.assertEqual(model.values.shape, (5, 10))
 
         # Add new variables of various types
+        # fmt: off
         model.add_variable('I', 0, dtype=int)       # Impose int
         model.add_variable('J', 0)                  # float, by default
         model.add_variable('K', 0, dtype=float)     # Impose float
         model.add_variable('L', False, dtype=bool)  # Import bool
+        # fmt: on
 
         # Check list of names is now changed
         self.assertEqual(model.names, model.NAMES + ['I', 'J', 'K', 'L'])
-        self.assertEqual(model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L'])
+        self.assertEqual(
+            model.names, ['C', 'YD', 'H', 'alpha_1', 'alpha_2', 'I', 'J', 'K', 'L']
+        )
 
         self.assertEqual(model.values.shape, (9, 10))
 
@@ -1296,7 +1644,7 @@ class TestModelContainerMethods(unittest.TestCase):
             'ABCD': ('ABCd', 'ABcd', 'Abcd',),
 
             'XYZ':  ('xyz', 'XyZ', 'xYz',),
-        }
+        }  # fmt: skip
 
         # Add variables to the model (from the keys above)
         model = self.Model(range(1995, 2005 + 1))
@@ -1308,8 +1656,7 @@ class TestModelContainerMethods(unittest.TestCase):
         for expected, undefined_names in inputs.items():
             for x in undefined_names:
                 with self.subTest(undefined_name=x):
-                    self.assertEqual(model.get_closest_match(x),
-                                     [expected])
+                    self.assertEqual(model.get_closest_match(x), [expected])
 
     def test_get_closest_match_multiple(self):
         # Check that `get_closest_match()` handles multiple match candidates
@@ -1323,8 +1670,10 @@ class TestModelContainerMethods(unittest.TestCase):
         model.add_variable('YD_r', 0)
         model.add_variable('yd_r', 0)
 
-        with self.assertRaises(NotImplementedError,
-                               msg='Handling of multiple name matches not yet implemented'):
+        with self.assertRaises(
+            NotImplementedError,
+            msg='Handling of multiple name matches not yet implemented',
+        ):
             model.yd_k_r = 1
 
         # Reverse the order of variable addition and test the same again (an
@@ -1333,26 +1682,35 @@ class TestModelContainerMethods(unittest.TestCase):
         model.add_variable('yd_r', 0)
         model.add_variable('YD_r', 0)
 
-        with self.assertRaises(NotImplementedError,
-                               msg='Handling of multiple name matches not yet implemented'):
+        with self.assertRaises(
+            NotImplementedError,
+            msg='Handling of multiple name matches not yet implemented',
+        ):
             model.yd_k_r = 1
 
     def test_getitem_by_name(self):
         # Test variable access by name
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
-        self.assertTrue(np.allclose(model['YD'],
-                                    np.arange(len(model.span))))
+        self.assertTrue(np.allclose(model['YD'], np.arange(len(model.span))))
 
     def test_getitem_by_name_error(self):
         # Test that variable access raises a KeyError if the name isn't a model
         # variable
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         with self.assertRaises(KeyError):
@@ -1360,71 +1718,96 @@ class TestModelContainerMethods(unittest.TestCase):
 
     def test_getitem_by_name_and_index(self):
         # Test simultaneous variable and single period access
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         self.assertEqual(model['YD', '1991Q1'], 4.0)
 
     def test_getitem_by_name_and_slice_to(self):
         # Test simultaneous variable and slice access
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
-        self.assertTrue(np.allclose(model['YD', :'1990Q4'],
-                                    np.arange(3 + 1)))
+        self.assertTrue(np.allclose(model['YD', :'1990Q4'], np.arange(3 + 1)))
 
     def test_getitem_by_name_and_slice_from(self):
         # Test simultaneous variable and slice access
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
-        self.assertTrue(np.allclose(model['YD', '1995Q1':],
-                                    np.arange(20, 23 + 1)))
+        self.assertTrue(np.allclose(model['YD', '1995Q1':], np.arange(20, 23 + 1)))
 
     def test_getitem_by_name_and_slice_step(self):
         # Test simultaneous variable and slice access
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
-        self.assertTrue(np.allclose(model['YD', ::4],
-                                    np.arange(0, 23 + 1, 4)))
+        self.assertTrue(np.allclose(model['YD', ::4], np.arange(0, 23 + 1, 4)))
 
     def test_setitem_by_name_with_number(self):
         # Test variable assignment by name, setting all elements to a single
         # value
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         model['YD'] = 10
-        self.assertTrue(np.allclose(model['YD'],
-                                    np.full(len(model.span), 10, dtype=float)))
+        self.assertTrue(
+            np.allclose(model['YD'], np.full(len(model.span), 10, dtype=float))
+        )
 
     def test_setitem_by_name_with_array(self):
         # Test variable assignment by name, replacing with a new array
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         model['YD'] = np.arange(0, len(model.span) * 2, 2)
-        self.assertTrue(np.allclose(model['YD'],
-                                    np.arange(0, len(model.span) * 2, 2)))
+        self.assertTrue(np.allclose(model['YD'], np.arange(0, len(model.span) * 2, 2)))
 
     def test_setitem_by_name_and_index(self):
         # Test variable assignment by name and single period
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         model['YD', '1990Q1'] = 100
@@ -1432,14 +1815,17 @@ class TestModelContainerMethods(unittest.TestCase):
         expected = np.arange(len(model.span))
         expected[0] = 100
 
-        self.assertTrue(np.allclose(model['YD'],
-                                    expected))
+        self.assertTrue(np.allclose(model['YD'], expected))
 
     def test_setitem_by_name_and_slice_to(self):
         # Test variable assignment by name and slice
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         model['YD', :'1990Q4'] = 100
@@ -1447,14 +1833,17 @@ class TestModelContainerMethods(unittest.TestCase):
         expected = np.arange(len(model.span))
         expected[:4] = 100
 
-        self.assertTrue(np.allclose(model['YD'],
-                                    expected))
+        self.assertTrue(np.allclose(model['YD'], expected))
 
     def test_setitem_by_name_and_slice_from(self):
         # Test variable assignment by name and slice
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         model['YD', '1995Q1':] = 100
@@ -1462,14 +1851,17 @@ class TestModelContainerMethods(unittest.TestCase):
         expected = np.arange(len(model.span))
         expected[-4:] = 100
 
-        self.assertTrue(np.allclose(model['YD'],
-                                    expected))
+        self.assertTrue(np.allclose(model['YD'], expected))
 
     def test_setitem_dimension_error(self):
         # Test check for misaligned dimensions at assignment
-        model = self.Model(['{}Q{}'.format(y, q)
-                                 for y in range(1990, 1995 + 1)
-                                 for q in range(1, 4 + 1)])
+        model = self.Model(
+            [
+                '{}Q{}'.format(y, q)
+                for y in range(1990, 1995 + 1)
+                for q in range(1, 4 + 1)
+            ]
+        )
         model.YD = np.arange(len(model.span))
 
         with self.assertRaises(fsic.exceptions.DimensionError):
@@ -1607,7 +1999,6 @@ class TestModelContainerMethods(unittest.TestCase):
 
 
 class TestBuild(unittest.TestCase):
-
     def test_no_equations(self):
         # Test that a set of symbols with no endogenous variables still
         # successfully generates a class
@@ -1903,10 +2294,12 @@ class TestBuild(unittest.TestCase):
         # `self.T[t] = self.theta[t] * self.Y[t]`
         self.T[t] = self.theta[t] * self.Y[t]'''
 
-        symbols = fsic.parse_model('''
+        symbols = fsic.parse_model(
+            """
 `self.Y[t] = self.C[t] + self.G[t]`
 `self.T[t] = self.theta[t] * self.Y[t]`
-''')
+"""
+        )
         code = fsic.build_model(symbols).CODE
         self.assertEqual(code, expected)
 
@@ -1967,11 +2360,13 @@ class TestBuild(unittest.TestCase):
         # ```
         self.T[t] = self.theta[t] * self.Y[t]'''
 
-        symbols = fsic.parse_model('''
+        symbols = fsic.parse_model(
+            """
 ```
 self.T[t] = self.theta[t] * self.Y[t]
 ```
-''')
+"""
+        )
         code = fsic.build_model_definition(symbols)
         self.assertEqual(code, expected)
 
@@ -2035,11 +2430,11 @@ self.T[t] = self.theta[t] * self.Y[t]
 
         def converter(symbol):
             lhs, rhs = map(str.strip, symbol.code.split('=', maxsplit=1))
-            return '''\
+            return """\
 # {}
 _ = {}
 if np.isfinite(_):
-    {} = _'''.format(symbol.equation, rhs, lhs)
+    {} = _""".format(symbol.equation, rhs, lhs)
 
         code = fsic.build_model(symbols, converter=converter).CODE
         self.assertEqual(code, expected)
@@ -2047,9 +2442,19 @@ if np.isfinite(_):
     def test_empty_endogenous_symbols(self):
         # Check that `build_model()` can generate a model from an endogenous
         # symbol with no accompanying equation
-        Model = fsic.build_model([fsic.parser.Symbol(
-            # Note how `equation` and `code` are `None`
-            name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=0, equation=None, code=None)])
+        Model = fsic.build_model(
+            [
+                fsic.parser.Symbol(
+                    # Note how `equation` and `code` are `None`
+                    name='C',
+                    type=fsic.parser.Type.ENDOGENOUS,
+                    lags=0,
+                    leads=0,
+                    equation=None,
+                    code=None,
+                )
+            ]
+        )
 
         self.assertEqual(Model.ENDOGENOUS, ['C'])
         self.assertEqual(Model.EXOGENOUS, [])
@@ -2067,92 +2472,175 @@ if np.isfinite(_):
         # final model
 
         # No symbols: Take specified lag length
-        self.assertEqual(
-            fsic.build_model([],
-                             lags=2).LAGS,
-            2)
+        self.assertEqual(fsic.build_model([], lags=2).LAGS, 2)
 
         # Symbol with lag of 1: Take specified lag length (impose 2)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0, equation=None, code=None)],
-                             lags=2).LAGS,
-            2)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=-1,
+                        leads=0,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                lags=2,
+            ).LAGS,
+            2,
+        )
 
         # Symbol with lag of 3: Take specified lag length (impose 2)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-3, leads=0, equation=None, code=None)],
-                             lags=2).LAGS,
-            2)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=-3,
+                        leads=0,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                lags=2,
+            ).LAGS,
+            2,
+        )
 
     def test_leads(self):
         # Check that the `leads` keyword argument imposes a lead length on the
         # final model
 
         # No symbols: Take specified lead length
-        self.assertEqual(
-            fsic.build_model([],
-                             leads=2).LEADS,
-            2)
+        self.assertEqual(fsic.build_model([], leads=2).LEADS, 2)
 
         # Symbol with lead of 1: Take specified lead length (impose 2)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=1, equation=None, code=None)],
-                             leads=2).LEADS,
-            2)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=0,
+                        leads=1,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                leads=2,
+            ).LEADS,
+            2,
+        )
 
         # Symbol with lead of 3: Take specified lead length (impose 2)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=3, equation=None, code=None)],
-                             leads=2).LEADS,
-            2)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=0,
+                        leads=3,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                leads=2,
+            ).LEADS,
+            2,
+        )
 
     def test_min_lags(self):
         # Check that the `min_lags` keyword argument ensures a minimum lag
         # length
 
         # No symbols: Take specified minimum lag length
-        self.assertEqual(
-            fsic.build_model([],
-                             min_lags=2).LAGS,
-            2)
+        self.assertEqual(fsic.build_model([], min_lags=2).LAGS, 2)
 
         # Symbol with lag of 1: Take minimum lag length (impose 2)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-1, leads=0, equation=None, code=None)],
-                             min_lags=2).LAGS,
-            2)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=-1,
+                        leads=0,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                min_lags=2,
+            ).LAGS,
+            2,
+        )
 
         # Symbol with lag of 3: Ignore minimum lag length (set to 3)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=-3, leads=0, equation=None, code=None)],
-                             min_lags=2).LAGS,
-            3)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=-3,
+                        leads=0,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                min_lags=2,
+            ).LAGS,
+            3,
+        )
 
     def test_min_leads(self):
         # Check that the `min_leads` keyword argument ensures a minimum lead
         # length
 
         # No symbols: Take specified minimum lead length
-        self.assertEqual(
-            fsic.build_model([],
-                             min_leads=2).LEADS,
-            2)
+        self.assertEqual(fsic.build_model([], min_leads=2).LEADS, 2)
 
         # Symbol with lead of 1: Take minimum lead length (impose 2)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=-1, equation=None, code=None)],
-                             min_leads=2).LEADS,
-            2)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=0,
+                        leads=-1,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                min_leads=2,
+            ).LEADS,
+            2,
+        )
 
         # Symbol with lead of 3: Ignore minimum lead length (set to 3)
         self.assertEqual(
-            fsic.build_model([fsic.parser.Symbol(name='C', type=fsic.parser.Type.ENDOGENOUS, lags=0, leads=-3, equation=None, code=None)],
-                             min_leads=2).LEADS,
-            3)
+            fsic.build_model(
+                [
+                    fsic.parser.Symbol(
+                        name='C',
+                        type=fsic.parser.Type.ENDOGENOUS,
+                        lags=0,
+                        leads=-3,
+                        equation=None,
+                        code=None,
+                    )
+                ],
+                min_leads=2,
+            ).LEADS,
+            3,
+        )
 
 
 class TestBuildAndSolve(unittest.TestCase):
-
     # Tolerance for absolute differences to be considered almost equal
     DELTA = 0.05
 
@@ -2160,19 +2648,18 @@ class TestBuildAndSolve(unittest.TestCase):
         # Test that `build_model()` correctly constructs a working model
         # definition from a simplified version of Godley and Lavoie's (2007)
         # Model SIM, and that the model solves as expected
-        model = '''
+        model = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
         symbols = fsic.parse_model(model)
         SIM = fsic.build_model(symbols)
 
         # Initialise a new model instance, set values and solve
-        sim = SIM(range(1945, 2010 + 1),
-                  alpha_1=0.6, alpha_2=0.4)
+        sim = SIM(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4)
 
         sim.G[15:] = 20
         sim.theta[15:] = 0.2
@@ -2191,7 +2678,7 @@ H = H[-1] + YD - C
         # Test that `build_model()` correctly constructs a working model
         # definition from Almon's (2017) AMI model, and that the model solves
         # as expected
-        model = '''
+        model = """
 C = 0.60 * Y[-1] + 0.35 * Y[-2]
 I = (R +
      1.0 * (PQ[-1] - PQ[-2]) +
@@ -2201,7 +2688,7 @@ PQ = max(Q, PQ[-1])
 M = -380 + 0.2 * (C + I + X)
 Q = C + I + G + X - M
 Y = 0.72 * Q
-'''
+"""
         symbols = fsic.parse_model(model)
         AMI = fsic.build_model(symbols)
 
@@ -2212,17 +2699,17 @@ Y = 0.72 * Q
                  733.2, 736.9, 740.5, 744.2, 747.8,
                  751.5, 755.2, 758.8, 762.5, 766.1,
                  769.8, 773.5, 777.1, 780.8, 784.5,
-                 788.1, 791.8, 795.4, 799.1]
+                 788.1, 791.8, 795.4, 799.1]  # fmt: skip
         ami.R = [518.7, 522.5, 526.2, 530.0, 533.7,
                  537.5, 541.2, 545.0, 548.7, 552.5,
                  556.2, 560.0, 563.7, 567.5, 571.2,
                  575.0, 578.7, 582.5, 586.2, 590.0,
-                 593.7, 597.5, 601.2, 605.0]
+                 593.7, 597.5, 601.2, 605.0]  # fmt: skip
         ami.X = [303.9, 308.8, 313.8, 318.7, 323.6,
                  328.5, 333.5, 338.4, 343.3, 348.3,
                  353.2, 358.1, 363.0, 368.0, 372.9,
                  377.8, 382.8, 387.7, 392.6, 397.6,
-                 402.5, 407.4, 412.3, 417.3]
+                 402.5, 407.4, 412.3, 417.3]  # fmt: skip
 
         ami.C[:6] = [2653.6, 2696.7, 2738.8, 2769.0, 2785.3, 2784.8]
         ami.I[:6] = [631.9, 653.6, 648.2, 628.1, 588.0, 553.7]
@@ -2243,95 +2730,78 @@ Y = 0.72 * Q
 
 
 class TestCopy(unittest.TestCase):
-
-    SCRIPT = '''
+    SCRIPT = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     SYMBOLS = fsic.parse_model(SCRIPT)
 
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_copy_method(self):
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4,
-                           theta=0.2)
+        model = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, theta=0.2)
         model.G = 20
 
         duplicate_model = model.copy()
 
         # Values should be identical at this point
-        self.assertTrue(np.allclose(model.values,
-                                    duplicate_model.values))
+        self.assertTrue(np.allclose(model.values, duplicate_model.values))
 
         # The solved model should have different values to the duplicate
         model.solve()
-        self.assertFalse(np.allclose(model.values,
-                                     duplicate_model.values))
+        self.assertFalse(np.allclose(model.values, duplicate_model.values))
 
         # The solved duplicate should match the original again
         duplicate_model.solve()
-        self.assertTrue(np.allclose(model.values,
-                                    duplicate_model.values))
+        self.assertTrue(np.allclose(model.values, duplicate_model.values))
 
     def test_copy_dunder_method(self):
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4,
-                           theta=0.2)
+        model = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, theta=0.2)
         model.G = 20
 
         duplicate_model = copy.copy(model)
 
         # Values should be identical at this point
-        self.assertTrue(np.allclose(model.values,
-                                    duplicate_model.values))
+        self.assertTrue(np.allclose(model.values, duplicate_model.values))
 
         # The solved model should have different values to the duplicate
         model.solve()
-        self.assertFalse(np.allclose(model.values,
-                                     duplicate_model.values))
+        self.assertFalse(np.allclose(model.values, duplicate_model.values))
 
         # The solved duplicate should match the original again
         duplicate_model.solve()
-        self.assertTrue(np.allclose(model.values,
-                                    duplicate_model.values))
+        self.assertTrue(np.allclose(model.values, duplicate_model.values))
 
     def test_deepcopy_dunder_method(self):
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4,
-                           theta=0.2)
+        model = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, theta=0.2)
         model.G = 20
 
         duplicate_model = copy.deepcopy(model)
 
         # Values should be identical at this point
-        self.assertTrue(np.allclose(model.values,
-                                    duplicate_model.values))
+        self.assertTrue(np.allclose(model.values, duplicate_model.values))
 
         # The solved model should have different values to the duplicate
         model.solve()
-        self.assertFalse(np.allclose(model.values,
-                                     duplicate_model.values))
+        self.assertFalse(np.allclose(model.values, duplicate_model.values))
 
         # The solved duplicate should match the original again
         duplicate_model.solve()
-        self.assertTrue(np.allclose(model.values,
-                                    duplicate_model.values))
+        self.assertTrue(np.allclose(model.values, duplicate_model.values))
 
 
 class TestSolve(unittest.TestCase):
-
-    SCRIPT = '''
+    SCRIPT = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     SYMBOLS = fsic.parse_model(SCRIPT)
 
     # Tolerance for absolute differences to be considered almost equal
@@ -2477,8 +2947,7 @@ H = H[-1] + YD - C
 
     def test_iter_solve_t(self):
         # Use `iter_periods()` and `solve_t` to solve the model
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4)
+        model = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4)
         model.G[15:] = 20
         model.theta[15:] = 0.2
 
@@ -2495,8 +2964,7 @@ H = H[-1] + YD - C
 
     def test_iter_solve_period(self):
         # Use `iter_periods()` and `solve_period` to solve the model
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4)
+        model = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4)
         model.G[15:] = 20
         model.theta[15:] = 0.2
 
@@ -2514,7 +2982,9 @@ H = H[-1] + YD - C
     def test_solve_add_variable(self):
         # Check that extending the model with new variables at runtime makes no
         # difference to the model solution
-        base = self.Model(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        base = self.Model(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
 
         # Add further variables to a copy and check types before solving
         extended = base.copy()
@@ -2638,25 +3108,23 @@ H = H[-1] + YD - C
 
 
 class TestCustomModel(unittest.TestCase):
-
-    SCRIPT = '''
+    SCRIPT = """
 s = 1 - (C / YD)  # Unless handled, this equation will generate a NaN on the first iteration
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     SYMBOLS = fsic.parse_model(SCRIPT)
 
     # Tolerance for absolute differences to be considered almost equal
     DELTA = 0.05
 
     def setUp(self):
-
         def custom_converter(symbol):
             lhs, _ = map(str.strip, symbol.code.split('=', maxsplit=1))
-            return '''\
+            return """\
 # {}
 with warnings.catch_warnings():
     warnings.simplefilter('error')
@@ -2686,16 +3154,18 @@ with warnings.catch_warnings():
             {} = 0
 
         else:
-            raise ValueError('Invalid `errors` argument: {{}}'.format(errors))'''.format(
-                symbol.equation, symbol.code, lhs, lhs, lhs, lhs)
+            raise ValueError('Invalid `errors` argument: {{}}'.format(errors))""".format(
+                symbol.equation, symbol.code, lhs, lhs, lhs, lhs
+            )
 
         self.Model = fsic.build_model(self.SYMBOLS, converter=custom_converter)
 
     def test_custom_solve_raise(self):
         # Check that the custom code leads to a `SolutionError` in the absence
         # of any alternative error handling
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model = self.Model(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
 
         with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
@@ -2727,8 +3197,9 @@ with warnings.catch_warnings():
     def test_custom_solve_skip(self):
         # Check that the custom code correctly skips on the first iteration of
         # each period
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model = self.Model(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
 
         model.solve(errors='skip')
 
@@ -2755,8 +3226,9 @@ with warnings.catch_warnings():
 
     def test_custom_solve_ignore(self):
         # Check that the custom code solves as usual with `errors='ignore'`
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model = self.Model(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
 
         model._evaluate(1, errors='ignore')
         self.assertTrue(np.isnan(model.s[1]))
@@ -2776,8 +3248,9 @@ with warnings.catch_warnings():
 
     def test_custom_solve_replace(self):
         # Check that the custom code solves as usual with `errors='replace'`
-        model = self.Model(range(1945, 2010 + 1),
-                           alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model = self.Model(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
 
         model._evaluate(1, errors='replace')
         self.assertAlmostEqual(model.s[1], 0)
@@ -2797,7 +3270,6 @@ with warnings.catch_warnings():
 
 
 class TestCustomOverrides(unittest.TestCase):
-
     def test_evaluate_error(self):
         # Check that `solve_t()` can catch errors raised in `_evaluate()`
 
@@ -2811,9 +3283,9 @@ class TestCustomOverrides(unittest.TestCase):
         with self.assertRaises(fsic.exceptions.SolutionError):
             model.solve()
 
-
     class RegularModel(fsic.BaseModel):
         """Standard model setup as produced by `fsic` `parse_model()` and `build_model()`."""
+
         ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
         EXOGENOUS = ['G_bar']
 
@@ -2831,13 +3303,15 @@ class TestCustomOverrides(unittest.TestCase):
             self._G[t] = self._G_bar[t]
 
             # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
-            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+            self._C[t] = (
+                self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t - 1]
+            )
 
             # YD[t] = Y[t] - T[t]
             self._YD[t] = self._Y[t] - self._T[t]
 
             # H[t] = H[t-1] + YD[t] - C[t]
-            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+            self._H[t] = self._H[t - 1] + self._YD[t] - self._C[t]
 
             # Y[t] = C[t] + G[t]
             self._Y[t] = self._C[t] + self._G[t]
@@ -2847,6 +3321,7 @@ class TestCustomOverrides(unittest.TestCase):
 
     class BeforeModel(fsic.BaseModel):
         """Variant on `RegularModel` but with an over-riding `solve_t_before()` method."""
+
         ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
         EXOGENOUS = ['G_bar']
 
@@ -2865,13 +3340,15 @@ class TestCustomOverrides(unittest.TestCase):
 
         def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
             # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
-            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+            self._C[t] = (
+                self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t - 1]
+            )
 
             # YD[t] = Y[t] - T[t]
             self._YD[t] = self._Y[t] - self._T[t]
 
             # H[t] = H[t-1] + YD[t] - C[t]
-            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+            self._H[t] = self._H[t - 1] + self._YD[t] - self._C[t]
 
             # Y[t] = C[t] + G[t]
             self._Y[t] = self._C[t] + self._G[t]
@@ -2881,6 +3358,7 @@ class TestCustomOverrides(unittest.TestCase):
 
     class AfterModel(fsic.BaseModel):
         """Variant on `RegularModel` but with an over-riding `solve_t_after()` method."""
+
         ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
         EXOGENOUS = ['G_bar']
 
@@ -2895,14 +3373,16 @@ class TestCustomOverrides(unittest.TestCase):
 
         def solve_t_after(self, t, *args, **kwargs):
             # H[t] = H[t-1] + YD[t] - C[t]
-            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+            self._H[t] = self._H[t - 1] + self._YD[t] - self._C[t]
 
         def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
             # G[t] = G_bar[t]
             self._G[t] = self._G_bar[t]
 
             # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
-            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+            self._C[t] = (
+                self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t - 1]
+            )
 
             # YD[t] = Y[t] - T[t]
             self._YD[t] = self._Y[t] - self._T[t]
@@ -2915,6 +3395,7 @@ class TestCustomOverrides(unittest.TestCase):
 
     class BeforeAndAfterModel(fsic.BaseModel):
         """Variant on `RegularModel` but with over-riding `solve_t_before()` and `solve_t_after()` methods."""
+
         ENDOGENOUS = ['G', 'C', 'YD', 'H', 'Y', 'T']
         EXOGENOUS = ['G_bar']
 
@@ -2933,11 +3414,13 @@ class TestCustomOverrides(unittest.TestCase):
 
         def solve_t_after(self, t, *args, **kwargs):
             # H[t] = H[t-1] + YD[t] - C[t]
-            self._H[t] = self._H[t-1] + self._YD[t] - self._C[t]
+            self._H[t] = self._H[t - 1] + self._YD[t] - self._C[t]
 
         def _evaluate(self, t, *, errors='raise', iteration=None, **kwargs):
             # C[t] = alpha_1[t] * YD[t] + alpha_2[t] * H[t-1]
-            self._C[t] = self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t-1]
+            self._C[t] = (
+                self._alpha_1[t] * self._YD[t] + self._alpha_2[t] * self._H[t - 1]
+            )
 
             # YD[t] = Y[t] - T[t]
             self._YD[t] = self._Y[t] - self._T[t]
@@ -2948,14 +3431,17 @@ class TestCustomOverrides(unittest.TestCase):
             # T[t] = theta[t] * Y[t]
             self._T[t] = self._theta[t] * self._Y[t]
 
-
     def test_evaluate_before(self):
         # Check that a model amended to carry out some pre-solution calculation
         # produces the same results as the regular model
-        regular_model = self.RegularModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        regular_model = self.RegularModel(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2
+        )
         regular_model.solve()
 
-        before_model = self.BeforeModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        before_model = self.BeforeModel(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2
+        )
         before_model.solve()
 
         # Quick check that results match expected results
@@ -2967,10 +3453,14 @@ class TestCustomOverrides(unittest.TestCase):
     def test_evaluate_after(self):
         # Check that a model amended to carry out some post-solution calculation
         # produces the same results as the regular model
-        regular_model = self.RegularModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        regular_model = self.RegularModel(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2
+        )
         regular_model.solve()
 
-        after_model = self.AfterModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        after_model = self.AfterModel(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2
+        )
         after_model.solve()
 
         # Quick check that results match expected results
@@ -2982,10 +3472,14 @@ class TestCustomOverrides(unittest.TestCase):
     def test_evaluate_before_and_after(self):
         # Check that a model amended to carry out some pre- and post-solution
         # calculations produces the same results as the regular model
-        regular_model = self.RegularModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        regular_model = self.RegularModel(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2
+        )
         regular_model.solve()
 
-        before_after_model = self.BeforeAndAfterModel(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2)
+        before_after_model = self.BeforeAndAfterModel(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G_bar=20, theta=0.2
+        )
         before_after_model.solve()
 
         # Quick check that results match expected results
@@ -2996,7 +3490,6 @@ class TestCustomOverrides(unittest.TestCase):
 
 
 class TestParserErrors(unittest.TestCase):
-
     def test_invalid_index(self):
         # Check that the parser can detect an invalid index
         with self.assertRaises(fsic.exceptions.ParserError):
@@ -3027,21 +3520,27 @@ class TestParserErrors(unittest.TestCase):
 
     def test_extra_equals_multiple_equations(self):
         with self.assertRaises(fsic.exceptions.ParserError):
-            fsic.parse_model('''
+            fsic.parse_model(
+                """
 Y = C + I + G = X - M
 Z = C + I + G = X - M
-''')
+"""
+            )
 
     def test_double_definition(self):
         # Check test for endogenous variables that are set twice
         with self.assertRaises(fsic.exceptions.ParserError):
-            fsic.parse_model('''
+            fsic.parse_model(
+                """
 Y = C + I + G + X - M
 Y = GVA + TSP
-''')
+"""
+            )
 
-    @unittest.skipIf(sys.version_info[:2] < (3, 8),
-                     'Parser test for accidental treatment of floats as callable not supported prior to Python version 3.8')
+    @unittest.skipIf(
+        sys.version_info[:2] < (3, 8),
+        'Parser test for accidental treatment of floats as callable not supported prior to Python version 3.8',
+    )
     def test_accidental_float_call(self):
         # Check that something like 'A = 0.5(B)' (missing * operator) raises a
         # `ParserError`
@@ -3066,7 +3565,6 @@ Y = GVA + TSP
 
 
 class TestBuildErrors(unittest.TestCase):
-
     def test_extra_equals(self):
         symbols = fsic.parse_model('Y = C + I + G = X - M', check_syntax=False)
         with self.assertRaises(fsic.exceptions.BuildError):
@@ -3074,13 +3572,12 @@ class TestBuildErrors(unittest.TestCase):
 
 
 class TestSolutionErrorHandling(unittest.TestCase):
-
-    SCRIPT = '''
+    SCRIPT = """
 s = 1 - (C / Y)  # Divide-by-zero equation (generating a NaN) appears first
 Y = C + G
 C = {c0} + {c1} * Y
 g = log(G)  # Use to test for infinity with log(0)
-'''
+"""
     SYMBOLS = fsic.parse_model(SCRIPT)
 
     def setUp(self):
@@ -3353,23 +3850,20 @@ g = log(G)  # Use to test for infinity with log(0)
 
 
 class TestNonConvergenceError(unittest.TestCase):
-
-    MODEL = '''
+    MODEL = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     SYMBOLS = fsic.parse_model(MODEL)
 
     def setUp(self):
         self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_nonconvergence_raise(self):
-        model = self.Model(range(5),
-                           alpha_1=0.6, alpha_2=0.4,
-                           theta=0.2, G=20)
+        model = self.Model(range(5), alpha_1=0.6, alpha_2=0.4, theta=0.2, G=20)
 
         # First period (after initial lag) should solve
         model.solve_t(1)
@@ -3379,20 +3873,15 @@ H = H[-1] + YD - C
         with self.assertRaises(fsic.exceptions.NonConvergenceError):
             model.solve_t(2, max_iter=5)
 
-        self.assertTrue(np.all(model.status ==
-                               np.array(['-', '.', 'F', '-', '-'])))
+        self.assertTrue(np.all(model.status == np.array(['-', '.', 'F', '-', '-'])))
 
     def test_nonconvergence_ignore_solve(self):
-        model = self.Model(range(5),
-                           alpha_1=0.6, alpha_2=0.4,
-                           theta=0.2, G=20)
+        model = self.Model(range(5), alpha_1=0.6, alpha_2=0.4, theta=0.2, G=20)
         model.solve(max_iter=5, failures='ignore')
         self.assertTrue(np.all(model.status[1:] == 'F'))
 
     def test_nonconvergence_ignore_solve_t(self):
-        model = self.Model(range(5),
-                           alpha_1=0.6, alpha_2=0.4,
-                           theta=0.2, G=20)
+        model = self.Model(range(5), alpha_1=0.6, alpha_2=0.4, theta=0.2, G=20)
 
         for t, _ in model.iter_periods():
             model.solve_t(t, max_iter=5, failures='ignore')
@@ -3401,7 +3890,6 @@ H = H[-1] + YD - C
 
 
 class TestLinkerInit(unittest.TestCase):
-
     SYMBOLS_NO_LAGS = fsic.parse_model('Y = C + I + G + X - M')
     SYMBOLS_WITH_LAGS = fsic.parse_model('C = {alpha_1} * YD + {alpha_2} * H[-1]')
     SYMBOLS_WITH_LEADS = fsic.parse_model('A = {a0} + {a1} * A[1] + {a2} * A[2]')
@@ -3416,39 +3904,47 @@ class TestLinkerInit(unittest.TestCase):
         self.SubmodelWithLeads = self.build_model(self.SYMBOLS_WITH_LEADS)
 
     def test_init(self):
-        linker = fsic.BaseLinker({
-            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
-            'B': self.SubmodelNoLags(range(1990, 2005 + 1)),
-            'C': self.SubmodelNoLags(range(1990, 2005 + 1)),
-        })
+        linker = fsic.BaseLinker(
+            {
+                'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+                'B': self.SubmodelNoLags(range(1990, 2005 + 1)),
+                'C': self.SubmodelNoLags(range(1990, 2005 + 1)),
+            }
+        )
 
         self.assertEqual(linker.LAGS, 0)
         self.assertEqual(linker.LEADS, 0)
 
     def test_init_different_lags(self):
-        linker = fsic.BaseLinker({
-            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
-            'B': self.SubmodelWithLags(range(1990, 2005 + 1)),
-        })
+        linker = fsic.BaseLinker(
+            {
+                'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+                'B': self.SubmodelWithLags(range(1990, 2005 + 1)),
+            }
+        )
 
         self.assertEqual(linker.LAGS, 1)
         self.assertEqual(linker.LEADS, 0)
 
     def test_init_different_leads(self):
-        linker = fsic.BaseLinker({
-            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
-            'B': self.SubmodelWithLeads(range(1990, 2005 + 1)),
-        })
+        linker = fsic.BaseLinker(
+            {
+                'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+                'B': self.SubmodelWithLeads(range(1990, 2005 + 1)),
+            }
+        )
 
         self.assertEqual(linker.LAGS, 0)
         self.assertEqual(linker.LEADS, 2)
 
     def test_init_mixed_lags_leads(self):
-        linker = fsic.BaseLinker({
-            'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
-            'B': self.SubmodelWithLags(range(1990, 2005 + 1)),
-            'C': self.SubmodelWithLeads(range(1990, 2005 + 1)),
-        })
+        linker = fsic.BaseLinker(
+            {
+                'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+                'B': self.SubmodelWithLags(range(1990, 2005 + 1)),
+                'C': self.SubmodelWithLeads(range(1990, 2005 + 1)),
+            }
+        )
 
         self.assertEqual(linker.LAGS, 1)
         self.assertEqual(linker.LEADS, 2)
@@ -3456,10 +3952,13 @@ class TestLinkerInit(unittest.TestCase):
     def test_init_different_spans_error(self):
         # Check for an error if the submodel spans differ
         with self.assertRaises(fsic.exceptions.InitialisationError):
-            linker = fsic.BaseLinker({  # noqa: F841
-                'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
-                'B': self.SubmodelNoLags(range(1991, 2005 + 1)),  # Start is 1990 for 'A'
-            })
+            fsic.BaseLinker(
+                {
+                    # Start is 1990 for 'A'
+                    'A': self.SubmodelNoLags(range(1990, 2005 + 1)),
+                    'B': self.SubmodelNoLags(range(1991, 2005 + 1)),
+                }
+            )
 
     def test_init_no_submodels(self):
         # Check linker initialisation if no submodels passed
@@ -3467,29 +3966,35 @@ class TestLinkerInit(unittest.TestCase):
         # All of the below should initialise without error, but raise a
         # `SolutionError` if attempting to solve
         linker = fsic.BaseLinker()  # No `submodels` argument
-        with self.assertRaises(SolutionError, msg='Object `span` is empty: No periods to solve'):
+        with self.assertRaises(
+            SolutionError, msg='Object `span` is empty: No periods to solve'
+        ):
             linker.solve()
 
         linker = fsic.BaseLinker(None)  # `submodels=None`
-        with self.assertRaises(SolutionError, msg='Object `span` is empty: No periods to solve'):
+        with self.assertRaises(
+            SolutionError, msg='Object `span` is empty: No periods to solve'
+        ):
             linker.solve()
 
         linker = fsic.BaseLinker({})  # `submodels={}'
-        with self.assertRaises(SolutionError, msg='Object `span` is empty: No periods to solve'):
+        with self.assertRaises(
+            SolutionError, msg='Object `span` is empty: No periods to solve'
+        ):
             linker.solve()
 
 
 class TestLinkerSolve(unittest.TestCase):
-
     # Tolerance for absolute differences to be considered almost equal
     DELTA = 0.05
 
-    SYMBOLS = fsic.parse_model('''
+    SYMBOLS = fsic.parse_model(
+        """
 Y = C + I + G + X - M
-M = {mu} * Y''')
+M = {mu} * Y"""
+    )
 
     class Linker(fsic.BaseLinker):
-
         def evaluate_t_before(self, t, *args, **kwargs):
             self.submodels['A'].X[t] = self.submodels['B'].M[t]
             self.submodels['B'].X[t] = self.submodels['A'].M[t]
@@ -3499,10 +4004,12 @@ M = {mu} * Y''')
 
     def test_solve(self):
         # Check that linker behaves and solves as expected with custom methods
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1)),
-            'B': self.Model(range(1990, 2005 + 1)),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1)),
+                'B': self.Model(range(1990, 2005 + 1)),
+            }
+        )
 
         # All values should start at zero
         for k, submodel in linker.submodels.items():
@@ -3524,20 +4031,24 @@ M = {mu} * Y''')
                 self.assertTrue(np.all(submodel.status == '.'))
                 self.assertTrue(np.all(submodel.iterations == linker.iterations))
 
+                # fmt: off
                 self.assertTrue(np.allclose(submodel['Y'], 20.0))
                 self.assertTrue(np.allclose(submodel['C'],  0.0))
                 self.assertTrue(np.allclose(submodel['I'],  0.0))
                 self.assertTrue(np.allclose(submodel['G'], 20.0))
                 self.assertTrue(np.allclose(submodel['X'],  4.0))
                 self.assertTrue(np.allclose(submodel['M'],  4.0))
+                # fmt: on
 
     def test_solve_min_iter(self):
         # Check that linker behaves and solves as expected with custom methods
         # and a minimum of number of iterations
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1)),
-            'B': self.Model(range(1990, 2005 + 1)),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1)),
+                'B': self.Model(range(1990, 2005 + 1)),
+            }
+        )
 
         # All values should start at zero
         for k, submodel in linker.submodels.items():
@@ -3560,72 +4071,86 @@ M = {mu} * Y''')
                 self.assertTrue(np.all(submodel.status == '.'))
                 self.assertTrue(np.all(submodel.iterations == linker.iterations))
 
+                # fmt: off
                 self.assertTrue(np.allclose(submodel['Y'], 20.0))
                 self.assertTrue(np.allclose(submodel['C'],  0.0))
                 self.assertTrue(np.allclose(submodel['I'],  0.0))
                 self.assertTrue(np.allclose(submodel['G'], 20.0))
                 self.assertTrue(np.allclose(submodel['X'],  4.0))
                 self.assertTrue(np.allclose(submodel['M'],  4.0))
+                # fmt: on
 
     def test_solve_selective(self):
         # Check that the linker can solve selected submodels
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+                'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            }
+        )
 
         linker.solve(submodels=['A'])
 
         # Check results
         for k, submodel in linker.submodels.items():
             with self.subTest(submodel=k):
+                # fmt: off
                 self.assertTrue(np.allclose(submodel['C'],  0.0))
                 self.assertTrue(np.allclose(submodel['I'],  0.0))
                 self.assertTrue(np.allclose(submodel['G'], 20.0))
+                # fmt: on
 
-        self.assertTrue(np.allclose(linker.submodels['A'].Y, 16 + 2/3))
+        self.assertTrue(np.allclose(linker.submodels['A'].Y, 16 + 2 / 3))
         self.assertTrue(np.allclose(linker.submodels['A'].X, 0))
-        self.assertTrue(np.allclose(linker.submodels['A'].M, 3 + 1/3))
+        self.assertTrue(np.allclose(linker.submodels['A'].M, 3 + 1 / 3))
 
         self.assertTrue(np.allclose(linker.submodels['B'].Y, 0))
-        self.assertTrue(np.allclose(linker.submodels['B'].X, 3 + 1/3))
+        self.assertTrue(np.allclose(linker.submodels['B'].X, 3 + 1 / 3))
         self.assertTrue(np.allclose(linker.submodels['B'].M, 0))
 
     def test_solve_selective_key_error(self):
         # Check for error with nonexistent specified submodel
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+                'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            }
+        )
 
         with self.assertRaises(KeyError):
             linker.solve(submodels=['C'])
 
     def test_solve_min_iter_error(self):
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+                'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            }
+        )
 
         # Check for error if `min_iter` > `max_iter`
         with self.assertRaises(ValueError):
             linker.solve(min_iter=10, max_iter=5)
 
     def test_solve_nonconvergence_error(self):
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+                'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            }
+        )
 
         # Too few iterations to solve: Should raise an error
         with self.assertRaises(fsic.exceptions.NonConvergenceError):
             linker.solve(max_iter=1)
 
     def test_solve_nonconvergence_continue(self):
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-            'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+                'B': self.Model(range(1990, 2005 + 1), mu=0.2, G=20),
+            }
+        )
 
         # Too few iterations to solve but `failures='ignore'` should let the
         # method complete without error
@@ -3633,7 +4158,6 @@ M = {mu} * Y''')
 
 
 class TestLinkerCopy(unittest.TestCase):
-
     SYMBOLS = fsic.parse_model('Y = C + I + G + X - M')
 
     class Linker(fsic.BaseLinker):
@@ -3650,11 +4174,13 @@ class TestLinkerCopy(unittest.TestCase):
         self.Model = fsic.build_model(self.SYMBOLS)
 
     def test_copy_method(self):
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1)),
-            'B': self.Model(range(1990, 2005 + 1)),
-            'C': self.Model(range(1990, 2005 + 1)),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1)),
+                'B': self.Model(range(1990, 2005 + 1)),
+                'C': self.Model(range(1990, 2005 + 1)),
+            }
+        )
 
         duplicate_linker = linker.copy()
         duplicate_linker.values = np.full((3, 16), -1)
@@ -3679,11 +4205,13 @@ class TestLinkerCopy(unittest.TestCase):
                 self.assertTrue(np.allclose(v.values, 1))
 
     def test_copy_dunder_method(self):
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1)),
-            'B': self.Model(range(1990, 2005 + 1)),
-            'C': self.Model(range(1990, 2005 + 1)),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1)),
+                'B': self.Model(range(1990, 2005 + 1)),
+                'C': self.Model(range(1990, 2005 + 1)),
+            }
+        )
 
         duplicate_linker = copy.copy(linker)
         duplicate_linker.values = np.full((3, 16), -1)
@@ -3708,11 +4236,13 @@ class TestLinkerCopy(unittest.TestCase):
                 self.assertTrue(np.allclose(v.values, 1))
 
     def test_deepcopy_dunder_method(self):
-        linker = self.Linker({
-            'A': self.Model(range(1990, 2005 + 1)),
-            'B': self.Model(range(1990, 2005 + 1)),
-            'C': self.Model(range(1990, 2005 + 1)),
-        })
+        linker = self.Linker(
+            {
+                'A': self.Model(range(1990, 2005 + 1)),
+                'B': self.Model(range(1990, 2005 + 1)),
+                'C': self.Model(range(1990, 2005 + 1)),
+            }
+        )
 
         duplicate_linker = copy.deepcopy(linker)
         duplicate_linker.values = np.full((3, 16), -1)
@@ -3738,7 +4268,6 @@ class TestLinkerCopy(unittest.TestCase):
 
 
 class TestLinkerMisc(unittest.TestCase):
-
     def test_size(self):
         # Check that `size` returns the total number of array elements across
         # the linker and its constituent models
@@ -3773,7 +4302,15 @@ class TestLinkerMisc(unittest.TestCase):
         for i, a in enumerate('XYZ'):
             linker.add_variable(a, i)
 
-        self.assertEqual(linker.sizes, {'_': 30, 'A': 10, 'B': 20, 'C': 30, })
+        self.assertEqual(
+            linker.sizes,
+            {
+                '_': 30,
+                'A': 10,
+                'B': 20,
+                'C': 30,
+            },
+        )
 
     def test_nbytes(self):
         # Check that `nbytes` returns the total bytes consumed by the array
@@ -3791,10 +4328,12 @@ class TestLinkerMisc(unittest.TestCase):
         for i, a in enumerate('XYZ'):
             linker.add_variable(a, i)
 
-        self.assertEqual(linker.nbytes,
-                         (90 * 8) +      # Array elements
-                         (10 * 8 * 4) +  # Iterations
-                         (10 * 4 * 4))   # Statuses
+        self.assertEqual(
+            linker.nbytes,
+            (90 * 8)         # Array elements
+            + (10 * 8 * 4)   # Iterations
+            + (10 * 4 * 4),  # Statuses
+        )  # fmt: skip
 
     def test_strict(self):
         # Check that `strict=True` works for linkers as it does for base
@@ -3819,14 +4358,13 @@ class TestLinkerMisc(unittest.TestCase):
 
 @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
 class TestPandasIndexing(unittest.TestCase):
-
-    SCRIPT = '''
+    SCRIPT = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     SYMBOLS = fsic.parse_model(SCRIPT)
 
     def setUp(self):
@@ -3836,15 +4374,19 @@ H = H[-1] + YD - C
         # Indexing tests to check that `BaseModel` can use, as a `span`
         # attribute value, `pandas` `MultiIndex` objects
         model = self.Model(
-            pd.MultiIndex.from_product([range(2000, 2005 + 1), range(1, 3 + 1)],
-                                       names=['year', 'term']),
-            alpha_1=0.6, alpha_2=0.4,
-            G=20, theta=0.2)
+            pd.MultiIndex.from_product(
+                [range(2000, 2005 + 1), range(1, 3 + 1)], names=['year', 'term']
+            ),
+            alpha_1=0.6,
+            alpha_2=0.4,
+            G=20,
+            theta=0.2,
+        )
 
         expected = np.array([20.0] * 18)
         self.assertTrue(np.allclose(model.G, expected))
 
-        model['G', :(2002, 3)] = 10
+        model['G', : (2002, 3)] = 10
         expected[:9] = 10
         self.assertTrue(np.allclose(model.G, expected))
 
@@ -3852,7 +4394,7 @@ H = H[-1] + YD - C
         expected[:6] = 15
         self.assertTrue(np.allclose(model.G, expected))
 
-        model['G', (2004, 3):] = 25
+        model['G', (2004, 3) :] = 25
         expected[-4:] = 25
         self.assertTrue(np.allclose(model.G, expected))
 
@@ -3868,7 +4410,7 @@ H = H[-1] + YD - C
         expected[3:6] = 0
         self.assertTrue(np.allclose(model.G, expected))
 
-        model['G', (2003, 2):(2005, 1)] = 5
+        model['G', (2003, 2) : (2005, 1)] = 5
         expected[10:-2] = 5
         self.assertTrue(np.allclose(model.G, expected))
 
@@ -3883,26 +4425,36 @@ H = H[-1] + YD - C
                       20.0, 20.0, 20.0,
                       20.0, 20.0, 20.0,
                        5.0,  5.0,  5.0,
-                       5.0, 30.0, 30.0, ])))
+                       5.0, 30.0, 30.0, ])))  # fmt: skip
 
         self.assertTrue(np.allclose(model['G', (2000, 3)], 25.0))
         self.assertTrue(np.allclose(model['G', 2001], 20.0))
 
-        self.assertTrue(np.allclose(model['G', :(2000, 2)], 15.0))
-        self.assertTrue(np.allclose(model['G', :2001], [15.0, 15.0, 25.0, 20.0, 20.0, 20.0]))
+        self.assertTrue(np.allclose(model['G', : (2000, 2)], 15.0))
+        self.assertTrue(
+            np.allclose(model['G', :2001], [15.0, 15.0, 25.0, 20.0, 20.0, 20.0])
+        )
 
-        self.assertTrue(np.allclose(model['G', (2005, 2):], 30.0))
-        self.assertTrue(np.allclose(model['G', 2004:], [5.0, 5.0, 5.0, 5.0, 30.0, 30.0]))
+        self.assertTrue(np.allclose(model['G', (2005, 2) :], 30.0))
+        self.assertTrue(
+            np.allclose(model['G', 2004:], [5.0, 5.0, 5.0, 5.0, 30.0, 30.0])
+        )
 
         self.assertTrue(np.allclose(model['G', 2001:2003], 20.0))
-        self.assertTrue(np.allclose(model['G', 2003:2004], [20.0, 20.0, 20.0, 5.0, 5.0, 5.0]))
+        self.assertTrue(
+            np.allclose(model['G', 2003:2004], [20.0, 20.0, 20.0, 5.0, 5.0, 5.0])
+        )
 
     def test_periodindex_indexing(self):
         # Indexing tests to check that `BaseModel` can use, as a `span`
         # attribute value, `pandas` `PeriodIndex` objects
-        model = self.Model(pd.period_range(start='1990-01-01', end='1995-12-31', freq='Q'),
-                           alpha_1=0.6, alpha_2=0.4,
-                           G=20, theta=0.2)
+        model = self.Model(
+            pd.period_range(start='1990-01-01', end='1995-12-31', freq='Q'),
+            alpha_1=0.6,
+            alpha_2=0.4,
+            G=20,
+            theta=0.2,
+        )
 
         expected = np.array([20.0] * 24)
         self.assertTrue(np.allclose(model.G, expected))
@@ -3947,7 +4499,7 @@ H = H[-1] + YD - C
                      [20.0] * 4 +           # 1993
                      [20.0] * 4 +           # 1994
                      [30.0] * 4             # 1995
-                     )))
+                     )))  # fmt: skip
 
         self.assertTrue(np.allclose(model['G', '1991Q1'], 25))
         self.assertTrue(np.allclose(model['G', '1990'], 15))
@@ -3964,9 +4516,13 @@ H = H[-1] + YD - C
     def test_periodindex_solution(self):
         # Solution tests to check that `BaseModel` can use, as a `span`
         # attribute value, `pandas` `PeriodIndex` objects
-        model = self.Model(pd.period_range(start='1990-01', end='2010-12', freq='Q'),
-                           alpha_1=0.6, alpha_2=0.4,
-                           G=20, theta=0.2)
+        model = self.Model(
+            pd.period_range(start='1990-01', end='2010-12', freq='Q'),
+            alpha_1=0.6,
+            alpha_2=0.4,
+            G=20,
+            theta=0.2,
+        )
 
         model.solve(end='2010Q2')
         model.solve_t(-2)

@@ -24,13 +24,13 @@ except ModuleNotFoundError:
 class TestAliasMixin(unittest.TestCase):
     # TODO: Add support for Fortran tests
 
-    script = '''
+    script = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
     symbols = fsic.parse_model(script)
     SIM = fsic.build_model(symbols)
 
@@ -53,13 +53,16 @@ H = H[-1] + YD - C
 
         self.assertEqual(
             model.aliases,
-            {'GDP': 'Y',
-             'expenditure': 'Y',
-             'output': 'Y',
-             'income': 'Y',
-             'mpc_income': 'alpha_1',
-             'mpc_wealth': 'alpha_2',
-             'income_tax_rate': 'theta', })
+            {
+                'GDP': 'Y',
+                'expenditure': 'Y',
+                'output': 'Y',
+                'income': 'Y',
+                'mpc_income': 'alpha_1',
+                'mpc_wealth': 'alpha_2',
+                'income_tax_rate': 'theta',
+            },
+        )
 
     def test_init(self):
         # Check __init__() works with aliases
@@ -81,11 +84,17 @@ H = H[-1] + YD - C
         self.assertTrue(np.allclose(model.Y, np.array([100.0] * 11)))
 
         model.expenditure[1:3] = 75
-        self.assertTrue(np.allclose(model.output, np.array([100.0, 75.0, 75.0] + [100.0] * 8)))
+        self.assertTrue(
+            np.allclose(model.output, np.array([100.0, 75.0, 75.0] + [100.0] * 8))
+        )
 
         model['output', 0] = 125
-        self.assertTrue(np.allclose(model['income'], np.array([100.0, 75.0, 75.0, 100.0, 100.0, 125.0] +
-                                                              [100.0] * 5)))
+        self.assertTrue(
+            np.allclose(
+                model['income'],
+                np.array([100.0, 75.0, 75.0, 100.0, 100.0, 125.0] + [100.0] * 5),
+            )
+        )
 
         self.assertTrue(math.isclose(model['income', 0], 125))
 
@@ -94,9 +103,21 @@ H = H[-1] + YD - C
         model = self.SIMAlias(range(5))
 
         full_list = set(dir(model))
-        expected_to_be_present = set(['GDP', 'Y', 'expenditure', 'output', 'income',
-                                      'mpc_income', 'alpha_1', 'mpc_wealth', 'alpha_2', 'income_tax_rate',
-                                      'theta'])
+        expected_to_be_present = set(
+            [
+                'GDP',
+                'Y',
+                'expenditure',
+                'output',
+                'income',
+                'mpc_income',
+                'alpha_1',
+                'mpc_wealth',
+                'alpha_2',
+                'income_tax_rate',
+                'theta',
+            ]
+        )
 
         # Check that the intersection of the sets leaves the expected variable
         # names
@@ -108,9 +129,21 @@ H = H[-1] + YD - C
         model = self.SIMAlias(range(5))
 
         full_list = set(model._ipython_key_completions_())
-        expected_to_be_present = set(['GDP', 'Y', 'expenditure', 'output', 'income',
-                                      'mpc_income', 'alpha_1', 'mpc_wealth', 'alpha_2', 'income_tax_rate',
-                                      'theta'])
+        expected_to_be_present = set(
+            [
+                'GDP',
+                'Y',
+                'expenditure',
+                'output',
+                'income',
+                'mpc_income',
+                'alpha_1',
+                'mpc_wealth',
+                'alpha_2',
+                'income_tax_rate',
+                'theta',
+            ]
+        )
 
         # Check that the intersection of the sets leaves the expected variable
         # names
@@ -120,42 +153,57 @@ H = H[-1] + YD - C
     def test_to_dataframe_default(self):
         # Check that `to_dataframe()` returns, by default, the same result as
         # the base version
-        model = self.SIMAlias(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model = self.SIMAlias(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
         model.solve()
 
-        pd.testing.assert_frame_equal(model.to_dataframe(),
-                                      super(self.SIMAlias, model).to_dataframe())
+        pd.testing.assert_frame_equal(
+            model.to_dataframe(), super(self.SIMAlias, model).to_dataframe()
+        )
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_to_dataframe_aliases(self):
         # Check that `to_dataframe()` correctly resolves and renames aliases
-        model = self.SIMAlias(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model = self.SIMAlias(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
         model.solve()
 
         result = model.to_dataframe(use_aliases=True)
 
         default_dataframe = super(self.SIMAlias, model).to_dataframe()
         self.assertNotEqual(list(result.columns), list(default_dataframe))
-        pd.testing.assert_frame_equal(result,
-                                      default_dataframe.set_axis(
-                                          result.columns,
-                                          axis='columns'))
+        pd.testing.assert_frame_equal(
+            result, default_dataframe.set_axis(result.columns, axis='columns')
+        )
 
-        self.assertEqual(list(result.columns),
-                         ['C', 'YD', 'H', 'GDP', 'T',
-                          'G', 'alpha_1', 'alpha_2', 'income_tax_rate', 'status',
-                          'iterations'])
+        self.assertEqual(
+            list(result.columns),
+            [
+                'C',
+                'YD',
+                'H',
+                'GDP',
+                'T',
+                'G',
+                'alpha_1',
+                'alpha_2',
+                'income_tax_rate',
+                'status',
+                'iterations',
+            ],
+        )
 
 
 class TestTracerMixin(unittest.TestCase):
-
-    SCRIPT = '''\
+    SCRIPT = """\
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-    '''
+    """
     SYMBOLS = fsic.parse_model(SCRIPT)
     SIM = fsic.build_model(SYMBOLS)
 
@@ -169,11 +217,15 @@ H = H[-1] + YD - C
         from pandas.testing import assert_frame_equal
 
         # Standard model (to compare final results)
-        model_without_trace = self.SIM(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model_without_trace = self.SIM(
+            range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
         model_without_trace.solve()
 
         # Model with trace
-        model_with_trace = self.Model(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model_with_trace = self.Model(
+            range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
 
         # Check all `Trace` objects are empty
         for period in model_with_trace.span:
@@ -189,8 +241,9 @@ H = H[-1] + YD - C
                 self.assertFalse(model_with_trace['trace', period].is_empty())
 
         # Check that the model results are the same, with and without the trace
-        assert_frame_equal(model_with_trace.to_dataframe(),
-                           model_without_trace.to_dataframe())
+        assert_frame_equal(
+            model_with_trace.to_dataframe(), model_without_trace.to_dataframe()
+        )
 
         # Check the `Trace` results
         results = model_with_trace['trace', 5].to_dataframe()
@@ -202,20 +255,27 @@ H = H[-1] + YD - C
         self.assertTrue(np.allclose(results['theta'], 0.2))
 
         self.assertTrue(
-            np.allclose(results.loc[['start', 'before', 0], ['C', 'YD', 'H', 'Y', 'T']],
-                        0.0)
+            np.allclose(
+                results.loc[['start', 'before', 0], ['C', 'YD', 'H', 'Y', 'T']], 0.0
+            )
         )
         self.assertTrue(
-            np.allclose(results.loc[1, ['C', 'YD', 'H', 'Y', 'T']],
-                        [15.59609257, 0, 23.39413886, 35.59609257, 7.119218515])
+            np.allclose(
+                results.loc[1, ['C', 'YD', 'H', 'Y', 'T']],
+                [15.59609257, 0, 23.39413886, 35.59609257, 7.119218515],
+            )
         )
         self.assertTrue(
-            np.allclose(results.loc[74, ['C', 'YD', 'H', 'Y', 'T']],
-                        [48.45402418, 54.76321934, 45.2994266, 68.45402418, 13.69080484])
+            np.allclose(
+                results.loc[74, ['C', 'YD', 'H', 'Y', 'T']],
+                [48.45402418, 54.76321934, 45.2994266, 68.45402418, 13.69080484],
+            )
         )
         self.assertTrue(
-            np.allclose(results.loc['end', ['C', 'YD', 'H', 'Y', 'T']],
-                        [48.45402418, 54.76321934, 45.2994266, 68.45402418, 13.69080484])
+            np.allclose(
+                results.loc['end', ['C', 'YD', 'H', 'Y', 'T']],
+                [48.45402418, 54.76321934, 45.2994266, 68.45402418, 13.69080484],
+            )
         )
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
@@ -225,11 +285,15 @@ H = H[-1] + YD - C
         from pandas.testing import assert_frame_equal
 
         # Standard model (to compare final results)
-        model_without_trace = self.SIM(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model_without_trace = self.SIM(
+            range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
         model_without_trace.solve()
 
         # Model with trace
-        model_with_trace = self.Model(range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model_with_trace = self.Model(
+            range(10), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
 
         # Check all `Trace` objects are empty
         for period in model_with_trace.span:
@@ -245,8 +309,9 @@ H = H[-1] + YD - C
                 self.assertTrue(model_with_trace['trace', period].is_empty())
 
         # Check that the model results are the same, with and without the trace
-        assert_frame_equal(model_with_trace.to_dataframe(),
-                           model_without_trace.to_dataframe())
+        assert_frame_equal(
+            model_with_trace.to_dataframe(), model_without_trace.to_dataframe()
+        )
 
 
 if __name__ == '__main__':
