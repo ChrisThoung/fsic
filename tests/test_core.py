@@ -1310,8 +1310,14 @@ H = H[-1] + YD - C
         import pandas as pd
         from pandas import DataFrame
 
+        # TODO: Review compatibility check - compare against `pandas` version
+        #       instead?
+        monthly_frequency = 'ME' if sys.version_info[:2] > (3, 7) else 'M'
+
         test_cases = {
-            'DatetimeIndex': pd.date_range(start='01/01/2000', periods=269, freq='ME'),
+            'DatetimeIndex': pd.date_range(
+                start='01/01/2000', periods=269, freq=monthly_frequency
+            ),
             'MultiIndex.from_tuples': pd.MultiIndex.from_tuples(
                 [
                     (year, term)
