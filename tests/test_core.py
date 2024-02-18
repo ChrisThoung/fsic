@@ -1312,7 +1312,7 @@ H = H[-1] + YD - C
 
         # TODO: Review compatibility check - compare against `pandas` version
         #       instead?
-        monthly_frequency = 'ME' if sys.version_info[:2] > (3, 7) else 'M'
+        monthly_frequency = 'ME' if sys.version_info[:2] > (3, 8) else 'M'
 
         test_cases = {
             'DatetimeIndex': pd.date_range(
