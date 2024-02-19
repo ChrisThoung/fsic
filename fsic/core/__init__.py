@@ -21,16 +21,16 @@ from typing import Any, Dict, Hashable, Iterable, List, Optional, Sequence, Tupl
 
 import numpy as np
 
-from .exceptions import (
+from ..exceptions import (
     DimensionError,
     DuplicateNameError,
     InitialisationError,
     NonConvergenceError,
     SolutionError,
 )
-from .functions import builtins as _builtins
-from .tools import linker_to_dataframes as _linker_to_dataframes
-from .tools import model_to_dataframe as _model_to_dataframe
+from ..functions import builtins as _builtins
+from ..tools import linker_to_dataframes as _linker_to_dataframes
+from ..tools import model_to_dataframe as _model_to_dataframe
 
 
 # Labelled container for vector data (1D NumPy arrays) ------------------------
