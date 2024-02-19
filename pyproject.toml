@@ -34,7 +34,7 @@ classifiers = [
 keywords = ["economics", "modelling"]
 
 [tool.setuptools]
-packages = ["fsic", "fsic.extensions"]
+packages = ["fsic", "fsic.core", "fsic.extensions"]
 
 [tool.setuptools.dynamic]
 version = {attr = "fsic.__version__"}
