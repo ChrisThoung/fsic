@@ -32,7 +32,11 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Changed
 
-- Reorganised `core` module into a subpackage of modules.
+- Reorganised `core` module into a subpackage of modules:
+    - `containers`
+    - `interfaces`
+    - `models`
+    - `linkers`
 - Switched from dated 'setup.py' configuration to more modern pyproject.toml.
 - Switched to uppercase constant names.
 - Removed `NotImplementedError`s from over-rideable methods.
