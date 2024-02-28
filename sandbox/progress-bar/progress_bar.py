@@ -66,7 +66,7 @@ Unresolved issues:
 import copy
 from typing import Any, Hashable, Iterable, Optional, Tuple, Union
 
-from fsic.core import PeriodIter
+from fsic.core.interfaces import PeriodIter
 
 
 try:
