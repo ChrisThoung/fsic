@@ -268,8 +268,9 @@ class VectorContainer:
                 raise DimensionError(
                     f"Invalid assignment for '{name}': "
                     f"must be either a single value or "
-                    f"a sequence of identical length to `span`"
-                    f"(expected {len(self.__dict__['span'])} elements)"
+                    f"a sequence of identical length to `span` "
+                    f"(expected {len(self.__dict__['span'])} element[s] "
+                    f"but found {value_as_array.shape[0]})"
                 )
 
             self.__dict__['_' + name] = value_as_array

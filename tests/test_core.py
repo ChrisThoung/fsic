@@ -621,6 +621,20 @@ class TestVectorContainer(unittest.TestCase):
 
         self.assertNotIn('D', container)
 
+    def test_set_sequence_dimension_error(self):
+        # Check that mismatched array lengths are caught as exceptions
+        container = fsic.core.VectorContainer(range(5 + 1))
+        for i, a in enumerate('ABC'):
+            container.add_variable(a, i, dtype=float)
+
+        with self.assertRaises(
+            fsic.exceptions.DimensionError,
+            msg="Invalid assignment for 'B': must be either a single value "
+            'or a sequence of identical length to `span` '
+            '(expected 6 element[s] but found 9)',
+        ):
+            container.B = [0] * 10
+
     def test_locate_period_in_span_error(self):
         # Check that non-existent index keys raise an error
         container = fsic.core.VectorContainer(range(5 + 1))
