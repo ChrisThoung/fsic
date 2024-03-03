@@ -3,7 +3,6 @@
 Core `VectorContainer` class to handle collections of one-dimensional data.
 """
 
-
 import copy
 import difflib
 import re

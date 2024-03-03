@@ -4,7 +4,6 @@ Intermediate classes to bridge data management in `VectorContainer` with fully
 fledged model classes, as in `BaseModel` and `BaseLinker`.
 """
 
-
 import copy
 import enum
 from collections import Counter

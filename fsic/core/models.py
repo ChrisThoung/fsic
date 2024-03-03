@@ -5,7 +5,6 @@ implemented as derived classes, inheriting the necessary attributes and methods
 that make up the API.
 """
 
-
 import warnings
 from typing import Any, Dict, Hashable, List, Optional, Sequence, Union
 
