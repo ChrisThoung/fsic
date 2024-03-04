@@ -144,10 +144,19 @@ class BaseModel(SolverMixin, ModelInterface):
         return super().reindex(span, fill_value=fill_value, **fill_values)
 
     def to_dataframe(
-        self, *, status: bool = True, iterations: bool = True
+        self,
+        *,
+        status: bool = True,
+        iterations: bool = True,
+        include_internal: bool = False,
     ) -> 'pandas.DataFrame':  # noqa: F821
         """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
-        return _model_to_dataframe(self, status=status, iterations=iterations)
+        return _model_to_dataframe(
+            self,
+            status=status,
+            iterations=iterations,
+            include_internal=include_internal,
+        )
 
     def solve_t(
         self,

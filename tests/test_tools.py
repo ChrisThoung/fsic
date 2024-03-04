@@ -169,6 +169,36 @@ class TestPandasFunctions(unittest.TestCase):
 
         pd.testing.assert_frame_equal(result, expected)
 
+    def test_model_to_dataframe_internal_variables(self):
+        # Check that `model_to_dataframe()` selectively returns internal
+        # variables (denoted by a leading underscore)
+        model = self.MODEL(range(5))
+
+        # Check list of names is unchanged
+        self.assertEqual(model.names, model.NAMES)
+
+        expected = pd.DataFrame(
+            {'Y': 0.0, 'C': 0.0, 'G': 0.0, 'status': '-', 'iterations': -1},
+            index=range(5),
+        )
+
+        pd.testing.assert_frame_equal(fsic.tools.model_to_dataframe(model), expected)
+
+        # Add an internal variable
+        model.add_variable('_A', -1, dtype=int)
+
+        # By default, exclude internal variables from the DataFrame
+        pd.testing.assert_frame_equal(fsic.tools.model_to_dataframe(model), expected)
+
+        # Use `include_internal=True` to also return internal variables
+        expected_internal = expected.copy()
+        expected_internal.insert(3, '_A', -1)
+
+        pd.testing.assert_frame_equal(
+            fsic.tools.model_to_dataframe(model, include_internal=True),
+            expected_internal,
+        )
+
     def test_model_to_dataframe_core(self):
         model = self.MODEL(range(5))
 

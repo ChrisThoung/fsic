@@ -117,6 +117,7 @@ def model_to_dataframe(
     *,
     status: bool = True,
     iterations: bool = True,
+    include_internal: bool = False,
 ) -> 'pandas.DataFrame':  # noqa: F821
     """Return the values and solution information from the model as a `pandas` DataFrame (also available as `fsic.BaseModel.to_dataframe()` / `fsic.core.BaseModel.to_dataframe()`). **Requires `pandas`**.
 
@@ -126,9 +127,13 @@ def model_to_dataframe(
     """
     from pandas import DataFrame
 
+    names = model.names
+    if not include_internal:
+        names = [x for x in model.names if not x.startswith('_')]
+
     # NB Take variables one at a time, rather than use `model.values`. This
     #    preserves the dtypes of the individual series.
-    df = DataFrame({k: model[k] for k in model.names}, index=model.span)
+    df = DataFrame({k: model[k] for k in names}, index=model.span)
 
     if status:
         df['status'] = model.status
@@ -144,6 +149,7 @@ def linker_to_dataframes(
     *,
     status: bool = True,
     iterations: bool = True,  # noqa: F821
+    include_internal: bool = False,
 ) -> Dict[Hashable, 'pandas.DataFrame']:  # noqa: F821
     """Return the values and solution information from the linker and its constituent submodels as `pandas` DataFrames (also available as `fsic.BaseLinker.to_dataframes()` / `fsic.core.BaseLinker.to_dataframes()`). **Requires `pandas`**.
 
@@ -151,9 +157,15 @@ def linker_to_dataframes(
     --------
     fsic.core.BaseLinker.to_dataframes()
     """
-    results = {linker.name: linker.to_dataframe(status=status, iterations=iterations)}
+    results = {
+        linker.name: linker.to_dataframe(
+            status=status, iterations=iterations, include_internal=include_internal
+        )
+    }
 
     for name, model in linker.submodels.items():
-        results[name] = model.to_dataframe(status=status, iterations=iterations)
+        results[name] = model.to_dataframe(
+            status=status, iterations=iterations, include_internal=include_internal
+        )
 
     return results
