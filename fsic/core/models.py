@@ -5,7 +5,6 @@ implemented as derived classes, inheriting the necessary attributes and methods
 that make up the API.
 """
 
-
 import warnings
 from typing import Any, Dict, Hashable, List, Optional, Sequence, Union
 
@@ -117,7 +116,12 @@ class BaseModel(SolverMixin, ModelInterface):
         return cls(index, *args, **{k: v.values for k, v in data.items()}, **kwargs)
 
     def reindex(
-        self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
+        self,
+        span: Sequence[Hashable],
+        *,
+        fill_value: Any = None,
+        strict: Optional[bool] = None,
+        **fill_values: Any,
     ) -> 'BaseModel':
         """Return a copy of the current object, adjusted to match `span`. Values in overlapping periods between the old and new objects are preserved (copied over).
 
@@ -142,7 +146,9 @@ class BaseModel(SolverMixin, ModelInterface):
         fill_values['status'] = fill_values.get('status', SolutionStatus.UNSOLVED.value)
         fill_values['iterations'] = fill_values.get('iterations', -1)
 
-        return super().reindex(span, fill_value=fill_value, **fill_values)
+        return super().reindex(
+            span, fill_value=fill_value, strict=strict, **fill_values
+        )
 
     def to_dataframe(
         self, *, status: bool = True, iterations: bool = True
