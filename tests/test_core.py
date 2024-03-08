@@ -909,8 +909,8 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
 
     def test_reindex_fill_values_strict(self):
-        # Check that the `reindex()` method correctly reshapes the data,
-        # filling with user-specified values
+        # Check that the `reindex()` method correctly reshapes the data with
+        # `strict=True`, filling with user-specified values
         container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=True)
         container.add_variable('X', False, dtype=bool)
         container.add_variable('Y', 1, dtype=int)
@@ -940,6 +940,31 @@ class TestVectorContainer(unittest.TestCase):
         self.assertTrue(reindexed_container['X'][6:].all())
         self.assertTrue((reindexed_container['Y'][6:] == -1).all())
         self.assertTrue(np.allclose(reindexed_container['Z'][6:], 0.0))
+
+    def test_reindex_fill_values_strict_keyword(self):
+        # Check that the `reindex()` method correctly reshapes the data with
+        # `strict=True` at the keyword level, filling with user-specified values
+        container = fsic.core.VectorContainer(range(1995, 2005 + 1), strict=False)
+        container.add_variable('X', False, dtype=bool)
+        container.add_variable('Y', 1, dtype=int)
+        container.add_variable('Z', 2.0, dtype=float)
+
+        # This should work fine, even though 'A' is missing from the object
+        container.reindex(range(2003, 2000, -1), X=2, Y=3, A=4)
+
+        # Whereas this should fail with `strict=True`
+        with self.assertRaises(KeyError):
+            container.reindex(range(2003, 2000, -1), X=2, Y=3, A=4, strict=True)
+
+        # Switch `strict` to `True`
+        container.strict = True
+
+        # This should now fail
+        with self.assertRaises(KeyError):
+            container.reindex(range(2003, 2000, -1), X=2, Y=3, A=4)
+
+        # While this should now work
+        container.reindex(range(2003, 2001), X=2, Y=3, A=4, strict=False)
 
     def test_eval_index(self):
         # Check `eval()` method with integer indexes
