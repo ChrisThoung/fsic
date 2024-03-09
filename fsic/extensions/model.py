@@ -42,6 +42,20 @@ class PandasIndexFeaturesMixin:
         while providing arguments that extend the implementation to make use of
         more advanced features as in the `pandas` `Series.reindex()`.
 
+        Parameters
+        ----------
+        span : iterable
+            Sequence of periods defining the span of the object to be returned
+        fill_value :
+            Default fill value for new periods
+        strict : bool
+            If `True`, raise a `KeyError` if `fill_values` refers to variables
+            not defined in the current object. Ignore if `False`.
+            If `None`, use the current value of the object's `strict`
+            attribute.
+        **fill_values :
+            Variable-specific fill value(s)
+
         See also
         --------
         `pandas` documentation on `reindex()` methods:
