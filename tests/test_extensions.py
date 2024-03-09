@@ -196,6 +196,57 @@ H = H[-1] + YD - C
         )
 
 
+@unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+class TestPandasFeaturesMixin(unittest.TestCase):
+    # TODO: Rework for Fortran compatibility
+    SCRIPT = """\
+C = {alpha_1} * YD + {alpha_2} * H[-1]
+YD = Y - T
+Y = C + G
+T = {theta} * Y
+H = H[-1] + YD - C
+    """
+    SYMBOLS = fsic.parse_model(SCRIPT)
+    SIM = fsic.build_model(SYMBOLS)
+
+    class Model(fsic.extensions.model.PandasIndexFeaturesMixin, SIM):
+        pass
+
+    def test_reindex(self):
+        # Test `pandas`-based version of `reindex()`
+
+        from pandas.testing import assert_frame_equal
+
+        model = self.Model(range(-5, 10 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+        model.solve()
+
+        results = model.to_dataframe()
+
+        # Check standard in-sample reindexing
+        expected = results.reindex(index=range(1, 9))
+
+        assert_frame_equal(model.reindex(range(1, 9)).to_dataframe(), expected)
+
+        # Check standard out-of-sample reindexing
+        expected = results.reindex(index=range(5, 15 + 1))
+        expected.loc[11:, 'status'] = '-'
+        expected.loc[11:, 'iterations'] = -1
+        expected['iterations'] = expected['iterations'].astype(int)
+
+        assert_frame_equal(model.reindex(range(5, 15 + 1)).to_dataframe(), expected)
+
+        # Check implementation of `pandas` 'ffill' to future out-of-sample
+        # periods
+        expected = results.reindex(index=range(5, 15 + 1), method='ffill')
+        expected.loc[11:, 'status'] = '-'
+        expected.loc[11:, 'iterations'] = -1
+        expected['iterations'] = expected['iterations'].astype(int)
+
+        assert_frame_equal(
+            model.reindex(range(5, 15 + 1), method='ffill').to_dataframe(), expected
+        )
+
+
 class TestTracerMixin(unittest.TestCase):
     SCRIPT = """\
 C = {alpha_1} * YD + {alpha_2} * H[-1]
