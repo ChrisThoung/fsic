@@ -5,7 +5,6 @@ multi-region/entity model. Economic models are implemented as derived classes,
 inheriting the necessary attributes and methods that make up the API.
 """
 
-
 import copy
 import warnings
 from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
