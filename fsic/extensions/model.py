@@ -13,6 +13,7 @@ from ..exceptions import DimensionError, DuplicateNameError
 class PandasIndexFeaturesMixin:
     """Mixin to add support for `pandas` index-related features. **Requires `pandas`**"""
 
+    # fmt: off
     def reindex(
         self,
         span: Sequence[Hashable],
@@ -29,10 +30,12 @@ class PandasIndexFeaturesMixin:
         pad_:      Optional[Union[Hashable, Sequence[Hashable]]] = None,
         ffill_:    Optional[Union[Hashable, Sequence[Hashable]]] = None,
         nearest_:  Optional[Union[Hashable, Sequence[Hashable]]] = None,
+        # If `True`, check for undefined variables
+        strict: Optional[bool] = None,
         # Variable-by-variable fill values (treatment matches presumed parent
         # class method in `VectorContainer`)
         **fill_values: Any,
-    ) -> 'VectorContainer':  # fmt: skip
+    ) -> 'VectorContainer':  # noqa: F821
         """Return a copy of the object adjusted to `span`. **Requires `pandas`**
 
         On default settings, this method replicates the base class method,
@@ -42,10 +45,22 @@ class PandasIndexFeaturesMixin:
         See also
         --------
         `pandas` documentation on `reindex()` methods:
-         - https://pandas.pydata.org/docs/reference/api/pandas.Series.reindex.html
-         - https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.reindex.html
+            https://pandas.pydata.org/docs/reference/api/pandas.Series.reindex.html
         """
+        # fmt: on
         from pandas import Series
+
+        if strict is None:
+            strict = self.strict
+
+        if strict:
+            # Check for variables in `fill_values` but not in the object
+            undefined_variables = set(fill_values.keys()) - set(self.names)
+            if undefined_variables:
+                raise KeyError(
+                    f"Found {len(undefined_variables)} undefined variable(s) "
+                    f"with `strict=True`: {', '.join(sorted(undefined_variables))}"
+                )
 
         def as_list(argument: Any) -> List[Any]:
             if argument is None:
@@ -81,7 +96,13 @@ class PandasIndexFeaturesMixin:
         # method
         for name in reindexed.names:
             fill_method = methods.get(name, method)
-            fill_tolerance = tolerance if fill_method in valid_pandas_methods else None
+
+            fill_limit = None
+            fill_tolerance = None
+
+            if fill_method in valid_pandas_methods:
+                fill_limit = limit
+                fill_tolerance = tolerance
 
             reindexed[name] = (
                 Series(self[name], index=self.span)
@@ -90,7 +111,7 @@ class PandasIndexFeaturesMixin:
                     method=fill_method,
                     copy=copy,
                     fill_value=fill_values.get(name, fill_value),
-                    limit=limit,
+                    limit=fill_limit,
                     tolerance=fill_tolerance,
                 )
                 .values
