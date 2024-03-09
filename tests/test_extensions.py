@@ -224,27 +224,38 @@ H = H[-1] + YD - C
 
         # Check standard in-sample reindexing
         expected = results.reindex(index=range(1, 9))
+        model = model.reindex(range(1, 9))
 
-        assert_frame_equal(model.reindex(range(1, 9)).to_dataframe(), expected)
+        assert_frame_equal(model.to_dataframe(), expected)
 
         # Check standard out-of-sample reindexing
-        expected = results.reindex(index=range(5, 15 + 1))
-        expected.loc[11:, 'status'] = '-'
-        expected.loc[11:, 'iterations'] = -1
+        expected = expected.reindex(index=range(5, 15 + 1))
+        expected.loc[9:, 'status'] = '-'
+        expected.loc[9:, 'iterations'] = -1
         expected['iterations'] = expected['iterations'].astype(int)
 
-        assert_frame_equal(model.reindex(range(5, 15 + 1)).to_dataframe(), expected)
+        model = model.reindex(range(5, 15 + 1))
+        assert_frame_equal(model.to_dataframe(), expected)
 
         # Check implementation of `pandas` 'ffill' to future out-of-sample
         # periods
-        expected = results.reindex(index=range(5, 15 + 1), method='ffill')
+        expected = expected.reindex(index=range(5, 15 + 1), method='ffill')
         expected.loc[11:, 'status'] = '-'
         expected.loc[11:, 'iterations'] = -1
         expected['iterations'] = expected['iterations'].astype(int)
 
-        assert_frame_equal(
-            model.reindex(range(5, 15 + 1), method='ffill').to_dataframe(), expected
-        )
+        model = model.reindex(range(5, 15 + 1), method='ffill')
+        assert_frame_equal(model.to_dataframe(), expected)
+
+        # Check implementation of `pandas` 'bfill' to past out-of-sample
+        # periods
+        expected = expected.reindex(index=range(-10, 0 + 1), method='bfill')
+        expected.loc[:0, 'status'] = '-'
+        expected.loc[:0, 'iterations'] = -1
+        expected['iterations'] = expected['iterations'].astype(int)
+
+        model = model.reindex(range(-10, 0 + 1), method='bfill')
+        assert_frame_equal(model.to_dataframe(), expected)
 
 
 class TestTracerMixin(unittest.TestCase):
