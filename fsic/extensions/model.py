@@ -10,6 +10,130 @@ import numpy as np
 from ..exceptions import DimensionError, DuplicateNameError
 
 
+class PandasIndexFeaturesMixin:
+    """Mixin to add support for `pandas` index-related features. **Requires `pandas`**"""
+
+    # fmt: off
+    def reindex(
+        self,
+        span: Sequence[Hashable],
+        *,
+        # These arguments replicate those in `Series.reindex()`
+        method: Optional[str] = None,
+        copy: Optional[bool] = True,
+        fill_value: Any = None,  # Matches (presumed) parent class method in `VectorContainer`
+        limit: Optional[int] = None,
+        tolerance: Optional[Any] = None,
+        # These arguments absorb variable names by `Series.reindex()` fill method
+        backfill_: Optional[Union[Hashable, Sequence[Hashable]]] = None,
+        bfill_:    Optional[Union[Hashable, Sequence[Hashable]]] = None,
+        pad_:      Optional[Union[Hashable, Sequence[Hashable]]] = None,
+        ffill_:    Optional[Union[Hashable, Sequence[Hashable]]] = None,
+        nearest_:  Optional[Union[Hashable, Sequence[Hashable]]] = None,
+        # If `True`, check for undefined variables
+        strict: Optional[bool] = None,
+        # Variable-by-variable fill values (treatment matches presumed parent
+        # class method in `VectorContainer`)
+        **fill_values: Any,
+    ) -> 'VectorContainer':  # noqa: F821
+        """Return a copy of the object adjusted to `span`. **Requires `pandas`**
+
+        On default settings, this method replicates the base class method,
+        while providing arguments that extend the implementation to make use of
+        more advanced features as in the `pandas` `Series.reindex()`.
+
+        Parameters
+        ----------
+        span : iterable
+            Sequence of periods defining the span of the object to be returned
+        fill_value :
+            Default fill value for new periods
+        strict : bool
+            If `True`, raise a `KeyError` if `fill_values` refers to variables
+            not defined in the current object. Ignore if `False`.
+            If `None`, use the current value of the object's `strict`
+            attribute.
+        **fill_values :
+            Variable-specific fill value(s)
+
+        See also
+        --------
+        `pandas` documentation on `reindex()` methods:
+            https://pandas.pydata.org/docs/reference/api/pandas.Series.reindex.html
+        """
+        # fmt: on
+        from pandas import Series
+
+        if strict is None:
+            strict = self.strict
+
+        if strict:
+            # Check for variables in `fill_values` but not in the object
+            undefined_variables = set(fill_values.keys()) - set(self.names)
+            if undefined_variables:
+                raise KeyError(
+                    f"Found {len(undefined_variables)} undefined variable(s) "
+                    f"with `strict=True`: {', '.join(sorted(undefined_variables))}"
+                )
+
+        def as_list(argument: Any) -> List[Any]:
+            if argument is None:
+                return []
+
+            elif isinstance(argument, Hashable):
+                return [argument]
+
+            elif isinstance(argument, Sequence):
+                return argument
+
+            else:
+                raise TypeError(
+                    f'Unrecognised `argument` type ({type(argument)}): {argument}'
+                )
+
+        valid_pandas_methods = ['backfill', 'bfill', 'pad', 'ffill', 'nearest']
+
+        # Set mapping of variable names to filling methods, standardising to
+        # 'bfill', 'ffill' and 'nearest'
+        methods = {
+            **{k: 'bfill'   for k in as_list(backfill_)},
+            **{k: 'bfill'   for k in as_list(bfill_)},
+            **{k: 'ffill'   for k in as_list(pad_)},
+            **{k: 'ffill'   for k in as_list(ffill_)},
+            **{k: 'nearest' for k in as_list(nearest_)},
+        }  # fmt: skip
+
+        # Use the base class version of `reindex()` to alter the `span`...
+        reindexed = super().reindex(span=span)
+
+        # ...then adjust the values using the `pandas` `Series.reindex()`
+        # method
+        for name in reindexed.names:
+            fill_method = methods.get(name, method)
+
+            fill_limit = None
+            fill_tolerance = None
+
+            if fill_method in valid_pandas_methods:
+                fill_limit = limit
+                fill_tolerance = tolerance
+
+            reindexed[name] = (
+                Series(self[name], index=self.span)
+                .reindex(
+                    index=span,
+                    method=fill_method,
+                    copy=copy,
+                    fill_value=fill_values.get(name, fill_value),
+                    limit=fill_limit,
+                    tolerance=fill_tolerance,
+                )
+                .values
+            )
+
+        return reindexed
+
+
 class Trace:
     """Object to store step-by-step results for a single period.
 

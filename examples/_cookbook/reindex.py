@@ -20,13 +20,13 @@ import fsic
 
 
 # Define the example model
-script = '''
+script = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
 
 # Parse the script and create a class definition
 SIM = fsic.build_model(fsic.parse_model(script))
@@ -55,9 +55,9 @@ if __name__ == '__main__':
     print(copied_with_blanket_value.to_dataframe().round(2))
 
     # Use variable names as keywords to set individual fill values
-    copied_and_filled = model.reindex(range(1960, 1975 + 1),
-                                      fill_value=0,
-                                      alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
+    copied_and_filled = model.reindex(
+        range(1960, 1975 + 1), fill_value=0, alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+    )
     print(copied_and_filled.to_dataframe().round(2))
 
     copied_and_filled.solve()

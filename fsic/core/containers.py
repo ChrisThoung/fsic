@@ -601,12 +601,14 @@ class VectorContainer:
         return index_re.sub(resolve_indexes, expression)
 
     def reindex(
-        self, span: Sequence[Hashable], *, fill_value: Any = None, **fill_values: Any
+        self,
+        span: Sequence[Hashable],
+        *,
+        fill_value: Any = None,
+        strict: Optional[bool] = None,
+        **fill_values: Any,
     ) -> 'VectorContainer':
         """Return a copy of the current object, adjusted to match `span`. Values in overlapping periods between the old and new objects are preserved (copied over).
-
-        TODO: Consider implementing something closer to `pandas` `reindex()`
-              behaviour?
 
         Parameters
         ----------
@@ -614,9 +616,26 @@ class VectorContainer:
             Sequence of periods defining the span of the object to be returned
         fill_value :
             Default fill value for new periods
+        strict : bool
+            If `True`, raise a `KeyError` if `fill_values` refers to variables
+            not defined in the current object. Ignore if `False`.
+            If `None`, use the current value of the object's `strict`
+            attribute.
         **fill_values :
             Variable-specific fill value(s)
         """
+        if strict is None:
+            strict = self.strict
+
+        if strict:
+            # Check for variables in `fill_values` but not in the object index
+            undefined_variables = set(fill_values.keys()) - set(self.index)
+            if undefined_variables:
+                raise KeyError(
+                    f"Found {len(undefined_variables)} undefined variable(s) "
+                    f"with `strict=True`: {', '.join(sorted(undefined_variables))}"
+                )
+
         # Construct a mapping of:
         #  - keys: positions in `span` (the new, reindexed object)
         #  - values: the corresponding positions in `self.span` (i.e. where to

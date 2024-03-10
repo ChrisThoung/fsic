@@ -6,3 +6,4 @@ all :
 	python progress_bar.py
 	python quickstart.py
 	python reindex.py
+	python reindex_pandas_extension.py
