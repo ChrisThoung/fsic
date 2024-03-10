@@ -46,13 +46,13 @@ import fsic
 
 
 # Define the example model
-script = '''
+script = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
 
 # Parse the script and generate a class definition
 SIM = fsic.build_model(fsic.parse_model(script))
@@ -60,9 +60,7 @@ SIM = fsic.build_model(fsic.parse_model(script))
 
 if __name__ == '__main__':
     # Initialise a model instance (which will be copied in each example)
-    base = SIM(range(1945, 2010 + 1),
-               alpha_1=0.6, alpha_2=0.4,
-               G=20, theta=0.2)
+    base = SIM(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
 
     # -------------------------------------------------------------------------
     # 1. Call `iter_periods()` directly each time, wrapping the iterator with
@@ -98,7 +96,6 @@ if __name__ == '__main__':
         # Set the final status
         pbar.set_description('DONE')
 
-
     # -------------------------------------------------------------------------
     # 2. Over-ride `iter_periods()` at the class level using a mixin
 
@@ -108,7 +105,7 @@ if __name__ == '__main__':
 
     print('\n2. Over-ride `iter_periods()` at the class level:')
 
-    model = SIM_ProgressBar(range(1945, 2010 + 1),
-                            alpha_1=0.6, alpha_2=0.4,
-                            G=20, theta=0.2)
+    model = SIM_ProgressBar(
+        range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+    )
     model.solve(progress_bar=True)

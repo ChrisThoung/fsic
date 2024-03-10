@@ -24,28 +24,27 @@ import fsic
 
 
 # Setup a model class definition as usual
-script = '''
+script = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
 symbols = fsic.parse_model(script)
 SIM = fsic.build_model(symbols)
+
 
 # Create a version of the class with aliases
 class SIMAlias(AliasMixin, SIM):
     ALIASES = {
         # Add 'GDP' as an alternative name for 'Y'
         'GDP': 'Y',
-
         # Also add other names for output (and note how aliases can be chained
         # to point to other aliases)
         'expenditure': 'output',
         'output': 'income',
         'income': 'Y',
-
         # Other aliases
         'mpc_income': 'alpha_1',
         'mpc_wealth': 'alpha_2',
@@ -74,7 +73,7 @@ if __name__ == '__main__':
         range(1945, 2010 + 1),
         alpha_1=0.6,     # Parameter as listed in Godley and Lavoie (2007)
         mpc_wealth=0.4,  # Alias for `alpha_2`
-    )
+    )  # fmt: skip
 
     model_with_aliases.G = 20  # Original variable names work as usual
     model_with_aliases.income_tax_rate = 0.2  # Aliases also work

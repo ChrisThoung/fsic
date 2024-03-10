@@ -17,7 +17,7 @@ Reference:
 import fsic
 
 
-script = '''
+script = """
 # Keynesian/Kaleckian quantity adjustment equalises demand and supply
 C_s = C_d  # Household final consumption expenditure
 G_s = G_d  # Government expenditure
@@ -44,7 +44,7 @@ Y = C_s + G_s
 
 # Labour demand
 N_d = Y / W
-'''
+"""
 
 # Parse `script` to identify the constituent symbols (endogenous/exogenous
 # variables, parameters and equations)
@@ -60,7 +60,7 @@ model = SIM(range(1945, 2010 + 1))
 model.alpha_1 = 0.6  # Propensity to consume out of current disposable income
 model.alpha_2 = 0.4  # Propensity to consume out of lagged wealth
 
-model['W'] = 1       # Wages (alternative variable access by name rather than attribute)
+model['W'] = 1  # Wages (alternative variable access by name rather than attribute)
 
 # Exogenous government expenditure beginning in the second period
 model.G_d[1:] = 20  # Regular list/NumPy-like indexing by position

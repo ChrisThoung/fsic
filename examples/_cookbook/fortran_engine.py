@@ -72,13 +72,13 @@ except ModuleNotFoundError:
 # -----------------------------------------------------------------------------
 # Generate model symbols and the Python class as usual
 
-script = '''
+script = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
 
 symbols = fsic.parse_model(script)
 SIM = fsic.build_model(symbols)
@@ -96,23 +96,33 @@ with open('sim_fortran.f95', 'w') as f:
 if numpy_distutils_available:
     # Pre-Python 3.12 (numpy.distutils)
     compiler_options = ['f2py', '-c', 'sim_fortran.f95', '-m', 'sim_fortran']
-    output = subprocess.run(compiler_options,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output = subprocess.run(
+        compiler_options, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     output.check_returncode()
 
 else:
     try:
         compiler_options = ['f2py', '-c', 'sim_fortran.f95', '-m', 'sim_fortran']
-        output = subprocess.run(compiler_options,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output = subprocess.run(
+            compiler_options, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         output.check_returncode()
 
     except subprocess.CalledProcessError:
         # Python 3.12 onwards (Meson): May need to remove pre-existing files
         # with '--clean'
-        compiler_options = ['f2py', '-c', 'sim_fortran.f95', '--clean', '-m', 'sim_fortran']
-        output = subprocess.run(compiler_options,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        compiler_options = [
+            'f2py',
+            '-c',
+            'sim_fortran.f95',
+            '--clean',
+            '-m',
+            'sim_fortran',
+        ]
+        output = subprocess.run(
+            compiler_options, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         output.check_returncode()
 
 # Define a new class that combines:
@@ -122,6 +132,7 @@ else:
 #  - the compiled code itself, as an importable module
 #
 # The interface of this class is identical to the base Python one.
+
 
 class SIMFortran(fsic.fortran.FortranEngine, SIM):
     ENGINE = importlib.import_module('sim_fortran')
@@ -139,8 +150,10 @@ class SIMFortran(fsic.fortran.FortranEngine, SIM):
 # **This is only to show how performance varies by substituting Fortran at
 #   different points.**
 
+
 class SIMFortran_SolveT(fsic.fortran.FortranEngine, SIM):
     """Use pure Python `solve()` to call Fortran version of `solve_t()`."""
+
     ENGINE = importlib.import_module('sim_fortran')
 
     def solve(self, *args, **kwargs):
@@ -149,6 +162,7 @@ class SIMFortran_SolveT(fsic.fortran.FortranEngine, SIM):
 
 class SIMFortran_Evaluate(fsic.fortran.FortranEngine, SIM):
     """Use pure Python `solve()` and `solve_t()` to call Fortran version of `_evaluate()`."""
+
     ENGINE = importlib.import_module('sim_fortran')
 
     def solve(self, *args, **kwargs):
@@ -159,11 +173,12 @@ class SIMFortran_Evaluate(fsic.fortran.FortranEngine, SIM):
 
 
 if __name__ == '__main__':
+
     def run(class_definition):
         """Instantiate and solve `class_definition`."""
-        model = class_definition(range(1945, 2010 + 1),
-                                 alpha_1=0.6, alpha_2=0.4,
-                                 G=20, theta=0.2)
+        model = class_definition(
+            range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        )
         model.solve()
 
     # Compare the performance of the various implementations
@@ -176,6 +191,7 @@ if __name__ == '__main__':
         """Return the mean and standard deviation of the `times`."""
         return statistics.mean(times), statistics.stdev(times)
 
+    # fmt: off
     python_times           = run_and_summarise(performance_test('run(SIM)',                 globals=globals()))
     fortran_times          = run_and_summarise(performance_test('run(SIMFortran)',          globals=globals()))
     fortran_solve_t_times  = run_and_summarise(performance_test('run(SIMFortran_SolveT)',   globals=globals()))
@@ -186,3 +202,4 @@ if __name__ == '__main__':
     print(' - Fortran (complete):           {:.4f}s [{:.4f}s] (x{:.1f})'.format(*fortran_times,          python_times[0] / fortran_times[0]))
     print(' - Fortran (`solve_t()` only):   {:.4f}s [{:.4f}s] (x{:.1f})'.format(*fortran_solve_t_times,  python_times[0] / fortran_solve_t_times[0]))
     print(' - Fortran (`_evaluate()` only): {:.4f}s [{:.4f}s] (x{:.1f})'.format(*fortran_evaluate_times, python_times[0] / fortran_evaluate_times[0]))
+    # fmt: on

@@ -27,13 +27,13 @@ import fsic
 
 
 # Define the example model
-script = '''
+script = """
 C = {alpha_1} * YD + {alpha_2} * H[-1]
 YD = Y - T
 Y = C + G
 T = {theta} * Y
 H = H[-1] + YD - C
-'''
+"""
 
 # Parse the script and generate a class definition
 symbols = fsic.parse_model(script)
@@ -42,8 +42,7 @@ SIM = fsic.build_model(symbols)
 
 if __name__ == '__main__':
     # Setup and solve the model as usual --------------------------------------
-    model = SIM(range(1945, 2010 + 1),
-                alpha_1=0.6, alpha_2=0.4)
+    model = SIM(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4)
     model.G = 20
     model.theta = 0.2
 
@@ -75,7 +74,9 @@ if __name__ == '__main__':
     # Indexing ----------------------------------------------------------------
 
     # Variable indexing works as usual
-    print('\nFirst five years of C/Y (can ignore the divide-by-zero in the first year):')
+    print(
+        '\nFirst five years of C/Y (can ignore the divide-by-zero in the first year):'
+    )
     print(model.eval('(C/Y)[:5]').round(2))
 
     print('\nLast five years of Y/Y*:')
@@ -87,11 +88,20 @@ if __name__ == '__main__':
 
     # The above compares to the usual Python approach below
     print('\nY / Y* over 1960-70 (Python statements):')
-    print((model['Y', 1960:1970] / (model['G', 1960:1970] / model['theta', 1960:1970])).round(2))
+    print(
+        (
+            model['Y', 1960:1970] / (model['G', 1960:1970] / model['theta', 1960:1970])
+        ).round(2)
+    )
 
     # Other operations --------------------------------------------------------
 
     # Pass a dictionary of functions and/or modules to make other operations
     # available to `eval()`
     print('\nOther operations:')
-    print(model.eval('round(log(C[1]), 2), np.log(C[1:4]).round(2)', locals={'log': math.log, 'np': np}))
+    print(
+        model.eval(
+            'round(log(C[1]), 2), np.log(C[1:4]).round(2)',
+            locals={'log': math.log, 'np': np},
+        )
+    )
