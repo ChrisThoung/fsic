@@ -217,45 +217,106 @@ H = H[-1] + YD - C
 
         from pandas.testing import assert_frame_equal
 
-        model = self.Model(range(-5, 10 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2)
-        model.solve()
+        def test(model):
+            model.solve()
 
-        results = model.to_dataframe()
+            results = model.to_dataframe()
 
-        # Check standard in-sample reindexing
-        expected = results.reindex(index=range(1, 9))
-        model = model.reindex(range(1, 9))
+            # Check standard in-sample reindexing
+            expected = results.reindex(index=range(1, 9))
+            model = model.reindex(range(1, 9))
 
-        assert_frame_equal(model.to_dataframe(), expected)
+            assert_frame_equal(model.to_dataframe(), expected)
 
-        # Check standard out-of-sample reindexing
-        expected = expected.reindex(index=range(5, 15 + 1))
-        expected.loc[9:, 'status'] = '-'
-        expected.loc[9:, 'iterations'] = -1
-        expected['iterations'] = expected['iterations'].astype(int)
+            # Check standard out-of-sample reindexing
+            expected = expected.reindex(index=range(5, 15 + 1))
+            expected.loc[9:, 'status'] = '-'
+            expected.loc[9:, 'iterations'] = -1
+            expected['iterations'] = expected['iterations'].astype(int)
 
-        model = model.reindex(range(5, 15 + 1))
-        assert_frame_equal(model.to_dataframe(), expected)
+            model = model.reindex(range(5, 15 + 1))
+            assert_frame_equal(model.to_dataframe(), expected)
 
-        # Check implementation of `pandas` 'ffill' to future out-of-sample
-        # periods
-        expected = expected.reindex(index=range(5, 15 + 1), method='ffill')
-        expected.loc[11:, 'status'] = '-'
-        expected.loc[11:, 'iterations'] = -1
-        expected['iterations'] = expected['iterations'].astype(int)
+            # Check implementation of `pandas` 'ffill' to future out-of-sample
+            # periods
+            expected = expected.reindex(index=range(5, 15 + 1), method='ffill')
+            expected.loc[11:, 'status'] = '-'
+            expected.loc[11:, 'iterations'] = -1
+            expected['iterations'] = expected['iterations'].astype(int)
 
-        model = model.reindex(range(5, 15 + 1), method='ffill')
-        assert_frame_equal(model.to_dataframe(), expected)
+            model = model.reindex(range(5, 15 + 1), method='ffill')
+            assert_frame_equal(model.to_dataframe(), expected)
 
-        # Check implementation of `pandas` 'bfill' to past out-of-sample
-        # periods
-        expected = expected.reindex(index=range(-10, 0 + 1), method='bfill')
-        expected.loc[:0, 'status'] = '-'
-        expected.loc[:0, 'iterations'] = -1
-        expected['iterations'] = expected['iterations'].astype(int)
+            # Check implementation of `pandas` 'bfill' to past out-of-sample
+            # periods
+            expected = expected.reindex(index=range(-10, 0 + 1), method='bfill')
+            expected.loc[:0, 'status'] = '-'
+            expected.loc[:0, 'iterations'] = -1
+            expected['iterations'] = expected['iterations'].astype(int)
 
-        model = model.reindex(range(-10, 0 + 1), method='bfill')
-        assert_frame_equal(model.to_dataframe(), expected)
+            model = model.reindex(range(-10, 0 + 1), method='bfill')
+            assert_frame_equal(model.to_dataframe(), expected)
+
+            # Test selective filling by different `pandas` methods
+            expected = expected.reindex(range(-12, 2 + 1), method='nearest')
+            expected.loc[:-11, :'G'] = 0.0
+            expected.loc[1:, :'T'] = 0.0
+
+            model = model.reindex(
+                range(-12, 2 + 1),
+                fill_value=0.0,
+                nearest_=model.PARAMETERS,
+                ffill_='G',
+            )
+
+            assert_frame_equal(model.to_dataframe(), expected)
+
+        # Test alternative `strict` values
+        test(self.Model(range(-5, 10 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2))
+        test(
+            self.Model(
+                range(-5, 10 + 1),
+                alpha_1=0.6,
+                alpha_2=0.4,
+                G=20,
+                theta=0.2,
+                strict=True,
+            )
+        )
+        test(
+            self.Model(
+                range(-5, 10 + 1),
+                alpha_1=0.6,
+                alpha_2=0.4,
+                G=20,
+                theta=0.2,
+                strict=False,
+            )
+        )
+
+    def test_reindex_strict(self):
+        # Check for errors (or not) with different values of `strict`
+
+        # Default (`strict=False`) should raise no errors
+        self.Model(
+            range(-5, 10 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2
+        ).reindex(range(-2, 2 + 1), A=2)  # A isn't actually a variable in the model
+
+        # Explicit `strict=False` should also raise no errors
+        self.Model(
+            range(-5, 10 + 1), alpha_1=0.6, alpha_2=0.4, G=20, theta=0.2, strict=False
+        ).reindex(range(-2, 2 + 1), A=2)
+
+        # Whereas `strict=True` should raise an error
+        with self.assertRaises(KeyError):
+            self.Model(
+                range(-5, 10 + 1),
+                alpha_1=0.6,
+                alpha_2=0.4,
+                G=20,
+                theta=0.2,
+                strict=True,
+            ).reindex(range(-2, 2 + 1), A=2)
 
 
 class TestTracerMixin(unittest.TestCase):
