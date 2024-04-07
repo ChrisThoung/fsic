@@ -638,10 +638,13 @@ class TestVectorContainer(unittest.TestCase):
     def test_locate_period_in_span_error(self):
         # Check that non-existent index keys raise an error
         container = fsic.core.VectorContainer(range(5 + 1))
-        for i, a in enumerate('ABC'):
-            container.add_variable(a, i, dtype=float)
+        for i, a in enumerate('ABC', start=1):
+            container.add_variable(a, list(range(0, (5 + 1) * i, i)), dtype=float)
 
-        container['A', 5]  # This should work fine
+        # These should work fine
+        self.assertEqual(container['A', 5], 5)
+        self.assertEqual(container['B', 4], 8)
+        self.assertEqual(container['C', 3], 9)
 
         with self.assertRaises(KeyError):
             container['A', 6]
@@ -652,10 +655,13 @@ class TestVectorContainer(unittest.TestCase):
         container = fsic.core.VectorContainer(
             pd.period_range(start='2000-01-01', end='2005-12-31', freq='Q')
         )
-        for i, a in enumerate('ABC'):
-            container.add_variable(a, i, dtype=float)
+        for i, a in enumerate('ABC', start=1):
+            container.add_variable(a, list(range(1, (24 * i) + 1, i)), dtype=float)
 
-        container['A', '2005']  # This should work fine
+        # These should work fine
+        self.assertTrue(np.allclose(container['A', '2005'], np.array([21, 22, 23, 24])))
+        self.assertTrue(np.allclose(container['B', '2004'], np.array([33, 35, 37, 39])))
+        self.assertTrue(np.allclose(container['C', '2003'], np.array([37, 40, 43, 46])))
 
         with self.assertRaises(KeyError):
             container['A', '2006']
