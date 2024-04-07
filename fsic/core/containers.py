@@ -296,7 +296,8 @@ class VectorContainer:
 
         raise AttributeError(
             f'Unable to find valid search method in `span`; '
-            f'expected one of: {self._VALID_INDEX_METHODS}'
+            f'expected one of the following, as listed in `self._VALID_INDEX_METHODS`: '
+            f'{self._VALID_INDEX_METHODS}'
         )
 
     def _resolve_period_slice(self, index: slice) -> Tuple[int]:
