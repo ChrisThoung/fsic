@@ -649,6 +649,20 @@ class TestVectorContainer(unittest.TestCase):
         with self.assertRaises(KeyError):
             container['A', 6]
 
+    def test_locate_period_in_span_numpy_array(self):
+        # Check that non-existent index keys raise an error
+        container = fsic.core.VectorContainer(np.arange(5 + 1, dtype=int))
+        for i, a in enumerate('ABC', start=1):
+            container.add_variable(a, list(range(0, (5 + 1) * i, i)), dtype=float)
+
+        # These should work fine
+        self.assertEqual(container['A', 5], 5)
+        self.assertEqual(container['B', 4], 8)
+        self.assertEqual(container['C', 3], 9)
+
+        with self.assertRaises(KeyError):
+            container['A', 6]
+
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_locate_period_in_span_pandas(self):
         # Check that non-existent index keys raise an error

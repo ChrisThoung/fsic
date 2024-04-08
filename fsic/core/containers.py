@@ -6,7 +6,7 @@ Core `VectorContainer` class to handle collections of one-dimensional data.
 import copy
 import difflib
 import re
-from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, Hashable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -77,7 +77,31 @@ class VectorContainer:
     array([12.,  1., 12.,  3., 12.,  5., 12.,  7., 12.,  9., 10.])
     """
 
-    _VALID_INDEX_METHODS: List[str] = ['get_loc', 'index']
+    @staticmethod
+    def _locate_period_in_span_fallback(period: Hashable, span: np.ndarray) -> int:
+        """Fallback (static) location method, should other `span`-indexing methods fail."""
+        # Convert `span` to a NumPy array of type `object` and locate matches
+        locations = np.asarray(np.asarray(span, dtype=object) == period).nonzero()
+
+        # For now(?), only support one-dimensional array-likes
+        assert len(locations) == 1
+        positions = locations[0]  # Take first (sole) set of axis indexes only
+
+        # No matches: `period` not defined
+        if len(positions) == 0:
+            raise KeyError(period)
+
+        # One match: Unpack and return
+        if len(positions) == 1:
+            return positions[0]
+
+        raise NotImplementedError('Multiple matches not supported')
+
+    _VALID_INDEX_METHODS: List[Union[str, Callable]] = [
+        'get_loc',
+        'index',
+        _locate_period_in_span_fallback,
+    ]
 
     def __init__(self, span: Sequence[Hashable], *, strict: bool = False) -> None:
         """Initialise the container with a defined and labelled `span`.
@@ -285,14 +309,27 @@ class VectorContainer:
         The class-level attribute `_VALID_INDEX_METHODS` defines recognised
         methods for matching.
         """
-        for method in self._VALID_INDEX_METHODS:
-            if hasattr(self.__dict__['span'], method):
-                index_function = getattr(self.__dict__['span'], method)
+        for i, method in enumerate(self._VALID_INDEX_METHODS):
+            if isinstance(method, str):
+                if hasattr(self.__dict__['span'], method):
+                    index_function = getattr(self.__dict__['span'], method)
 
+                    try:
+                        return index_function(period)
+                    except Exception as e:
+                        raise KeyError(period) from e
+
+            elif isinstance(method, Callable):
                 try:
-                    return index_function(period)
+                    return method(period, self.__dict__['span'])
                 except Exception as e:
                     raise KeyError(period) from e
+
+            else:
+                raise TypeError(
+                    f'Unrecognised type ({type(method)}) of search method '
+                    f'with index {i} in `self._VALID_INDEX_METHODS`: {method}'
+                )
 
         raise AttributeError(
             f'Unable to find valid search method in `span`; '

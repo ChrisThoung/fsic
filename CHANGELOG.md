@@ -23,6 +23,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Added exception chaining in `parser`.
 - Improved error messages when `strict=True`, to suggest alternative variables
   (similar to improved error messages in Python 3.10 onwards).
+- Added fallback indexing method, `_locate_period_in_span_fallback()`, if
+  `span`-specific methods fail. This extends `_VALID_INDEX_METHODS` to handle
+  callable objects. As a side-benefit, this also adds support for NumPy arrays
+  as `span` attributes.
 - Added `try...except` to catch indexing errors in
   `VectorContainer._locate_period_in_span()`, to then raise as `KeyError`s.
 - Added check (and error) in `iter_periods()` if attempting to solve an
