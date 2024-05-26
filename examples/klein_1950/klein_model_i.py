@@ -50,20 +50,20 @@ import fsic
 
 # Variable names and descriptions, adapted from Klein (1950)
 descriptions = {
-    'C': 'Consumption ($1934bn)',
-    'I': 'Net investment ($1934bn)',
-    'G': 'Exogenous investment ($1934bn)',
-    'X': 'Gross National Product ($1934bn)',
-    'T': 'Business taxes ($1934bn)',
-    'K': 'End-of-year stock of capital ($1934bn)',                     # K_{-1}, i.e. lagged, in Klein (1950)
-    'P': 'Profits ($1934bn)',                                          # Π in Klein (1950)
-    'Wp': 'Labor income originating in private employment ($1934bn)',  # W1 in Klein (1950)
-    'Wg': 'Labor income originating in government ($1934bn)',          # W2 in Klein (1950)
-    'time': 'Time trend (1931=0)',                                     # (t - 1931) in Klein (1950)
-}
+    'C':    'Consumption ($1934bn)',
+    'I':    'Net investment ($1934bn)',
+    'G':    'Exogenous investment ($1934bn)',
+    'X':    'Gross National Product ($1934bn)',
+    'T':    'Business taxes ($1934bn)',
+    'K':    'End-of-year stock of capital ($1934bn)',                    # K_{-1}, i.e. lagged, in Klein (1950)
+    'P':    'Profits ($1934bn)',                                         # Π in Klein (1950)
+    'Wp':   'Labor income originating in private employment ($1934bn)',  # W1 in Klein (1950)
+    'Wg':   'Labor income originating in government ($1934bn)',          # W2 in Klein (1950)
+    'time': 'Time trend (1931=0)',                                       # (t - 1931) in Klein (1950)
+}  # fmt: skip
 
 # Define the model's equations and parse to a set of symbols
-script = '''
+script = """
 C  = {alpha_0} + {alpha_1} * P + {alpha_2} * P[-1] + {alpha_3} * (Wp + Wg) + <C_r>
 I  = {beta_0}  + {beta_1}  * P + {beta_2}  * P[-1] + {beta_3}  * K[-1]     + <I_r>
 Wp = {gamma_0} + {gamma_1} * X + {gamma_2} * X[-1] + {gamma_3} * time      + <Wp_r>
@@ -71,8 +71,9 @@ Wp = {gamma_0} + {gamma_1} * X + {gamma_2} * X[-1] + {gamma_3} * time      + <Wp
 X = C + T + G
 P = X - T - Wp
 K = K[-1] + I
-'''
+"""
 symbols = fsic.parse_model(script)
+
 
 # Subclass the output from `fsic.build_model()`, to bind the variable
 # descriptions (use `help()` on either the class or a class instance to see
@@ -98,7 +99,6 @@ if __name__ == '__main__':
         'Actual': fsic.tools.model_to_dataframe(base)
     }
 
-
     # Solve for each set of parameters ----------------------------------------
     for estimator, parameter_estimates in parameters.items():
         # Copy the base and insert the parameters
@@ -116,7 +116,6 @@ if __name__ == '__main__':
 
         results[estimator] = fsic.tools.model_to_dataframe(model)
 
-
     # Create plots of the endogenous variables --------------------------------
     styles = {
         'Actual': {'color': '#FF4F2E', 'linestyle': '-' },
@@ -124,7 +123,7 @@ if __name__ == '__main__':
         '2SLS':   {'color': '#33C3F0', 'linestyle': '--'},
         'LIML':   {'color': '#FF992E', 'linestyle': '--'},
         '3SLS':   {'color': '#4563F2', 'linestyle': '--'},
-    }
+    }  # fmt: skip
 
     _, axes = plt.subplots(3, 2, figsize=(12, 15))
 
@@ -147,9 +146,13 @@ if __name__ == '__main__':
         ax.set_ylabel('$1934bn')
 
     # Add legend
-    axes[-1, -1].legend(handles=[
-        Line2D([], [], label=estimator, **settings)
-        for estimator, settings in styles.items()
-    ], loc='lower right', bbox_to_anchor=(1.015, -0.455))
+    axes[-1, -1].legend(
+        handles=[
+            Line2D([], [], label=estimator, **settings)
+            for estimator, settings in styles.items()
+        ],
+        loc='lower right',
+        bbox_to_anchor=(1.015, -0.455),
+    )
 
     plt.savefig('results.png')

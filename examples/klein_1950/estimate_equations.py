@@ -48,13 +48,11 @@ from linearmodels import IV2SLS, IVLIML, IV3SLS
 from pandas import DataFrame
 import pandas as pd
 
-import statsmodels.formula.api as smf
-
 
 def prepend_keys(parameters: Mapping[str, Any], prefix: str) -> Dict[str, Number]:
     """Prepend `prefix` to the keys in `parameters`."""
-    return {'{}{}'.format(prefix, k): v
-            for k, v in parameters.items()}
+    return {'{}{}'.format(prefix, k): v for k, v in parameters.items()}
+
 
 def pack_parameters(*args: Mapping[str, Any]) -> Dict[str, Any]:
     """Consolidate the arguments (sets of parameters) into a single dictionary of parameters."""
@@ -76,7 +74,7 @@ def pack_parameters(*args: Mapping[str, Any]) -> Dict[str, Any]:
         'private_wages_X':         'gamma_1',
         'private_wages_X.shift()': 'gamma_2',
         'private_wages_time':      'gamma_3',
-    }
+    }  # fmt: skip
 
     # Rename the parameters and store to a single dictionary
     parameters = {}
@@ -100,27 +98,46 @@ if __name__ == '__main__':
     parameters['OLS'] = pack_parameters(
         prepend_keys(consumption.params, 'consumption_'),
         prepend_keys(investment.params, 'investment_'),
-        prepend_keys(private_wages.params, 'private_wages_'))
+        prepend_keys(private_wages.params, 'private_wages_'),
+    )
 
     # 2SLS --------------------------------------------------------------------
-    consumption = IV2SLS.from_formula('C ~ 1 + P.shift() + [P + W ~ Wg + K.shift() + X.shift() + time + G + T]', data=data).fit()
-    investment = IV2SLS.from_formula('I ~ 1 + P.shift() + K.shift() + [P ~ Wg + X.shift() + time + G + T]', data=data).fit()
-    private_wages = IV2SLS.from_formula('Wp ~ 1 + X.shift() + time + [X ~ P.shift() + Wg + K.shift() + G + T]', data=data).fit()
+    consumption = IV2SLS.from_formula(
+        'C ~ 1 + P.shift() + [P + W ~ Wg + K.shift() + X.shift() + time + G + T]',
+        data=data,
+    ).fit()
+    investment = IV2SLS.from_formula(
+        'I ~ 1 + P.shift() + K.shift() + [P ~ Wg + X.shift() + time + G + T]', data=data
+    ).fit()
+    private_wages = IV2SLS.from_formula(
+        'Wp ~ 1 + X.shift() + time + [X ~ P.shift() + Wg + K.shift() + G + T]',
+        data=data,
+    ).fit()
 
     parameters['2SLS'] = pack_parameters(
         prepend_keys(consumption.params, 'consumption_'),
         prepend_keys(investment.params, 'investment_'),
-        prepend_keys(private_wages.params, 'private_wages_'))
+        prepend_keys(private_wages.params, 'private_wages_'),
+    )
 
     # LIML --------------------------------------------------------------------
-    consumption = IVLIML.from_formula('C ~ 1 + P.shift() + [P + W ~ Wg + K.shift() + X.shift() + time + G + T]', data=data).fit()
-    investment = IVLIML.from_formula('I ~ 1 + P.shift() + K.shift() + [P ~ Wg + X.shift() + time + G + T]', data=data).fit()
-    private_wages = IVLIML.from_formula('Wp ~ 1 + X.shift() + time + [X ~ P.shift() + Wg + K.shift() + G + T]', data=data).fit()
+    consumption = IVLIML.from_formula(
+        'C ~ 1 + P.shift() + [P + W ~ Wg + K.shift() + X.shift() + time + G + T]',
+        data=data,
+    ).fit()
+    investment = IVLIML.from_formula(
+        'I ~ 1 + P.shift() + K.shift() + [P ~ Wg + X.shift() + time + G + T]', data=data
+    ).fit()
+    private_wages = IVLIML.from_formula(
+        'Wp ~ 1 + X.shift() + time + [X ~ P.shift() + Wg + K.shift() + G + T]',
+        data=data,
+    ).fit()
 
     parameters['LIML'] = pack_parameters(
         prepend_keys(consumption.params, 'consumption_'),
         prepend_keys(investment.params, 'investment_'),
-        prepend_keys(private_wages.params, 'private_wages_'))
+        prepend_keys(private_wages.params, 'private_wages_'),
+    )
 
     # 3SLS --------------------------------------------------------------------
     equations = {
