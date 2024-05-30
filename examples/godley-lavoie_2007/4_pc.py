@@ -49,7 +49,7 @@ import fsic
 # does.
 # 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
-script = '''
+script = """
 Y = C + G                                                       # 4.1
 YD = Y - T + r[-1] * Bh[-1]                                     # 4.2
 T = {theta} * (Y + r[-1] * Bh[-1])                              # 4.3
@@ -61,7 +61,7 @@ Bs = Bs[-1] + (G + r[-1] * Bs[-1]) - (T + r[-1] * Bcb[-1])      # 4.8A
 Hs = Hs[-1] + Bcb - Bcb[-1]                                     # 4.9A
 Bcb = Bs - Bh                                                   # 4.10
 r = r_bar                                                       # 4.11
-'''
+"""
 
 symbols = fsic.parse_model(script)
 PC = fsic.build_model(symbols)
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     #    parameter values (from Zezza, 2006)
     starting_from_zero = PC(range(100),  # Enough periods to reach the stationary state
                             alpha_1=0.6, alpha_2=0.4,
-                            lambda_0=0.635, lambda_1=5, lambda_2=0.01)
+                            lambda_0=0.635, lambda_1=5, lambda_2=0.01)  # fmt: skip
 
     starting_from_zero.G = 20
     starting_from_zero.theta = 0.2
@@ -89,13 +89,11 @@ if __name__ == '__main__':
 
     # Take the results from the last period as the stationary state
     stationary_state = dict(zip(starting_from_zero.names,
-                                starting_from_zero.values[:, -1]))
-
+                                starting_from_zero.values[:, -1]))  # fmt: skip
 
     # 2. Starting from that stationary state, simulate an increase in the
     #    interest rate
-    interest_rate_scenario = PC(range(1945, 2010 + 1),
-                                **stationary_state)
+    interest_rate_scenario = PC(range(1945, 2010 + 1), **stationary_state)
 
     # Increase the interest rate by one percentage point beginning in 1960
     interest_rate_scenario['r_bar', 1960:] += 0.01
@@ -103,7 +101,6 @@ if __name__ == '__main__':
     # Solve the model with the default solution options (needs fewer iterations
     # from the stationary state and no need to catch NaNs)
     interest_rate_scenario.solve(max_iter=200)
-
 
     # 3. Reproduce Figures 4.3 and 4.4 of Godley and Lavoie (2007)
     #    Code copied from:
@@ -119,17 +116,19 @@ if __name__ == '__main__':
 
     # Set up plot areas
     _, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    plt.suptitle('Effects of a step-change in the interest rate from 2.5% to 3.5% in 1960')
+    plt.suptitle(
+        'Effects of a step-change in the interest rate from 2.5% to 3.5% in 1960'
+    )
 
     # Recreate Figure 4.3 (shares of bills and money in households' portfolios)
     ax1.set_title("Shares of financial assets in households' portfolios")
 
     ax1.plot(results_to_plot.index, results_to_plot['Sb'] * 100,
              label='Bills',
-             color='#33C3F0')
+             color='#33C3F0')  # fmt: skip
     ax1.plot(results_to_plot.index, results_to_plot['Sh'] * 100,
              label='Money',
-             color='#FF4F2E', linestyle='--')
+             color='#FF4F2E', linestyle='--')  # fmt: skip
 
     ax1.set_xlim(min(results_to_plot.index), max(results_to_plot.index))
     ax1.set_ylabel('%')
@@ -140,10 +139,10 @@ if __name__ == '__main__':
 
     ax2.plot(results_to_plot.index, results_to_plot['YD'].values,
              label='Disposable income',
-             color='#33C3F0')
+             color='#33C3F0')  # fmt: skip
     ax2.plot(results_to_plot.index, results_to_plot['C'].values,
              label='Consumption',
-             color='#FF4F2E', linestyle='--')
+             color='#FF4F2E', linestyle='--')  # fmt: skip
 
     ax2.set_xlim(min(results_to_plot.index), max(results_to_plot.index))
     ax2.set_ylim(86, 91)

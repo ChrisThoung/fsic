@@ -82,7 +82,7 @@ descriptions = {
     'epsilon': 'Another reaction parameter related to expectations',
     'phi':     'Costing margin in pricing',
     'sigma_T': 'Target (current) inventories to sales ratio',
-}
+}  # fmt: skip
 
 # Inline comments give the corresponding equation numbers from Godley and
 # Lavoie (2007) - for reference only; fsic ignores comments, just as Python
@@ -91,7 +91,7 @@ descriptions = {
 # parser. This applies to Equation 9.22
 # 'B' suffix indicates a code change for ease of solution. This applies to
 # Equations 9.7, 9.9 and 9.25
-script = '''
+script = """
 y = s_e + (in_e - in_[-1])                                        # 9.1
 in_T = {sigma_T} * s_e                                            # 9.2
 in_e = in_[-1] + {gamma} * (in_T - in_[-1])                       # 9.3
@@ -125,9 +125,10 @@ yd_hs_e = {epsilon} * yd_hs[-1] + (1 - {epsilon}) * yd_hs_e[-1]   # 9.27
 
 # Auxiliary equation
 Y = (s * p) + (in_ - in_[-1]) * UC
-'''
+"""
 
 symbols = fsic.parse_model(script)
+
 
 class DIS(fsic.build_model(symbols)):
     __slots__ = descriptions
@@ -137,7 +138,7 @@ if __name__ == '__main__':
     # Set up the steady state baseline ----------------------------------------
     baseline = DIS(range(1945, 2010 + 1),
                    alpha_0=15, alpha_1=0.8, alpha_2=0.1,
-                   beta=0.75, epsilon=0.75, gamma=0.25, phi=0.25, sigma_T=0.15)
+                   beta=0.75, epsilon=0.75, gamma=0.25, phi=0.25, sigma_T=0.15)  # fmt: skip
 
     baseline.add = 0.02
     baseline.pr = 1
@@ -150,17 +151,17 @@ if __name__ == '__main__':
     # Calculate steady state values for the first period
     # Note the use of `eval()` below for both convenience and readability
     baseline.UC[0] = baseline.eval('W / pr')[0]
-    baseline.NHUC[0] = baseline.eval('(1 + sigma_T * r_l_bar) * UC')[0]
+    baseline.NHUC[0] = baseline.eval('(1 + sigma_T * r_l_bar) * UC')[0]  # fmt: skip
     baseline.p[0] = baseline.eval('(1 + phi[0]) * NHUC')[0]
 
     # Without `eval()`, the statement below would be:
     # baseline.yd_hs[0] = baseline.alpha_0[0] / (1 - baseline.alpha_1[0] - baseline.alpha_2[0] * baseline.sigma_T[0] * baseline.UC[0] / baseline.p[0])
-    baseline.yd_hs[0] = baseline.eval('alpha_0 / (1 - alpha_1 - alpha_2 * sigma_T * UC / p[0])')[0]
-    baseline.s_e[0] = baseline.s[0] = baseline.c[0] = baseline.yd_hs_e[0] = baseline.yd_hs[0]
+    baseline.yd_hs[0] = baseline.eval('alpha_0 / (1 - alpha_1 - alpha_2 * sigma_T * UC / p[0])')[0]  # fmt: skip
+    baseline.s_e[0] = baseline.s[0] = baseline.c[0] = baseline.yd_hs_e[0] = baseline.yd_hs[0]  # fmt: skip
 
     # Set starting values for stocks
     baseline.in_e[0] = baseline.in_[0] = baseline.eval('sigma_T * s')[0]
-    baseline.M_s[0] = baseline.M_h[0] = baseline.L_s[0] = baseline.L_d[0] = baseline.IN[0] = baseline.eval('in_ * UC')[0]
+    baseline.M_s[0] = baseline.M_h[0] = baseline.L_s[0] = baseline.L_d[0] = baseline.IN[0] = baseline.eval('in_ * UC')[0]  # fmt: skip
     baseline.m_h[0] = baseline.M_h[0] / baseline.p[0]
 
     # Solve the baseline
@@ -184,25 +185,29 @@ if __name__ == '__main__':
     #             consumption, following a one-shot increase in the costing
     #             margin
     axes[0].plot(range(1955, 2000 + 1), markup_scenario['yd_hs', 1955:2000],
-                 label='Haig-Simons real disposable income', color='#33C3F0', linestyle='-')
+                 label='Haig-Simons real disposable income', color='#33C3F0', linestyle='-')  # fmt: skip
     axes[0].plot(range(1955, 2000 + 1), markup_scenario['c', 1955:2000],
-                 label='Real consumption', color='#FF4F2E', linestyle='--')
+                 label='Real consumption', color='#FF4F2E', linestyle='--')  # fmt: skip
 
     axes[0].set_xlim(1955, 2000)
     axes[0].legend()
-    axes[0].set_title(r'Figure 9.1: Income and consumption effects of a one-shot\nincrease in the costing margin, $\phi$')
+    axes[0].set_title(
+        r'Figure 9.1: Income and consumption effects of a one-shot\nincrease in the costing margin, $\phi$'
+    )
 
     # Figure 9.2: Evolution of (Haig–Simons) real disposable income and of real
     #             consumption, following an increase in the target inventories
     #             to sales ratio
     axes[1].plot(range(1955, 2000 + 1), inventories_scenario['yd_hs', 1955:2000],
-                 label='Haig-Simons real disposable income', color='#33C3F0', linestyle='-')
+                 label='Haig-Simons real disposable income', color='#33C3F0', linestyle='-')  # fmt: skip
     axes[1].plot(range(1955, 2000 + 1), inventories_scenario['c', 1955:2000],
-                 label='Real consumption', color='#FF4F2E', linestyle='--')
+                 label='Real consumption', color='#FF4F2E', linestyle='--')  # fmt: skip
 
     axes[1].set_xlim(1955, 2000)
     axes[1].legend()
-    axes[1].set_title(r'Figure 9.2: Income and consumption effects of an\nincrease in the target inventories-to-sales ratio, $\sigma^T$')
+    axes[1].set_title(
+        r'Figure 9.2: Income and consumption effects of an\nincrease in the target inventories-to-sales ratio, $\sigma^T$'
+    )
 
     # Figure 9.3: Evolution of the desired increase in physical inventories and
     #             of the change in realized inventories, following an increase
@@ -210,12 +215,14 @@ if __name__ == '__main__':
     # Note the use of `eval()` in the two statements below to avoid either
     # having to calculate indexes manually or using `pandas`
     axes[2].plot(range(1955, 2000 + 1), inventories_scenario.eval('diff(in_)[`1955`:`2000`]'),
-                 label='Change in realised inventories', color='#4563F2', linestyle='-')
+                 label='Change in realised inventories', color='#4563F2', linestyle='-')  # fmt: skip
     axes[2].plot(range(1955, 2000 + 1), inventories_scenario.eval('diff(in_e)[`1955`:`2000`]'),
-                 label='Desired increase in physical inventories', color='#33C3F0', linestyle='--')
+                 label='Desired increase in physical inventories', color='#33C3F0', linestyle='--')  # fmt: skip
 
     axes[2].set_xlim(1955, 2000)
     axes[2].legend()
-    axes[2].set_title(r'Figure 9.3: Inventory effects of an increase\nin the target inventories-to-sales ratio, $\sigma^T$')
+    axes[2].set_title(
+        r'Figure 9.3: Inventory effects of an increase\nin the target inventories-to-sales ratio, $\sigma^T$'
+    )
 
     plt.savefig('figures-9.1t9.3.png')

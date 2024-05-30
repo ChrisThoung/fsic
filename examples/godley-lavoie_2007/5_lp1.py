@@ -61,7 +61,7 @@ import fsic
 # does.
 # 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
-script = '''
+script = """
 Y = C + G                                                                    # 5.1
 YDr = Y - T + r_b[-1] * Bh[-1] + BLh[-1]                                     # 5.2
 T = {theta} * (Y + r_b[-1] * Bh[-1] + BLh[-1])                               # 5.3
@@ -100,7 +100,7 @@ CG_e = {chi} * (p_bL_e - p_bL) * BLh                                         # 5
 YDr_e = YDr[-1]                                                              # 5.22
 r_b = r_b_bar                                                                # 5.23
 p_bL = p_bL_bar                                                              # 5.24
-'''
+"""
 
 symbols = fsic.parse_model(script)
 LP1 = fsic.build_model(symbols)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     starting_from_zero = LP1(range(100),  # Enough periods to reach the stationary state
                              alpha_1=0.8, alpha_2=0.2, chi=0.1,
                              lambda_20=0.44196, lambda_22=1.1, lambda_23=-1,  lambda_24=-0.03,
-                             lambda_30=0.3997,  lambda_32=-1,  lambda_33=1.1, lambda_34=-0.03)
+                             lambda_30=0.3997,  lambda_32=-1,  lambda_33=1.1, lambda_34=-0.03)  # fmt: skip
 
     # Fiscal policy
     starting_from_zero.G = 20
@@ -134,8 +134,7 @@ if __name__ == '__main__':
     starting_from_zero.solve()
 
     stationary_state = dict(zip(starting_from_zero.names,
-                                starting_from_zero.values[:, -1]))
-
+                                starting_from_zero.values[:, -1]))  # fmt: skip
 
     # 2. Starting from that stationary state, simulate an increase in the
     #    short- and long-term interest rates
@@ -145,7 +144,6 @@ if __name__ == '__main__':
     interest_rate_scenario['p_bL_bar', 1960:] = 15
 
     interest_rate_scenario.solve()
-
 
     # 3. Reproduce Figures 5.2, 5.3 and 5.4 of Godley and Lavoie (2007)
     results = fsic.tools.model_to_dataframe(interest_rate_scenario)
@@ -167,7 +165,7 @@ if __name__ == '__main__':
 
     ax1.plot(results_to_plot.index, results_to_plot['V:YD'].values,
              label='Wealth-to-disposable-income ratio',
-             color='#33C3F0')
+             color='#33C3F0')  # fmt: skip
 
     ax1.set_xlim(min(results_to_plot.index), max(results_to_plot.index))
     ax1.legend()
@@ -177,10 +175,10 @@ if __name__ == '__main__':
 
     ax2.plot(results_to_plot.index, results_to_plot['YDr'].values,
              label='Disposable income',
-             color='#33C3F0')
+             color='#33C3F0')  # fmt: skip
     ax2.plot(results_to_plot.index, results_to_plot['C'].values,
              label='Consumption',
-             color='#FF4F2E', linestyle='--')
+             color='#FF4F2E', linestyle='--')  # fmt: skip
 
     ax2.set_xlim(min(results_to_plot.index), max(results_to_plot.index))
     ax2.legend()
@@ -190,10 +188,10 @@ if __name__ == '__main__':
 
     ax3.plot(results_to_plot.index, results_to_plot['Bh:V'] * 100,
              label='Bills-to-wealth ratio',
-             color='#33C3F0')
+             color='#33C3F0')  # fmt: skip
     ax3.plot(results_to_plot.index, results_to_plot['BLh:V'] * 100,
              label='Bonds-to-wealth ratio',
-             color='#FF4F2E', linestyle='--')
+             color='#FF4F2E', linestyle='--')  # fmt: skip
 
     ax3.set_xlim(min(results_to_plot.index), max(results_to_plot.index))
     ax3.set_ylabel('%')
