@@ -55,7 +55,6 @@ References:
 import matplotlib.pyplot as plt
 
 from pandas import DataFrame
-import pandas as pd
 
 import fsic
 
