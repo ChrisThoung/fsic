@@ -29,7 +29,7 @@ import networkx as nx
 import fsic
 
 
-SCRIPT = '''
+SCRIPT = """
 # 1. Profit rate
 r = {pi} * u
 
@@ -50,7 +50,7 @@ g_0 = g_0[-1] + ({mu} * (g[-1] - g_0[-1])) * {d}
 
 # 7. Autonomous demand rate
 z = z[-1] + z[-1] * (g_z[-1] - g[-1]) * {d}
-'''
+"""
 
 SYMBOLS = fsic.parse_model(SCRIPT)
 SraffianSupermultiplierModel = fsic.build_model(SYMBOLS)
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # 1. Set the model to be at equilbrium ------------------------------------
     equilibrium = SraffianSupermultiplierModel(range(1000),
                                             g_1=0.2, s_r=0.8, mu=0.08, d=0.1,
-                                            pi=0.35, g_z=0.02, u_n=0.75, strict=True)
+                                            pi=0.35, g_z=0.02, u_n=0.75, strict=True)  # fmt: skip
 
     equilibrium.s = equilibrium.g = equilibrium.g_0 = equilibrium.g_z
     equilibrium.u = equilibrium.u_n
@@ -69,7 +69,6 @@ if __name__ == '__main__':
     equilibrium.z = equilibrium.eval('s_r * r - g_z')
 
     equilibrium.solve()
-
 
     # 2. Run the scenarios ----------------------------------------------------
 
@@ -88,7 +87,6 @@ if __name__ == '__main__':
     higher_capacity_utilisation['u_n', 50:] = 0.8
     higher_capacity_utilisation.solve(max_iter=500)
 
-
     # 3. Create charts and a graph representation of the model ----------------
     _, axes = plt.subplots(2, 2, figsize=(14, 13))
     plt.suptitle('Sraffian supermultiplier model')
@@ -98,14 +96,14 @@ if __name__ == '__main__':
         """Plot `variable` on `axis`."""
         axis.plot(equilibrium.span, equilibrium[variable],
                   label='Initial equilibrium',
-                  linewidth=0.5, linestyle='--', color='k')
+                  linewidth=0.5, linestyle='--', color='k')  # fmt: skip
 
         axis.plot(higher_autonomous_demand.span, higher_autonomous_demand[variable],
-                  label='Increase in autonomous demand growth', color='#33C3F0')
+                  label='Increase in autonomous demand growth', color='#33C3F0')  # fmt: skip
         axis.plot(higher_profit_share.span, higher_profit_share[variable],
-                  label='Higher profit share', color='#FF4F2E')
+                  label='Higher profit share', color='#FF4F2E')  # fmt: skip
         axis.plot(higher_capacity_utilisation.span, higher_capacity_utilisation[variable],
-                  label='Increase in capacity utilisation', color='#4563F2')
+                  label='Increase in capacity utilisation', color='#4563F2')  # fmt: skip
 
         axis.set_xlim(0, 700)
         axis.set_xlabel('Time')
@@ -115,9 +113,9 @@ if __name__ == '__main__':
 
         axis.set_title(title)
 
-    plot('u', 'Capacity utilisation', 'Capacity utilisation (u)', (0.4, 0.9), axes[0, 0])
-    plot('g', 'Capital stock growth', 'Capital stock growth (g)', (-0.05, 0.05), axes[0, 1])
-    plot('z', 'Autonomous demand growth', 'Autonomous demand growth (z)', (0.15, 0.25), axes[1, 0])
+    plot('u', 'Capacity utilisation', 'Capacity utilisation (u)', (0.4, 0.9), axes[0, 0])  # fmt: skip
+    plot('g', 'Capital stock growth', 'Capital stock growth (g)', (-0.05, 0.05), axes[0, 1])  # fmt: skip
+    plot('z', 'Autonomous demand growth', 'Autonomous demand growth (z)', (0.15, 0.25), axes[1, 0])  # fmt: skip
 
     axes[0, 0].legend(loc='lower right')
 
@@ -157,12 +155,12 @@ if __name__ == '__main__':
 
         'z[t]':     NodeSetting([1.50, 1.50], r'$z_t$',       '#FF992E'),
         'z[t-1]':   NodeSetting([1.71, 1.25], r'$z_{t-1}$',   '#33C3F0'),
-    }
+    }  # fmt: skip
 
     nx.draw_networkx(G, ax=axes[1, 1],
                      pos={k: v.position for k, v in node_settings.items()},
                      node_color=[node_settings[n].colour for n in G.nodes],
-                     labels={k: v.label for k, v in node_settings.items()})
+                     labels={k: v.label for k, v in node_settings.items()})  # fmt: skip
 
     axes[1, 1].set_title('Model structure')
 
