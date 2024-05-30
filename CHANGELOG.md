@@ -18,6 +18,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Added `to_dataframe()` method to `VectorContainer`.
 - Added support for empty linkers i.e. linker instances with no submodels.
 - Added new `functions` module for operations on NumPy arrays.
+- Added `warnings_` keyword argument to `eval()`, to control handling of
+  warnings via `warnings.simplefilter()`.
 - Added support for `functions` as standard in `eval()`.
 - Added support for named periods in `parser` model definitions.
 - Added exception chaining in `parser`.

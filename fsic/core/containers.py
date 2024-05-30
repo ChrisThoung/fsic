@@ -7,6 +7,7 @@ import copy
 import difflib
 import re
 from typing import Any, Callable, Dict, Hashable, List, Optional, Sequence, Tuple, Union
+import warnings
 
 import numpy as np
 
@@ -748,6 +749,7 @@ class VectorContainer:
         globals: Optional[Dict[str, Any]] = None,
         locals: Optional[Dict[str, Any]] = None,
         builtins: Optional[Dict[str, Any]] = None,
+        warnings_: str = 'always',
     ) -> Union[float, np.ndarray]:
         """Evaluate `expression` as it applies to the current object. **Uses `eval()`**.
 
@@ -766,6 +768,14 @@ class VectorContainer:
             If `None` (the default), make standard operators from
             `fsic.functions` available (see Notes)
             Disable by passing `{}`
+        warnings_ :
+            Argument to pass to `warnings.simplefilter()` before `eval`uating
+            `expression`. For example, use:
+             - 'ignore' to suppress warnings
+             - 'error' to convert warnings to errors
+
+            See `warnings.simplefilter()` documentation for more information:
+            https://docs.python.org/3/library/warnings.html#describing-warning-filters
 
         Examples
         --------
@@ -888,7 +898,10 @@ class VectorContainer:
         # Either...
         try:
             # ...return the result...
-            return eval(expression, globals, locals_)
+            with warnings.catch_warnings() as w:
+                warnings.simplefilter(warnings_)
+
+                return eval(expression, globals, locals_)
 
         except NameError as e:
             # ...or catch a name error (the expression contains an undefined
