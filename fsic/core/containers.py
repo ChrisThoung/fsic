@@ -747,7 +747,7 @@ class VectorContainer:
         *,
         globals: Optional[Dict[str, Any]] = None,
         locals: Optional[Dict[str, Any]] = None,
-        builtins: [Optional[Dict[str, Any]]] = None,
+        builtins: Optional[Dict[str, Any]] = None,
     ) -> Union[float, np.ndarray]:
         """Evaluate `expression` as it applies to the current object. **Uses `eval()`**.
 
