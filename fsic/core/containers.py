@@ -898,7 +898,7 @@ class VectorContainer:
         # Either...
         try:
             # ...return the result...
-            with warnings.catch_warnings() as w:
+            with warnings.catch_warnings() as w:  # noqa: F841
                 warnings.simplefilter(warnings_)
 
                 return eval(expression, globals, locals_)
