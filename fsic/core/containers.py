@@ -326,6 +326,16 @@ class VectorContainer:
                 except Exception as e:
                     raise KeyError(period) from e
 
+            # This block is for Python versions pre-3.10, in which static
+            # methods weren't callable
+            # The only difference with the block above is the use of the
+            # `__func__` attribute
+            elif isinstance(method, staticmethod):
+                try:
+                    return method.__func__(period, self.__dict__['span'])
+                except Exception as e:
+                    raise KeyError(period) from e
+
             else:
                 raise TypeError(
                     f'Unrecognised type ({type(method)}) of search method '
