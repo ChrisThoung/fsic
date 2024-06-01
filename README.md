@@ -30,6 +30,9 @@ time, if not found):
 The installation process automatically checks for NumPy, installing it if not
 found.
 
+**If running Python 3.12 or above and looking to use the Fortran extensions,
+  make sure you also have [Meson](https://mesonbuild.com/) installed**.
+
 Depending on your use case(s) you might find other packages useful. Install
 these from the files in the [requirements](requirements/) folder using
 `pip`. For example:

@@ -2,6 +2,9 @@
 """
 Tools to speed up fsic-based economic models by generating F2PY-compatible
 Fortran code.
+
+**If running Python 3.12 or above and looking to use these Fortran extensions,
+  make sure you also have [Meson](https://mesonbuild.com/) installed**.
 """
 
 import itertools
