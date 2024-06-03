@@ -507,7 +507,7 @@ H = H[-1] + YD - C
         # Python
         self.model_python.G = 20
         self.model_python.theta = 0.2
-        self.model_python.C[2] = np.NaN
+        self.model_python.C[2] = np.nan
 
         # Solution should halt because of the pre-existing NaN
         with self.assertRaises(fsic.exceptions.SolutionError):
@@ -518,7 +518,7 @@ H = H[-1] + YD - C
         # Fortran
         self.model_fortran.G = 20
         self.model_fortran.theta = 0.2
-        self.model_fortran.C[2] = np.NaN
+        self.model_fortran.C[2] = np.nan
 
         # Solution should halt because of the pre-existing NaN
         with self.assertRaises(fsic.exceptions.SolutionError):
