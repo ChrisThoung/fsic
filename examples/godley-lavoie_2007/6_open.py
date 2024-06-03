@@ -69,7 +69,7 @@ import fsic
 # Note that not all the equations appear in the script directly below. The
 # others are global and connect the country models. See the later linker for
 # these equations.
-script = '''
+script = """
 # Equation order may matter when solving by the Gauss-Seidel method. In
 # practice, putting the consumption function first avoids the solution
 # exploding.
@@ -93,7 +93,7 @@ or_ = or_[-1] + ((Hs - Hs[-1]) - (Bcb - Bcb[-1])) / p_g     # 6.O.23A / 6.O.24A
 
 Hs = Hh                                                     # 6.O.25 / 6.O.26
 r = r_bar                                                   # 6.O.30 / 6.O.31
-'''
+"""
 
 symbols = fsic.parse_model(script)
 Country = fsic.build_model(symbols)
@@ -117,11 +117,11 @@ class OPEN(fsic.BaseLinker):
         'xr':      'Exchange rate',
         'xr_bar':  'Fixed exchange rate',
         'p_g_bar': 'Price of gold',
-    }
+    }  # fmt: skip
 
     def solve_t_before(self, t, *args, **kwargs):
         """Evaluate equations that only need to solve once per period, prior to iterative solution."""
-        self.xr[t] = self.xr_bar[t] # 6.O.29: Set exchange rate
+        self.xr[t] = self.xr_bar[t]  # 6.O.29: Set exchange rate
 
         # Set price of gold in domestic currencies
         self.submodels['North'].p_g[t] = self.p_g_bar[t] / self.xr[t]  # 6.O.27A
@@ -131,8 +131,10 @@ class OPEN(fsic.BaseLinker):
         """Evaluate equations that should solve before the individual country models in each iteration."""
         # Set Country A's exports to equal Country B's imports in the relevant
         # domestic currency (and vice versa)
+        # fmt: off
         self.submodels['North'].X[t] = self.submodels['South'].IM[t] / self.xr[t]  # 6.O.5
         self.submodels['South'].X[t] = self.submodels['North'].IM[t] * self.xr[t]  # 6.O.6
+        # fmt: on
 
 
 if __name__ == '__main__':
@@ -151,12 +153,12 @@ if __name__ == '__main__':
         'V':   86.487,
         'Hh':  86.487 - 64.865,
         'Hs':  86.487 - 64.865,
-    }
+    }  # fmt: skip
 
     baseline = OPEN({
         'North': Country(range(1945, 2010 + 1), alpha_1=0.6, alpha_2=0.4, lambda_0=0.635, lambda_1=5, lambda_2=0.01, mu=0.18781, **country_stationary_state),
         'South': Country(range(1945, 2010 + 1), alpha_1=0.7, alpha_2=0.3, lambda_0=0.670, lambda_1=6, lambda_2=0.07, mu=0.18781, **country_stationary_state),
-    })
+    })  # fmt: skip
 
     # Set global exchange rate and price of gold
     baseline.xr_bar = 1
@@ -182,6 +184,8 @@ if __name__ == '__main__':
     # 6.8 Rejecting the Mundell–Fleming approach and adopting the compensation
     #     approach
 
+    # fmt: off
+
     # 6.8.1 Ever-falling gold reserves
     #       An increase in the South propensity to import
     import_propensity_scenario = baseline.copy()
@@ -194,6 +198,8 @@ if __name__ == '__main__':
     saving_propensity_scenario.submodels['South']['alpha_1', 1960:] = 0.6  # Compares to 0.7 in the baseline
     saving_propensity_scenario.solve(start=1960, max_iter=250)  # No need to solve pre-1960 again
 
+    # fmt: on
+
     # -------------------------------------------------------------------------
     # Extract results as dictionaries of DataFrames
     baseline_results = fsic.tools.linker_to_dataframes(baseline)
@@ -203,25 +209,29 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
     # Reproduce figures from Godley and Lavoie (2007)
     _, axes = plt.subplots(2, 3, figsize=(24, 14))
-    plt.suptitle(r'Model $\it{OPEN}$: Rejecting the Mundell–Fleming approach and adopting the compensation approach')
+    plt.suptitle(
+        r'Model $\it{OPEN}$: Rejecting the Mundell–Fleming approach and adopting the compensation approach'
+    )
 
     # Figure 6.8: Evolution of GDP in the North and in the South countries,
     #             following an increase in the South propensity to import
     axes[0, 0].plot(imports_results['North'].loc[1950:2000, :].index,
                     [imports_results['North']['Y'].loc[1950]] * len(imports_results['North'].loc[1950:2000, :].index),
-                    color='k', linewidth=0.75)
+                    color='k', linewidth=0.75)  # fmt: skip
 
     axes[0, 0].plot(imports_results['North'].loc[1950:2000, :].index,
                     imports_results['North'].loc[1950:2000, :]['Y'],
-                    label='North country GDP', color='#33C3F0', linestyle='-')
+                    label='North country GDP', color='#33C3F0', linestyle='-')  # fmt: skip
     axes[0, 0].plot(imports_results['South'].loc[1950:2000, :].index,
                     imports_results['South'].loc[1950:2000, :]['Y'],
-                    label='South country GDP', color='#FF4F2E', linestyle='--')
+                    label='South country GDP', color='#FF4F2E', linestyle='--')  # fmt: skip
 
     axes[0, 0].set_xlim(1950, 2000)
     axes[0, 0].legend(bbox_to_anchor=(0.990, 0.485))
-    axes[0, 0].set_title('Figure 6.8: North and South GDP following an\n'
-                         'increase in the South propensity to import')
+    axes[0, 0].set_title(
+        'Figure 6.8: North and South GDP following an\n'
+        'increase in the South propensity to import'
+    )
 
     # Figure 6.9: Evolution of the balances of the South country – net
     #             acquisition of financial assets by the household sector,
@@ -229,22 +239,24 @@ if __name__ == '__main__':
     #             increase in the South propensity to import
     axes[0, 1].plot(imports_results['South'].index,
                     [0] * len(imports_results['South'].index),
-                    color='k', linewidth=0.75)
+                    color='k', linewidth=0.75)  # fmt: skip
 
     axes[0, 1].plot(imports_results['South'].index,
                     imports_results['South']['V'].diff(),
-                    label='Change in household wealth', color='#33C3F0', linestyle='-')
+                    label='Change in household wealth', color='#33C3F0', linestyle='-')  # fmt: skip
     axes[0, 1].plot(imports_results['South'].index,
                     imports_results['South'].eval('T - G') - imports_results['South'].eval('r * Bh').shift(),
-                    label='Government balance', color='#FF4F2E', linestyle=':')
+                    label='Government balance', color='#FF4F2E', linestyle=':')  # fmt: skip
     axes[0, 1].plot(imports_results['South'].index,
                     imports_results['South'].eval('X - IM'),
-                    label='Trade balance', color='#77C3AF', linestyle='--')
+                    label='Trade balance', color='#77C3AF', linestyle='--')  # fmt: skip
 
     axes[0, 1].set_xlim(1950, 2000)
     axes[0, 1].legend()
-    axes[0, 1].set_title('Figure 6.9: South country sectoral balances following an\n'
-                         'increase in the South propensity to import')
+    axes[0, 1].set_title(
+        'Figure 6.9: South country sectoral balances following an\n'
+        'increase in the South propensity to import'
+    )
 
     # Figure 6.10: Evolution of the three components of the balance sheet of
     #              the South central bank – gold reserves, domestic Treasury
@@ -252,25 +264,27 @@ if __name__ == '__main__':
     #              propensity to import
     axes[0, 2].plot(imports_results['South'].index,
                     [0] * len(imports_results['South'].index),
-                    color='k', linewidth=0.75)
+                    color='k', linewidth=0.75)  # fmt: skip
 
     axes[0, 2].plot(imports_results['South'].index,
                     imports_results['South']['Bcb'].diff(),
                     label='Change in stock of bills held',
-                    color='#33C3F0', linestyle='-')
+                    color='#33C3F0', linestyle='-')  # fmt: skip
     axes[0, 2].plot(imports_results['South'].index,
                     imports_results['South']['Hh'].diff(),
                     label='Change in stock of money',
-                    color='#FF4F2E', linestyle=':')
+                    color='#FF4F2E', linestyle=':')  # fmt: skip
     axes[0, 2].plot(imports_results['South'].index,
                     imports_results['South']['or_'].diff(),
                     label='Change in gold reserves',
-                    color='#77C3AF', linestyle='--')
+                    color='#77C3AF', linestyle='--')  # fmt: skip
 
     axes[0, 2].set_xlim(1950, 2000)
     axes[0, 2].legend(loc='lower right')
-    axes[0, 2].set_title('Figure 6.10: Evolution of the South central bank balance sheet\n'
-                         'following an increase in the South propensity to import')
+    axes[0, 2].set_title(
+        'Figure 6.10: Evolution of the South central bank balance sheet\n'
+        'following an increase in the South propensity to import'
+    )
 
     # Figure 6.11: Evolution of the components of the balance sheet of the
     #              South central bank, following a decrease in the South
@@ -279,61 +293,67 @@ if __name__ == '__main__':
     # 6.11 title, which reads 'an increase in the ... propensity to consume'.)
     axes[1, 2].plot(savings_results['South'].index,
                     [0] * len(savings_results['South'].index),
-                    color='k', linewidth=0.75)
+                    color='k', linewidth=0.75)  # fmt: skip
 
     axes[1, 2].plot(savings_results['South'].index,
                     savings_results['South']['Bcb'].diff(),
                     label='Change in stock of bills held',
-                    color='#33C3F0', linestyle='-')
+                    color='#33C3F0', linestyle='-')  # fmt: skip
     axes[1, 2].plot(savings_results['South'].index,
                     savings_results['South']['Hh'].diff(),
                     label='Change in stock of money',
-                    color='#FF4F2E', linestyle=':')
+                    color='#FF4F2E', linestyle=':')  # fmt: skip
     axes[1, 2].plot(savings_results['South'].index,
                     savings_results['South']['or_'].diff(),
                     label='Change in gold reserves',
-                    color='#77C3AF', linestyle='--')
+                    color='#77C3AF', linestyle='--')  # fmt: skip
 
     axes[1, 2].set_xlim(1950, 2000)
     axes[1, 2].legend(loc='upper right')
-    axes[1, 2].set_title('Figure 6.11: Evolution of the South central bank balance sheet following\n'
-                         'a decrease in the South propensity to consume out of current income')
+    axes[1, 2].set_title(
+        'Figure 6.11: Evolution of the South central bank balance sheet following\n'
+        'a decrease in the South propensity to consume out of current income'
+    )
 
     # For completeness, generate corresponding versions of Figures 6.8 and 6.9
     # for the decrease in the South propensity to consume out of current income
     axes[1, 0].plot(savings_results['North'].loc[1950:2000, :].index,
                     [savings_results['North']['Y'].loc[1950]] * len(savings_results['North'].loc[1950:2000, :].index),
-                    color='k', linewidth=0.75)
+                    color='k', linewidth=0.75)  # fmt: skip
 
     axes[1, 0].plot(savings_results['North'].loc[1950:2000, :].index,
                     savings_results['North'].loc[1950:2000, :]['Y'],
-                    label='North country GDP', color='#33C3F0', linestyle='-')
+                    label='North country GDP', color='#33C3F0', linestyle='-')  # fmt: skip
     axes[1, 0].plot(savings_results['South'].loc[1950:2000, :].index,
                     savings_results['South'].loc[1950:2000, :]['Y'],
-                    label='South country GDP', color='#FF4F2E', linestyle='--')
+                    label='South country GDP', color='#FF4F2E', linestyle='--')  # fmt: skip
 
     axes[1, 0].set_xlim(1950, 2000)
     axes[1, 0].legend(bbox_to_anchor=(0.990, 0.84))
-    axes[1, 0].set_title('Figure 6.8a: North and South GDP following a decrease\n'
-                         'in the South propensity to consume out of current income')
+    axes[1, 0].set_title(
+        'Figure 6.8a: North and South GDP following a decrease\n'
+        'in the South propensity to consume out of current income'
+    )
 
     axes[1, 1].plot(savings_results['South'].index,
                     [0] * len(savings_results['South'].index),
-                    color='k', linewidth=0.75)
+                    color='k', linewidth=0.75)  # fmt: skip
 
     axes[1, 1].plot(savings_results['South'].index,
                     savings_results['South']['V'].diff(),
-                    label='Change in household wealth', color='#33C3F0', linestyle='-')
+                    label='Change in household wealth', color='#33C3F0', linestyle='-')  # fmt: skip
     axes[1, 1].plot(savings_results['South'].index,
                     savings_results['South'].eval('T - G') - savings_results['South'].eval('r * Bh').shift(),
-                    label='Government balance', color='#FF4F2E', linestyle=':')
+                    label='Government balance', color='#FF4F2E', linestyle=':')  # fmt: skip
     axes[1, 1].plot(savings_results['South'].index,
                     savings_results['South'].eval('X - IM'),
-                    label='Trade balance', color='#77C3AF', linestyle='--')
+                    label='Trade balance', color='#77C3AF', linestyle='--')  # fmt: skip
 
     axes[1, 1].set_xlim(1950, 2000)
     axes[1, 1].legend(loc='upper right')
-    axes[1, 1].set_title('Figure 6.9a: South country sectoral balances following a decrease\n'
-                         'in the South propensity to consume out of current income')
+    axes[1, 1].set_title(
+        'Figure 6.9a: South country sectoral balances following a decrease\n'
+        'in the South propensity to consume out of current income'
+    )
 
     plt.savefig('figures-6.8t6.11.png')

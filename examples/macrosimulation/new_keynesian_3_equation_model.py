@@ -29,7 +29,7 @@ import networkx as nx
 import fsic
 
 
-SCRIPT = '''
+SCRIPT = """
 # 1. IS curve
 y = {A} - {a_1} * r[-1]
 
@@ -41,7 +41,7 @@ r_s = ({A} - {y_e}) / {a_1}
 
 # 4. Monetary policy response
 r = r_s + {a_3} * (pi - {pi_T})
-'''
+"""
 
 SYMBOLS = fsic.parse_model(SCRIPT)
 NewKeynesian3EquationModel = fsic.build_model(SYMBOLS)
@@ -49,9 +49,9 @@ NewKeynesian3EquationModel = fsic.build_model(SYMBOLS)
 
 if __name__ == '__main__':
     # 1. Solve the model for equilbrium ---------------------------------------
-    solution = NewKeynesian3EquationModel(range(50),
-                                          a_1=0.3, a_2=0.7,
-                                          A=10, pi_T=2, y_e=5)
+    solution = NewKeynesian3EquationModel(
+        range(50), a_1=0.3, a_2=0.7, A=10, pi_T=2, y_e=5
+    )
 
     # Add a separate variable, `b`, and calculate the adjustment parameter,
     # `a_3`
@@ -62,10 +62,9 @@ if __name__ == '__main__':
 
     # Copy the equilibrium results to a new object
     equilibrium = NewKeynesian3EquationModel(
-        range(1, 50 + 1),
-        **dict(zip(solution.names, solution.values[:, -1])))
+        range(1, 50 + 1), **dict(zip(solution.names, solution.values[:, -1]))
+    )
     equilibrium.solve()
-
 
     # 2. Run the scenarios ----------------------------------------------------
 
@@ -84,7 +83,6 @@ if __name__ == '__main__':
     higher_equilibrium_output['y_e', 5:] = 7
     higher_equilibrium_output.solve()
 
-
     # 3. Create charts and a graph representation of the model ----------------
     _, axes = plt.subplots(2, 2, figsize=(14, 13))
     plt.suptitle(r'New Keynesian three-equation model')
@@ -94,14 +92,14 @@ if __name__ == '__main__':
         """Plot `variable` to `axis`."""
         axis.plot(equilibrium.span, equilibrium[variable],
                   label='Initial equilibrium',
-                  linewidth=0.5, linestyle='--', color='k')
+                  linewidth=0.5, linestyle='--', color='k')  # fmt: skip
 
         axis.plot(higher_aggregate_demand.span, higher_aggregate_demand[variable],
-                  label='Increase in autonomous demand', color='#33C3F0')
+                  label='Increase in autonomous demand', color='#33C3F0')  # fmt: skip
         axis.plot(higher_inflation_target.span, higher_inflation_target[variable],
-                  label='Higher inflation target', color='#FF4F2E')
+                  label='Higher inflation target', color='#FF4F2E')  # fmt: skip
         axis.plot(higher_equilibrium_output.span, higher_equilibrium_output[variable],
-                  label='Increase in equilibrium output', color='#4563F2')
+                  label='Increase in equilibrium output', color='#4563F2')  # fmt: skip
 
         axis.set_xlim(1, 15)
         axis.set_xlabel('Time')
@@ -146,12 +144,12 @@ if __name__ == '__main__':
         'y_e[t]':  NodeSetting([3.25, 2.75], r'$y^e_{t}$',   '#4563F2'),
 
         'A[t]':    NodeSetting([3.50, 3.50], r'$A_t$',       '#4563F2'),
-    }
+    }  # fmt: skip
 
     nx.draw_networkx(G, ax=axes[1, 1],
                      pos={k: v.position for k, v in node_settings.items()},
                      node_color=[node_settings[n].colour for n in G.nodes],
-                     labels={k: v.label for k, v in node_settings.items()})
+                     labels={k: v.label for k, v in node_settings.items()})  # fmt: skip
 
     axes[1, 1].set_title('Model structure')
 

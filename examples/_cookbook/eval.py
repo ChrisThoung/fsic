@@ -79,6 +79,13 @@ if __name__ == '__main__':
     )
     print(model.eval('(C/Y)[:5]').round(2))
 
+    print("\nFirst five years of C/Y (use `warnings_='ignore'` to suppress warnings):")
+
+    # The `warnings_` argument can take anything valid for
+    # `warnings.simplefilter()` e.g. 'always' to convert warnings to errors:
+    # https://docs.python.org/3/library/warnings.html#describing-warning-filters
+    print(model.eval('(C/Y)[:5]', warnings_='ignore').round(2))
+
     print('\nLast five years of Y/Y*:')
     print(model.eval('Y[-5:] / (G / theta)[-5:]').round(2))
 

@@ -27,7 +27,7 @@ import pandas as pd
 import fsic
 
 
-script = '''
+script = """
 C = 0.60 * Y[-1] + 0.35 * Y[-2]
 I = (R +
      1.0 * (PQ[-1] - PQ[-2]) +
@@ -37,7 +37,7 @@ PQ = max(Q, PQ[-1])
 M = -380 + 0.2 * (C + I + X)
 Q = C + I + G + X - M
 Y = 0.72 * Q
-'''
+"""
 
 symbols = fsic.parse_model(script)
 AMI = fsic.build_model(symbols)

@@ -55,7 +55,6 @@ References:
 import matplotlib.pyplot as plt
 
 from pandas import DataFrame
-import pandas as pd
 
 import fsic
 
@@ -65,7 +64,7 @@ import fsic
 # does.
 # 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
-script = '''
+script = """
 Y_N = C_N + G_N + X_N - IM_N                                                  # 6.1
 Y_S = C_S + G_S + X_S - IM_S                                                  # 6.2
 
@@ -103,7 +102,7 @@ Hs = Hs[-1] + (Bcb - Bcb[-1])                                                 # 
 Bcb = Bs - Bh                                                                 # 6.25
 
 r = r_bar                                                                     # 6.26
-'''
+"""
 
 symbols = fsic.parse_model(script)
 REG = fsic.build_model(symbols)
@@ -117,40 +116,48 @@ def make_model_results(model: fsic.BaseModel) -> DataFrame:
     results['D(V_N)'] = results['V_N'].diff()
     results['D(V_S)'] = results['V_S'].diff()
 
-    results['GovtBal_N'] = results.eval('T_N - G_N') - results['r'].shift() * results['Bh_N'].shift()
-    results['GovtBal_S'] = results.eval('T_S - G_S') - results['r'].shift() * results['Bh_S'].shift()
+    results['GovtBal_N'] = results.eval('T_N - G_N') - results['r'].shift() * results['Bh_N'].shift()  # fmt: skip
+    results['GovtBal_S'] = results.eval('T_S - G_S') - results['r'].shift() * results['Bh_S'].shift()  # fmt: skip
 
     results['NX_N'] = results.eval('X_N - IM_N')
     results['NX_S'] = results.eval('X_S - IM_S')
 
     return results
 
-def make_scenario_charts(financial_balances_plot: 'AxesSubplot', gdp_plot: 'AxesSubplot', scenario_results: DataFrame, baseline_results: DataFrame) -> None:
+
+def make_scenario_charts(
+    financial_balances_plot: 'AxesSubplot',  # noqa: F821
+    gdp_plot: 'AxesSubplot',  # noqa: F821
+    scenario_results: DataFrame,
+    baseline_results: DataFrame,
+) -> None:
     """Create plots (Southern financial balances and both regions' GDP)."""
     # Calculate difference from baseline
     difference_from_baseline = scenario_results - baseline_results
 
     # Financial balances plot
     financial_balances_plot.plot(difference_from_baseline.index, [0] * len(difference_from_baseline.index),
-                                 color='k', linewidth=0.75)
+                                 color='k', linewidth=0.75)  # fmt: skip
 
     financial_balances_plot.plot(difference_from_baseline.index, difference_from_baseline['D(V_S)'],
-                                 label='Change in household wealth of the South region', color='#33C3F0', linestyle='-')
+                                 label='Change in household wealth of the South region', color='#33C3F0', linestyle='-')  # fmt: skip
     financial_balances_plot.plot(difference_from_baseline.index, difference_from_baseline['GovtBal_S'],
-                                 label='Government balance with the South region', color='#FF4F2E', linestyle=':')
+                                 label='Government balance with the South region', color='#FF4F2E', linestyle=':')  # fmt: skip
     financial_balances_plot.plot(difference_from_baseline.index, difference_from_baseline['NX_S'],
-                                 label='Trade balance of the South region', color='#77C3AF', linestyle='--')
+                                 label='Trade balance of the South region', color='#77C3AF', linestyle='--')  # fmt: skip
 
-    financial_balances_plot.set_xlim(min(difference_from_baseline.index), max(difference_from_baseline.index))
+    financial_balances_plot.set_xlim(
+        min(difference_from_baseline.index), max(difference_from_baseline.index)
+    )
 
     # GDP plot
     gdp_plot.plot(scenario_results.index, [scenario_results['Y_N'].iloc[0]] * len(difference_from_baseline.index),
-                  color='k', linewidth=0.75)
+                  color='k', linewidth=0.75)  # fmt: skip
 
     gdp_plot.plot(scenario_results.index, scenario_results['Y_N'],
-                  label='North region GDP', color='#33C3F0', linestyle='-')
+                  label='North region GDP', color='#33C3F0', linestyle='-')  # fmt: skip
     gdp_plot.plot(scenario_results.index, scenario_results['Y_S'],
-                  label='South region GDP', color='#FF4F2E', linestyle='--')
+                  label='South region GDP', color='#FF4F2E', linestyle='--')  # fmt: skip
 
     gdp_plot.set_xlim(min(scenario_results.index), max(scenario_results.index))
 
@@ -161,7 +168,7 @@ if __name__ == '__main__':
     starting_from_zero = REG(
         range(500),  # Enough periods to reach the stationary state
         alpha_1_N=0.6, alpha_2_N=0.4, lambda_0_N=0.635, lambda_1_N=5, lambda_2_N=0.01, mu_N=0.18781,
-        alpha_1_S=0.7, alpha_2_S=0.3, lambda_0_S=0.670, lambda_1_S=6, lambda_2_S=0.07, mu_S=0.18781)
+        alpha_1_S=0.7, alpha_2_S=0.3, lambda_0_S=0.670, lambda_1_S=6, lambda_2_S=0.07, mu_S=0.18781)  # fmt: skip
 
     # Fiscal policy
     starting_from_zero.G_N = starting_from_zero.G_S = 20
@@ -183,14 +190,13 @@ if __name__ == '__main__':
 
     # Take the results from the last period as the stationary state
     stationary_state = dict(zip(starting_from_zero.names,
-                                starting_from_zero.values[:, -1]))
+                                starting_from_zero.values[:, -1]))  # fmt: skip
 
     # Copy the stationary state to a new baseline model instance
     baseline = REG(range(1945, 2010 + 1), **stationary_state)
     baseline.solve(offset=-1)
 
     baseline_results = make_model_results(baseline).loc[1950:2000, :]
-
 
     # 2. Experiments with Model *REG*
     #    (Input values come from Zezza, 2006)
@@ -201,7 +207,7 @@ if __name__ == '__main__':
     import_propensity_scenario['mu_S', 1960:] = 0.20781
     import_propensity_scenario.solve(max_iter=3500, offset=-1)
 
-    imports_results = make_model_results(import_propensity_scenario).loc[1950:2000, :]
+    imports_results = make_model_results(import_propensity_scenario).loc[1950:2000, :]  # fmt: skip
 
     # 2.2 An increase in the government expenditures of the South
     #     (from Section 6.5.2 of Godley and Lavoie, 2007)
@@ -209,7 +215,7 @@ if __name__ == '__main__':
     government_expenditure_scenario['G_S', 1960:] = 25
     government_expenditure_scenario.solve(max_iter=2000, offset=-1)
 
-    government_results = make_model_results(government_expenditure_scenario).loc[1950:2000, :]
+    government_results = make_model_results(government_expenditure_scenario).loc[1950:2000, :]  # fmt: skip
 
     # 2.3 An increase in the propensity to save of the Southern households
     #     (from Section 6.5.3 of Godley and Lavoie, 2007)
@@ -217,7 +223,7 @@ if __name__ == '__main__':
     consumption_propensity_scenario['alpha_1_S', 1960:] = 0.6
     consumption_propensity_scenario.solve(max_iter=2000, offset=-1)
 
-    consumption_results = make_model_results(consumption_propensity_scenario).loc[1950:2000, :]
+    consumption_results = make_model_results(consumption_propensity_scenario).loc[1950:2000, :]  # fmt: skip
 
     # 2.4 A change in the liquidity preference of the Southern households
     #     (from Section 6.5.4 of Godley and Lavoie, 2007)
@@ -225,7 +231,7 @@ if __name__ == '__main__':
     liquidity_preference_scenario['lambda_0_S', 1960:] = 0.75
     liquidity_preference_scenario.solve(max_iter=2000, offset=-1)
 
-    liquidity_results = make_model_results(liquidity_preference_scenario).loc[1950:2000, :]
+    liquidity_results = make_model_results(liquidity_preference_scenario).loc[1950:2000, :]  # fmt: skip
 
     # 3. Replicate Figures 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 and 6.7 of Godley and
     #    Lavoie (2007)

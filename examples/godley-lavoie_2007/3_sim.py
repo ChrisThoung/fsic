@@ -25,7 +25,6 @@ Reference:
 """
 
 import matplotlib.pyplot as plt
-import pandas as pd
 
 import fsic
 
@@ -34,7 +33,7 @@ import fsic
 # Lavoie (2007) - for reference only; fsic ignores these.
 # 'A' suffix indicates a slight amendment to be compatible with the fsic
 # parser.
-script = '''
+script = """
 # Keynesian/Kaleckian quantity adjustment equalises demand and supply
 C_s = C_d                                   # 3.1
 G_s = G_d                                   # 3.2
@@ -61,7 +60,7 @@ Y = C_s + G_s                               # 3.10
 
 # Labour demand
 N_d = Y / W                                 # 3.11
-'''
+"""
 
 symbols = fsic.parse_model(script)
 SIM = fsic.build_model(symbols)

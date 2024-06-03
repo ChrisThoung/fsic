@@ -67,9 +67,9 @@ class DEFINE_Simple(BaseModel):
         'EMIS_IN', 'CI',
         'Y_star', 'u', 'g_Y', 'lev',
         'D_red',
-    ]
+    ]  # fmt: skip
 
-    EXOGENOUS: List[str] = ['CI_max', 'CI_min', 'v',]
+    EXOGENOUS: List[str] = ['CI_max', 'CI_min', 'v',]  # fmt: skip
 
     PARAMETERS: List[str] = [
         'alpha_0', 'alpha_1',
@@ -78,7 +78,7 @@ class DEFINE_Simple(BaseModel):
         'ci_1', 'ci_2',
         'int_C', 'int_D', 'int_G',
         's_F', 's_W',
-    ]
+    ]  # fmt: skip
 
     ERRORS: List[str] = []
 
@@ -141,9 +141,17 @@ class DEFINE_Simple(BaseModel):
 
         'u': 'Capacity utilisation [24]',
         'v': 'Capital productivity',
-    }
+    }  # fmt: skip
 
-    def _evaluate(self, t: int, *, errors: str = 'raise', catch_first_error: bool = True, iteration: Optional[int] = None, **kwargs: Dict[str, Any]) -> None:
+    def _evaluate(
+        self,
+        t: int,
+        *,
+        errors: str = 'raise',
+        catch_first_error: bool = True,
+        iteration: Optional[int] = None,
+        **kwargs: Dict[str, Any],
+    ) -> None:
         """Evaluate the system of equations for the period at integer position `t` in the model's `span`.
 
         Parameters
@@ -183,10 +191,12 @@ class DEFINE_Simple(BaseModel):
         #  - distributed profits, DP
         #  - bank profits, BP
         #  - interest, int_D, earned on (previous-period) deposits, D
-        self._Y_D[t] = (self._s_W[t] * self._Y[t] +
-                        self._DP[t] +
-                        self._BP[t] +
-                        self._int_D[t] * self._D[t-1])
+        self._Y_D[t] = (
+            self._s_W[t] * self._Y[t]
+            + self._DP[t]
+            + self._BP[t]
+            + self._int_D[t] * self._D[t-1]
+        )  # fmt: skip
 
         # 2a: Consumption expenditure
         #     CO[t] = (c_1[t] + c_1_change[t]) * Y_D[t-1] + c_2[t] * D[t-1]
@@ -198,13 +208,15 @@ class DEFINE_Simple(BaseModel):
         #    additive adjustment on c_1: c_1_change (as above). This is
         #    excluded below and c_1 should be adjusted directly in any
         #    scenarios.
-        self._CO[t] = (self._c_1[t] * self._Y_D[t-1] +
-                       self._c_2[t] * self._D[t-1])
+        self._CO[t] = (
+            self._c_1[t] * self._Y_D[t-1] +
+            self._c_2[t] * self._D[t-1]
+        )  # fmt: skip
 
         # 3: Deposits
         #    D[t] = D[t-1] + Y_D[t] - CO[t]
         # Deposits, D, cumulate household saving (Y_D - CO)
-        self._D[t] = self._D[t-1] + self._Y_D[t] - self._CO[t]
+        self._D[t] = self._D[t-1] + self._Y_D[t] - self._CO[t]  # fmt: skip
 
         # Firms ---------------------------------------------------------------
 
@@ -219,10 +231,12 @@ class DEFINE_Simple(BaseModel):
         #  - labour costs: labour's share of output, s_W * Y
         #  - interest paid on conventional loans: int_C * LC
         #  - interest paid on green loans: int_G * LG
-        self._TP[t] = (self._Y[t] -
-                       (self._s_W[t] * self._Y[t]) -
-                       (self._int_C[t] * self._LC[t-1]) -
-                       (self._int_G[t] * self._LG[t-1]))
+        self._TP[t] = (
+            self._Y[t]
+            - (self._s_W[t] * self._Y[t])
+            - (self._int_C[t] * self._LC[t-1])
+            - (self._int_G[t] * self._LG[t-1])
+        )  # fmt: skip
 
         # 6: Retained profits
         #    RP[t] = s_F[t] * TP[t]
@@ -246,7 +260,7 @@ class DEFINE_Simple(BaseModel):
         #    main term and an additive adjustment, alpha_0_change (as
         #    above). This is excluded below and alpha_0 should be adjusted
         #    directly in any scenarios.
-        self._I[t] = (self._alpha_0[t] + self._alpha_1[t] * self._r[t-1]) * self._K[t-1]
+        self._I[t] = (self._alpha_0[t] + self._alpha_1[t] * self._r[t-1]) * self._K[t-1]  # fmt: skip
 
         # 9: Rate of profit
         #    r[t] = TP[t] / K[t]
@@ -270,7 +284,7 @@ class DEFINE_Simple(BaseModel):
         #    above). This is excluded below and beta_0 should be adjusted
         #    directly in any scenarios.
         self._beta[t] = (self._beta_0[t] -
-                         self._beta_1[t] * (self._int_G[t] - self._int_C[t]))
+                         self._beta_1[t] * (self._int_G[t] - self._int_C[t]))  # fmt: skip
 
         # 12: Conventional investment
         #     IC[t] = I[t] - IG[t]
@@ -279,11 +293,11 @@ class DEFINE_Simple(BaseModel):
 
         # 13: Green capital stock
         #     KG[t] = KG[t-1] + IG[t]
-        self._KG[t] = self._KG[t-1] + self._IG[t]
+        self._KG[t] = self._KG[t-1] + self._IG[t]  # fmt: skip
 
         # 14: Conventional capital stock
         #     KC[t] = KC[t-1] + IC[t]
-        self._KC[t] = self._KC[t-1] + self._IC[t]
+        self._KC[t] = self._KC[t-1] + self._IC[t]  # fmt: skip
 
         # 15: Capital stock
         #     K[t] = KC[t] + KG[t]
@@ -296,14 +310,14 @@ class DEFINE_Simple(BaseModel):
         # investment, IG, less anything paid out of retained profits, beta *
         # RP. The split of retained profit channelled to green investments
         # follows the split of investment i.e. according to beta.
-        self._LG[t] = self._LG[t-1] + (self._IG[t] - self._beta[t] * self._RP[t])
+        self._LG[t] = self._LG[t-1] + (self._IG[t] - self._beta[t] * self._RP[t])  # fmt: skip
 
         # 17a: Conventional loans
         #      LC[t] = LC[t-1] + IC[t] + IG[t] - RP[t] - (LG[t] - LG[t-1])
         # After rearranging, this equation reads more like Equation 16 above,
         # with the stock of conventional loans, LC, increasing by investment,
         # IC, less anything paid out of retained profits, (1 - beta) * RP.
-        self._LC[t] = self._LC[t-1] + (self._IC[t] - (1 - self._beta[t]) * self._RP[t])
+        self._LC[t] = self._LC[t-1] + (self._IC[t] - (1 - self._beta[t]) * self._RP[t])  # fmt: skip
 
         # 18: Total loans
         #     L[t] = LC[t] + LG[t]
@@ -318,7 +332,7 @@ class DEFINE_Simple(BaseModel):
         # green) less interest paid on deposits
         self._BP[t] = (self._int_C[t] * self._LC[t-1] +
                        self._int_G[t] * self._LG[t-1] -
-                       self._int_D[t] * self._D[t-1])
+                       self._int_D[t] * self._D[t-1])  # fmt: off
 
         # 20: Deposits (redundant equation)
         #     D_red[t] = L[t]
@@ -346,6 +360,7 @@ class DEFINE_Simple(BaseModel):
         #  - all capital is green: KG/KC = inf such that CI = CI_min
 
         # Calculate exponential term
+        # fmt: off
         if np.isclose(self._KC[t-1], 0):
             # All capital is green
             ratio_green_conventional_capital = np.inf
@@ -354,11 +369,11 @@ class DEFINE_Simple(BaseModel):
             # At least some capital is conventional
             ratio_green_conventional_capital = self._KG[t-1] / self._KC[t-1]
             exp_term = -self._ci_2[t] * ratio_green_conventional_capital
+        # fmt: on
 
         # Insert into main equation
-        self._CI[t] = (
-            self._CI_max[t] -
-            ((self._CI_max[t] - self._CI_min[t]) / (1 + self._ci_1[t] * np.exp(exp_term)))
+        self._CI[t] = self._CI_max[t] - (
+            (self._CI_max[t] - self._CI_min[t]) / (1 + self._ci_1[t] * np.exp(exp_term))
         )
 
         # Auxiliary equations -------------------------------------------------
@@ -376,7 +391,7 @@ class DEFINE_Simple(BaseModel):
         # 25a: Growth rate of output
         #      g_Y[t] = (Y[t] - Y[t-1]) / Y[t-1]
         # The below is mathematically identical to the above
-        self._g_Y[t] = (self._Y[t] / self._Y[t-1]) - 1
+        self._g_Y[t] = (self._Y[t] / self._Y[t-1]) - 1  # fmt: skip
 
         # 26: Leverage ratio
         #     lev[t] = L[t] / K[t]
@@ -404,7 +419,7 @@ BASELINE_PARAMETERS = {
     's_F': 0.550832042,
     's_W': 0.54,
     'v': 0.163094338,
-}
+}  # fmt: skip
 
 # Starting (first-period) values come from the original R script, with
 # numerical values transferred to the dictionary below
@@ -435,13 +450,12 @@ STARTING_VALUES = {
     'g_Y': 0.029,
     'lev': 0.107329122124605,
     'D_red': 78.54002,
-}
+}  # fmt: skip
 
 
 if __name__ == '__main__':
     # Baseline ----------------------------------------------------------------
-    baseline = DEFINE_Simple(range(2018, 2100 + 1), strict=True,
-                             **BASELINE_PARAMETERS)
+    baseline = DEFINE_Simple(range(2018, 2100 + 1), strict=True, **BASELINE_PARAMETERS)
 
     # Insert values for the first period (which can't be solved, because of the
     # lags in the model)
@@ -483,18 +497,18 @@ if __name__ == '__main__':
         'baseline': {'label': 'Baseline',         'color': '#FF4F2E', 'linestyle': '-' },
         'green':    {'label': 'Green investment', 'color': '#77C3AF', 'linestyle': '--'},
         'degrowth': {'label': 'Degrowth',         'color': '#33C3F0', 'linestyle': '--'},
-    }
+    }  # fmt: skip
 
     _, axes = plt.subplots(1, 5, figsize=(30, 6))
     plt.suptitle('DEFINE-SIMPLE: Results')
 
     # Figure 1: Annual output growth
     axes[0].plot(baseline.span, [0] * len(baseline.span),
-                 label='_nolegend_', linewidth=0.5, color='black')
+                 label='_nolegend_', linewidth=0.5, color='black')  # fmt: skip
 
     axes[0].plot(baseline.span, baseline.g_Y * 100, **styles['baseline'])
-    axes[0].plot(green_investment_scenario.span, green_investment_scenario.g_Y * 100, **styles['green'])
-    axes[0].plot(degrowth_scenario.span, degrowth_scenario.g_Y * 100, **styles['degrowth'])
+    axes[0].plot(green_investment_scenario.span, green_investment_scenario.g_Y * 100, **styles['green'])  # fmt: skip
+    axes[0].plot(degrowth_scenario.span, degrowth_scenario.g_Y * 100, **styles['degrowth'])  # fmt: skip
 
     axes[0].set_title('Figure 1: Annual output growth')
     axes[0].set_xlim(2018, 2100)
@@ -502,8 +516,8 @@ if __name__ == '__main__':
 
     # Figure 2: Leverage
     axes[1].plot(baseline.span, baseline.lev * 100, **styles['baseline'])
-    axes[1].plot(green_investment_scenario.span, green_investment_scenario.lev * 100, **styles['green'])
-    axes[1].plot(degrowth_scenario.span, degrowth_scenario.lev * 100, **styles['degrowth'])
+    axes[1].plot(green_investment_scenario.span, green_investment_scenario.lev * 100, **styles['green'])  # fmt: skip
+    axes[1].plot(degrowth_scenario.span, degrowth_scenario.lev * 100, **styles['degrowth'])  # fmt: skip
 
     axes[1].set_title('Figure 2: Leverage (ratio of loans to capital)')
     axes[1].set_xlim(2018, 2100)
@@ -512,8 +526,8 @@ if __name__ == '__main__':
 
     # Figure 3: Proportion of green investment
     axes[2].plot(baseline.span, baseline.beta * 100, **styles['baseline'])
-    axes[2].plot(green_investment_scenario.span, green_investment_scenario.beta * 100, **styles['green'])
-    axes[2].plot(degrowth_scenario.span, degrowth_scenario.beta * 100, **styles['degrowth'])
+    axes[2].plot(green_investment_scenario.span, green_investment_scenario.beta * 100, **styles['green'])  # fmt: skip
+    axes[2].plot(degrowth_scenario.span, degrowth_scenario.beta * 100, **styles['degrowth'])  # fmt: skip
 
     axes[2].set_title('Figure 3: Proportion of green investment')
     axes[2].set_xlim(2018, 2100)
@@ -522,8 +536,8 @@ if __name__ == '__main__':
 
     # Figure 4: Annual CO2 emissions
     axes[3].plot(baseline.span, baseline.EMIS_IN, **styles['baseline'])
-    axes[3].plot(green_investment_scenario.span, green_investment_scenario.EMIS_IN, **styles['green'])
-    axes[3].plot(degrowth_scenario.span, degrowth_scenario.EMIS_IN, **styles['degrowth'])
+    axes[3].plot(green_investment_scenario.span, green_investment_scenario.EMIS_IN, **styles['green'])  # fmt: skip
+    axes[3].plot(degrowth_scenario.span, degrowth_scenario.EMIS_IN, **styles['degrowth'])  # fmt: skip
 
     axes[3].set_title('Figure 4: Annual global $CO_2$ emissions')
     axes[3].set_xlim(2018, 2100)
@@ -532,8 +546,8 @@ if __name__ == '__main__':
 
     # Figure 5: CO2 intensity
     axes[4].plot(baseline.span, baseline.CI, **styles['baseline'])
-    axes[4].plot(green_investment_scenario.span, green_investment_scenario.CI, **styles['green'])
-    axes[4].plot(degrowth_scenario.span, degrowth_scenario.CI, **styles['degrowth'])
+    axes[4].plot(green_investment_scenario.span, green_investment_scenario.CI, **styles['green'])  # fmt: skip
+    axes[4].plot(degrowth_scenario.span, degrowth_scenario.CI, **styles['degrowth'])  # fmt: skip
 
     axes[4].set_title('Figure 5: $CO_2$ intensity')
     axes[4].set_xlim(2018, 2100)
