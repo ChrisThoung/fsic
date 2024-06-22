@@ -54,7 +54,8 @@ def diff(x: np.ndarray, d: int = 1, *, fill_value: Any = np.nan) -> np.ndarray:
     if d == 0:
         return x
 
-    elif d > 0:  # Lags
+    # Otherwise, adjust for lags or leads
+    if d > 0:  # Lags
         differenced = x - lag(x, d, fill_value=fill_value)
         differenced[:d] = fill_value
 
