@@ -161,7 +161,7 @@ if __name__ == '__main__':
     # with the following arguments available:
     #  - back fill: `backfill_`, `bfill_`
     #  - forward fill: `pad_`, `ffill_`
-    #  - nearest: `nearest+`
+    #  - nearest: `nearest_`
     #
     # Note the underscores in the names, to help avoid potential name
     # collisions.
