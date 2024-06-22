@@ -582,10 +582,10 @@ class VectorContainer:
             # TODO: Is this too implicit?
             try:
                 period = int(period)
-            except ValueError:
+            except ValueError as e:
                 raise KeyError(
                     f"Unable to locate period with label '{period}' in object's span"
-                )
+                ) from e
 
             if period not in self.span:
                 raise KeyError(
