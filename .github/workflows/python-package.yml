@@ -29,9 +29,7 @@ jobs:
         python -m pip install --upgrade pip
         sudo apt install ninja-build
         python -m pip install meson
-        python -m pip install -r requirements/minimal.txt
-        python -m pip install -r requirements/tools.txt
-        python -m pip install -r requirements/test.txt
+        python -m pip install .[test,tools]
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       run: |
