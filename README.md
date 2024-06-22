@@ -15,8 +15,7 @@ time, if not found):
 1. Clone the repository and, from the root of the folder, run: `$ pip install .`
 2. Use `pip` to install from the GitHub repository (h/t [Anthony
    Sottile](https://www.twitch.tv/anthonywritescode):
-   [https://www.youtube.com/watch?v=AQrskWh-F5E](https://www.youtube.com/watch?v=AQrskWh-F5E)),
-   either:
+   [Link](https://www.youtube.com/watch?v=AQrskWh-F5E)), either:
     * a specific [tag](https://github.com/ChrisThoung/fsic/tags) e.g. `$ pip
       install git+https://github.com/ChrisThoung/fsic@v0.8.0.dev`
     * the current development version (warning: this version isn't guaranteed
