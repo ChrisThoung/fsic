@@ -42,11 +42,14 @@ References:
 
 from numbers import Number
 from typing import Any, Dict, Mapping
+import warnings
 
 from linearmodels import IV2SLS, IVLIML, IV3SLS
 
 from pandas import DataFrame
 import pandas as pd
+
+from fsic.functions import lag  # noqa: F401
 
 
 def prepend_keys(parameters: Mapping[str, Any], prefix: str) -> Dict[str, Number]:
@@ -62,17 +65,17 @@ def pack_parameters(*args: Mapping[str, Any]) -> Dict[str, Any]:
     replacements = {
         'consumption_Intercept':   'alpha_0',
         'consumption_P':           'alpha_1',
-        'consumption_P.shift()':   'alpha_2',
+        'consumption_lag(P)':      'alpha_2',
         'consumption_W':           'alpha_3',
 
         'investment_Intercept':    'beta_0',
         'investment_P':            'beta_1',
-        'investment_P.shift()':    'beta_2',
-        'investment_K.shift()':    'beta_3',
+        'investment_lag(P)':       'beta_2',
+        'investment_lag(K)':       'beta_3',
 
         'private_wages_Intercept': 'gamma_0',
         'private_wages_X':         'gamma_1',
-        'private_wages_X.shift()': 'gamma_2',
+        'private_wages_lag(X)':    'gamma_2',
         'private_wages_time':      'gamma_3',
     }  # fmt: skip
 
@@ -87,13 +90,15 @@ def pack_parameters(*args: Mapping[str, Any]) -> Dict[str, Any]:
 
 if __name__ == '__main__':
     data = pd.read_csv('data.csv', index_col=0)
-
     parameters = {}
 
     # OLS (equivalent to IV2SLS with no instruments) --------------------------
-    consumption = IV2SLS.from_formula('C ~ P + P.shift() + W', data=data).fit()
-    investment = IV2SLS.from_formula('I ~ P + P.shift() + K.shift()', data=data).fit()
-    private_wages = IV2SLS.from_formula('Wp ~ X + X.shift() + time', data=data).fit()
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter('always')
+
+        consumption = IV2SLS.from_formula('C ~ P + lag(P) + W', data=data).fit()
+        investment = IV2SLS.from_formula('I ~ P + lag(P) + lag(K)', data=data).fit()
+        private_wages = IV2SLS.from_formula('Wp ~ X + lag(X) + time', data=data).fit()
 
     parameters['OLS'] = pack_parameters(
         prepend_keys(consumption.params, 'consumption_'),
@@ -102,17 +107,23 @@ if __name__ == '__main__':
     )
 
     # 2SLS --------------------------------------------------------------------
-    consumption = IV2SLS.from_formula(
-        'C ~ 1 + P.shift() + [P + W ~ Wg + K.shift() + X.shift() + time + G + T]',
-        data=data,
-    ).fit()
-    investment = IV2SLS.from_formula(
-        'I ~ 1 + P.shift() + K.shift() + [P ~ Wg + X.shift() + time + G + T]', data=data
-    ).fit()
-    private_wages = IV2SLS.from_formula(
-        'Wp ~ 1 + X.shift() + time + [X ~ P.shift() + Wg + K.shift() + G + T]',
-        data=data,
-    ).fit()
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter('always')
+
+        consumption = IV2SLS.from_formula(
+            'C ~ 1 + lag(P) + [P + W ~ Wg + lag(K) + lag(X) + time + G + T]',
+            data=data,
+        ).fit()
+
+        investment = IV2SLS.from_formula(
+            'I ~ 1 + lag(P) + lag(K) + [P ~ Wg + lag(X) + time + G + T]',
+            data=data,
+        ).fit()
+
+        private_wages = IV2SLS.from_formula(
+            'Wp ~ 1 + lag(X) + time + [X ~ lag(P) + Wg + lag(K) + G + T]',
+            data=data,
+        ).fit()
 
     parameters['2SLS'] = pack_parameters(
         prepend_keys(consumption.params, 'consumption_'),
@@ -121,17 +132,23 @@ if __name__ == '__main__':
     )
 
     # LIML --------------------------------------------------------------------
-    consumption = IVLIML.from_formula(
-        'C ~ 1 + P.shift() + [P + W ~ Wg + K.shift() + X.shift() + time + G + T]',
-        data=data,
-    ).fit()
-    investment = IVLIML.from_formula(
-        'I ~ 1 + P.shift() + K.shift() + [P ~ Wg + X.shift() + time + G + T]', data=data
-    ).fit()
-    private_wages = IVLIML.from_formula(
-        'Wp ~ 1 + X.shift() + time + [X ~ P.shift() + Wg + K.shift() + G + T]',
-        data=data,
-    ).fit()
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter('always')
+
+        consumption = IVLIML.from_formula(
+            'C ~ 1 + lag(P) + [P + W ~ Wg + lag(K) + lag(X) + time + G + T]',
+            data=data,
+        ).fit()
+
+        investment = IVLIML.from_formula(
+            'I ~ 1 + lag(P) + lag(K) + [P ~ Wg + lag(X) + time + G + T]',
+            data=data,
+        ).fit()
+
+        private_wages = IVLIML.from_formula(
+            'Wp ~ 1 + lag(X) + time + [X ~ lag(P) + Wg + lag(K) + G + T]',
+            data=data,
+        ).fit()
 
     parameters['LIML'] = pack_parameters(
         prepend_keys(consumption.params, 'consumption_'),
@@ -141,12 +158,16 @@ if __name__ == '__main__':
 
     # 3SLS --------------------------------------------------------------------
     equations = {
-        'consumption': 'C ~ 1 + P.shift() + [P + W ~ Wg + K.shift() + X.shift() + time + G + T]',
-        'investment': 'I ~ 1 + P.shift() + K.shift() + [P ~ Wg + X.shift() + time + G + T]',
-        'private_wages': 'Wp ~ 1 + X.shift() + time + [X ~ P.shift() + Wg + K.shift() + G + T]',
-    }
+        'consumption':   'C ~ 1 + lag(P) + [P + W ~ Wg + lag(K) + lag(X) + time + G + T]',
+        'investment':    'I ~ 1 + lag(P) + lag(K) + [P ~ Wg + lag(X) + time + G + T]',
+        'private_wages': 'Wp ~ 1 + lag(X) + time + [X ~ lag(P) + Wg + lag(K) + G + T]',
+    }  # fmt: skip
 
-    system = IV3SLS.from_formula(equations, data=data).fit()
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter('always')
+
+        system = IV3SLS.from_formula(equations, data=data).fit()
+
     parameters['3SLS'] = pack_parameters(system.params)
 
     # Write results to a CSV file ---------------------------------------------
