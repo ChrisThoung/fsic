@@ -56,13 +56,27 @@ Available groups of dependencies are as follows:
 
 See the contents of the [examples](examples/) folder.
 
-The [makefile](makefile) can run all the examples in sequence (see
-[requirements/examples.txt](requirements/examples.txt) for details of
-dependencies):
+The [makefile](makefile) can run all the examples in sequence:
 
 ```
 $ make examples
 ```
+
+See the 'examples' entry under `[project.optional-dependencies]` in
+[pyproject.toml](pyproject.toml) for details of the dependencies.
+
+### ...run experimental features
+
+See the contents of the [sandbox](sandbox/) folder.
+
+The [makefile](makefile) can run all the examples in sequence:
+
+```
+$ make sandbox
+```
+
+See the 'sandbox' entry under `[project.optional-dependencies]` in
+[pyproject.toml](pyproject.toml) for details of the dependencies.
 
 ### ...run the test suite
 
@@ -75,7 +89,8 @@ Any of the following will work from the terminal:
 * with a `unittest`-compatible test framework like
   [`pytest`](https://docs.pytest.org/en/stable/) e.g. `$ pytest`
 * with the [makefile](makefile), which expects `pytest` and `pytest-cov` to be
-  installed (see [requirements/test.txt](requirements/test.txt)): `$ make test`
+  installed (see the 'test' entry under `[project.optional-dependencies]` in
+  [pyproject.toml](pyproject.toml)): `$ make test`
     * `pytest-randomly` is included/recommended to check for test pollution
 
 
