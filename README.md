@@ -12,10 +12,7 @@ Tools for macroeconomic modelling in Python.
 Any of the following will work from the terminal (installing NumPy at the same
 time, if not found):
 
-1. Clone the repository and, from the root of the folder, run any one of the
-   following:
-    * `$ pip install .`
-    * `$ make install`
+1. Clone the repository and, from the root of the folder, run: `$ pip install .`
 2. Use `pip` to install from the GitHub repository (h/t [Anthony
    Sottile](https://www.twitch.tv/anthonywritescode):
    [https://www.youtube.com/watch?v=AQrskWh-F5E](https://www.youtube.com/watch?v=AQrskWh-F5E)),
@@ -34,27 +31,27 @@ found.
   make sure you also have [Meson](https://mesonbuild.com/) installed**.
 
 Depending on your use case(s) you might find other packages useful. Install
-these from the files in the [requirements](requirements/) folder using
-`pip`. For example:
+these using `pip`. For example:
 
 ```
-$ pip install -r requirements/minimal.txt
+$ pip install .[extensions,tools]
 ```
 
-Available files:
+or:
 
-* minimum requirements (for completeness only: handled automatically by
-  installing the package): [minimal.txt](requirements/minimal.txt)
-* optional requirements, to use all features of:  
-    * `fsic.extensions`: [extensions.txt](requirements/extensions.txt)
-    * `fsic.tools`: [tools.txt](requirements/tools.txt)
-* development requirements (to run the test suite as recommended e.g. as in the
-  [makefile](makefile)): [test.txt](requirements/test.txt)
-* dependencies to run the examples: [examples.txt](requirements/examples.txt)
-* dependencies to run experimental (sandbox) code:
-  [sandbox.txt](requirements/sandbox.txt)
-* useful dependencies for development:
-  [development.txt](requirements/development.txt)
+```
+$ pip install .[all]
+```
+
+Available groups of dependencies are as follows:
+
+* package extras, to use all features of:__
+    * `fsic.extensions`: `extensions`
+    * `fsic.tools`: `tools`
+* dependencies to run the examples: `examples`
+* dependencies to run experimental (sandbox) code: `sandbox`
+* test suite requirements (as in the [makefile](makefile) call): `test`
+* useful dependencies for development: `development`
 
 ### ...find more examples
 

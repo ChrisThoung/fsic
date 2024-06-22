@@ -33,6 +33,36 @@ classifiers = [
 ]
 keywords = ["economics", "modelling"]
 
+[project.optional-dependencies]
+all = ["fsic[development,examples,extensions,sandbox,test,tools]"]
+development = [
+	"mypy",
+	"ruff",
+]
+examples = [
+	"linearmodels<4.25",
+	"matplotlib",
+	"pandas",
+	"tqdm",
+]
+extensions = [
+	"pandas",
+	"tqdm",
+]
+sandbox = [
+	"tqdm",
+]
+test = [
+	"pytest",
+	"pytest-cov",
+	"pytest-randomly",
+]
+tools = [
+	"networkx",
+	"pandas",
+	"sympy",
+]
+
 [tool.setuptools]
 packages = ["fsic", "fsic.core", "fsic.extensions"]
 

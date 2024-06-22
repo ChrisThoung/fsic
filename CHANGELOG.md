@@ -11,6 +11,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Added
 
+- Added requirements to 'pyproject.toml'. As below, deleted folder of
+  requirements files.
 - Added (lowercase) `endogenous` and `check` as instance-level attributes in
   `BaseModel` and `BaseLinker`, initially copied on instantiation from the
   class-level versions.
@@ -58,6 +60,10 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Deprecated
 ### Removed
+
+- Removed folder of requirements files. Requirements are now listed in
+  'pyproject.toml'.
+
 ### Fixed
 
 - Corrected error in `ModelInterface.add_variable()` that added variable names

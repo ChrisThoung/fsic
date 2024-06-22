@@ -1,14 +1,6 @@
 .PHONY: help
 help :
 
-.PHONY: install
-install :
-	pip install -U .
-
-.PHONY: requirements
-requirements :
-	pip install `find requirements/*.txt | xargs cat | paste -s -d ' '`
-
 .PHONY: test
 test :
 	pytest -x -v --cache-clear --cov=fsic --cov-branch && coverage report -m && coverage html
