@@ -44,7 +44,7 @@ $ pip install .[all]
 
 Available groups of dependencies are as follows:
 
-* package extras, to use all features of:__
+* package extras, to use all features of:
     * `fsic.extensions`: `extensions`
     * `fsic.tools`: `tools`
 * dependencies to run the examples: `examples`
