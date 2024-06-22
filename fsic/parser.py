@@ -491,11 +491,11 @@ def parse_terms(expression: str) -> List[Term]:
             else:
                 try:
                     index = int(index_)
-                except ValueError:
+                except ValueError as e:
                     raise ParserError(
                         f"Unable to parse index '{index_}' of "
                         f"'{match.group(0)}' in '{expression}'"
-                    )
+                    ) from e
 
         return Term(name=groupdict[type_key], type=Type[type_key[1:]], index_=index)
 
@@ -1149,7 +1149,7 @@ def build_model(
     # Execute the class definition code
     try:
         exec(model_definition_string)
-    except SyntaxError:
+    except SyntaxError as e:
         failed_execs: List[str] = []
 
         symbols_with_equations = list(filter(lambda x: x.equation is not None, symbols))
@@ -1163,7 +1163,7 @@ def build_model(
             raise BuildError(
                 'Failed to `exec`ute the following `Symbol` object(s):\n'
                 + '\n'.join('    {x}' for x in failed_execs)
-            )
+            ) from e
 
     # Otherwise, if here, assign the original code to an attribute and return
     # the class
