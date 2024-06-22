@@ -446,8 +446,8 @@ Spans of submodels differ:
         for name in submodels:
             try:
                 submodel = self.__dict__['submodels'][name]
-            except KeyError:
-                raise KeyError(f"'{name}' not found in list of submodels")
+            except KeyError as e:
+                raise KeyError(f"'{name}' not found in list of submodels") from e
 
             submodel.iterations[t] = 0
 
