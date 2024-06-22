@@ -92,7 +92,7 @@ if __name__ == '__main__':
     data = pd.read_csv('data.csv', index_col=0)
     parameters = {}
 
-    # OLS (equivalent to IV2SLS with no instruments) --------------------------
+    # OLS (amounts to IV2SLS with no instruments) -----------------------------
     with warnings.catch_warnings(record=True):
         warnings.simplefilter('always')
 
