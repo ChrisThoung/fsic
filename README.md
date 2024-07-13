@@ -51,6 +51,7 @@ Available groups of dependencies are as follows:
 * dependencies to run experimental (sandbox) code: `sandbox`
 * test suite requirements (as in the [makefile](makefile) call): `test`
 * useful dependencies for development: `development`
+* packages to generate documentation: `doc`
 
 ### ...find more examples
 

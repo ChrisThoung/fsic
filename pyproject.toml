@@ -33,10 +33,13 @@ classifiers = [
 keywords = ["economics", "modelling"]
 
 [project.optional-dependencies]
-all = ["fsic[development,examples,extensions,sandbox,test,tools]"]
+all = ["fsic[development,doc,examples,extensions,sandbox,test,tools]"]
 development = [
 	"mypy",
 	"ruff",
+]
+doc = [
+	"sphinx",
 ]
 examples = [
 	"linearmodels<4.25",
