@@ -14,4 +14,4 @@ about, *inter alia*:
 | File                          | Description                              |
 | ----------------------------- | ---------------------------------------- |
 | [logger](logger/)             | Early work on a logging plugin           |
-| [progress_bar](progress-bar/) | Experiments extending `ProgressBarMixin` |
+| [progress-bar](progress-bar/) | Experiments extending `ProgressBarMixin` |
