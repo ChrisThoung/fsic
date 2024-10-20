@@ -556,7 +556,8 @@ Spans of submodels differ:
             If `False`, only check for errors after completing an iteration,
             raising an exception (`SolutionError`) after the fact. This allows
             numerical errors (NaNs, Infs) to propagate through the solution
-            before raising the exception.        iteration : int
+            before raising the exception.
+        iteration : int
             The current iteration count. This is not guaranteed to take a
             non-`None` value if the user has over-ridden the default calling
             `solve_t()` method. Note that it is up to the individual submodels'
