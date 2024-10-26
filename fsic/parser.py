@@ -1147,15 +1147,17 @@ def build_model(
     )
 
     # Execute the class definition code
+    locals_ = locals()
+
     try:
-        exec(model_definition_string)
+        exec(model_definition_string, globals(), locals_)
     except SyntaxError as e:
         failed_execs: List[str] = []
 
         symbols_with_equations = list(filter(lambda x: x.equation is not None, symbols))
         for s in symbols_with_equations:
             try:
-                exec(build_model_definition([s]))
+                exec(build_model_definition([s]), globals(), locals_)
             except SyntaxError:
                 failed_execs.append(str(s))
 
@@ -1167,5 +1169,5 @@ def build_model(
 
     # Otherwise, if here, assign the original code to an attribute and return
     # the class
-    locals()['Model'].CODE = model_definition_string
-    return locals()['Model']
+    locals_['Model'].CODE = model_definition_string
+    return locals_['Model']
