@@ -68,9 +68,6 @@ tools = [
 	"sympy",
 ]
 
-[tool.setuptools]
-packages = ["fsic", "fsic.core", "fsic.extensions"]
-
 [tool.setuptools.dynamic]
 version = {attr = "fsic.__version__"}
 readme = {file = ["README.md"]}

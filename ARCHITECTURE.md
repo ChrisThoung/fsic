@@ -17,10 +17,10 @@ The rationale for an object-oriented approach rests on the idea that [1] and
 parts that `fsic` generalises:
 
 * Data management is handled by a container object,
-  [`VectorContainer`](fsic/core/containers.py), which provides storage and
+  [`VectorContainer`](src/fsic/core/containers.py), which provides storage and
   methods similar to `pandas`.
-* Solution control is provided by the [`BaseModel`](fsic/core/models.py) and
-  [`BaseLinker`](fsic/core/linkers.py) classes, currently with just one
+* Solution control is provided by the [`BaseModel`](src/fsic/core/models.py)
+  and [`BaseLinker`](src/fsic/core/linkers.py) classes, currently with just one
   (iterative) solution method.
 
 
