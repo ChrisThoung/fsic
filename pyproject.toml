@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fsic"
 description = "Tools for macroeconomic modelling in Python"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 
 authors = [
   {name = "Chris Thoung", email = "chris.thoung@gmail.com"},
