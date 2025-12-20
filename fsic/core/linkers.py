@@ -85,7 +85,8 @@ class BaseLinker(SolverMixin, ModelInterface):
             if span is None:
                 span = copy.deepcopy(base.span)
             else:
-                raise NotImplementedError('Custom `span` handling not yet implemented')
+                msg = 'Custom `span` handling not yet implemented'
+                raise NotImplementedError(msg)
 
             lags = base.LAGS
             leads = base.LEADS
@@ -187,9 +188,8 @@ Spans of submodels differ:
     ) -> 'BaseLinker':
         # TODO: Still to consider design of the `BaseLinker` equivalent to the
         #       (now implemented) `VectorContainer` and `BaseModel` versions
-        raise NotImplementedError(
-            '`reindex()` method not yet implemented in `BaseLinker`'
-        )
+        msg = '`reindex()` method not yet implemented in `BaseLinker`'
+        raise NotImplementedError(msg)
 
     def to_dataframe(
         self,
@@ -314,10 +314,11 @@ Spans of submodels differ:
         """
         # Error if `min_iter` exceeds `max_iter`
         if min_iter > max_iter:
-            raise ValueError(
+            msg = (
                 f'Value of `min_iter` ({min_iter}) '
                 f'cannot exceed value of `max_iter` ({max_iter})'
             )
+            raise ValueError(msg)
 
         period_iter = self.iter_periods(start=start, end=end, **kwargs)
 
@@ -447,7 +448,8 @@ Spans of submodels differ:
             try:
                 submodel = self.__dict__['submodels'][name]
             except KeyError as e:
-                raise KeyError(f"'{name}' not found in list of submodels") from e
+                msg = f"'{name}' not found in list of submodels"
+                raise KeyError(msg) from e
 
             submodel.iterations[t] = 0
 
@@ -520,10 +522,11 @@ Spans of submodels differ:
             submodel.status[t] = status
 
         if status == SolutionStatus.FAILED.value and failures == 'raise':
-            raise NonConvergenceError(
+            msg = (
                 f'Solution failed to converge after {iteration} iterations(s) '
                 f'in period with label: {self.span[t]} (index: {t})'
             )
+            raise NonConvergenceError(msg)
 
         return status == SolutionStatus.SOLVED.value
 
