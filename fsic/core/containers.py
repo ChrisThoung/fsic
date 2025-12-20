@@ -177,9 +177,9 @@ class VectorContainer:
         if value_as_array.shape[0] != len(self.__dict__['span']):
             raise DimensionError(
                 f"Invalid assignment for '{name}': "
-                f"must be either a single value or "
-                f"a sequence of identical length to `span`"
-                f"(expected {len(self.__dict__['span'])} elements)"
+                f'must be either a single value or '
+                f'a sequence of identical length to `span`'
+                f'(expected {len(self.__dict__["span"])} elements)'
             )
 
         self.__dict__['_' + name] = value_as_array
@@ -291,10 +291,10 @@ class VectorContainer:
             if value_as_array.shape[0] != len(self.__dict__['span']):
                 raise DimensionError(
                     f"Invalid assignment for '{name}': "
-                    f"must be either a single value or "
-                    f"a sequence of identical length to `span` "
-                    f"(expected {len(self.__dict__['span'])} element[s] "
-                    f"but found {value_as_array.shape[0]})"
+                    f'must be either a single value or '
+                    f'a sequence of identical length to `span` '
+                    f'(expected {len(self.__dict__["span"])} element[s] '
+                    f'but found {value_as_array.shape[0]})'
                 )
 
             self.__dict__['_' + name] = value_as_array
@@ -681,8 +681,8 @@ class VectorContainer:
             undefined_variables = set(fill_values.keys()) - set(self.index)
             if undefined_variables:
                 raise KeyError(
-                    f"Found {len(undefined_variables)} undefined variable(s) "
-                    f"with `strict=True`: {', '.join(sorted(undefined_variables))}"
+                    f'Found {len(undefined_variables)} undefined variable(s) '
+                    f'with `strict=True`: {", ".join(sorted(undefined_variables))}'
                 )
 
         # Construct a mapping of:

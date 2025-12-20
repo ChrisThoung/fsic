@@ -58,7 +58,6 @@ if __name__ == '__main__':
     baseline.solve()
     expected = baseline.to_dataframe()
 
-
     # Solve the model with different progress bar settings --------------------
 
     # Set up a copy using the wrapped version of the model class
@@ -88,7 +87,6 @@ if __name__ == '__main__':
     test = model.copy()
     test.solve(progress_bar=ProgressBarMixin.TqdmFsicStandard)
     assert_frame_equal(test.to_dataframe(), expected)
-
 
     # Solve the model with a pandas PeriodIndex to check compatibility --------
     model = SIM_ProgressBar(

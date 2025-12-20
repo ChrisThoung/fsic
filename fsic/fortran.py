@@ -966,7 +966,7 @@ def build_fortran_definition(
         code = equation
         for match in reversed(list(pattern.finditer(equation))):
             start, end = match.span()
-            variable = f"solved_values({variables_to_numbers[match[1]]}, {match[2].replace('t', 'index')})"
+            variable = f'solved_values({variables_to_numbers[match[1]]}, {match[2].replace("t", "index")})'
             code = code[:start] + variable + code[end:]
 
         block = f'! {equation}\n' + '  &\n&  '.join(
@@ -995,7 +995,7 @@ def build_fortran_definition(
 
         definition = f'integer, dimension({len(indexes)}) :: {name}'
         if len(indexes) > 0:
-            definition += f" = (/ {', '.join(map(str, indexes))} /)"
+            definition += f' = (/ {", ".join(map(str, indexes))} /)'
 
         # Line wrap as needed
         blocks = textwrap.wrap(definition, width=wrap_width)

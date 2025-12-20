@@ -229,7 +229,7 @@ class ProgressBarMixin:
 
     # Define progress bars as class-level attributes. `iter_periods()` can then
     # access these by name (str) as needed
-    TqdmFsicBasic: 'tqdm' = TqdmFsicBasic        # noqa: F821
+    TqdmFsicBasic: 'tqdm' = TqdmFsicBasic  # noqa: F821
     TqdmFsicStandard: 'tqdm' = TqdmFsicStandard  # noqa: F821
 
     # Set the default progress bar (e.g. if `progress_bar=True`) as either a

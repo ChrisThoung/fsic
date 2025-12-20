@@ -64,7 +64,7 @@ numpy_distutils_available = True
 try:
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=DeprecationWarning)
-        import numpy.distutils
+        import numpy.distutils  # noqa: F401
 except ModuleNotFoundError:
     numpy_distutils_available = False
 

@@ -87,7 +87,7 @@ class ModelInterface(VectorContainer):
         if len(set(names)) != len(names):
             duplicates = [k for k, v in Counter(names).items() if v > 1]
             raise DuplicateNameError(
-                f"Found multiple instances of the following variable(s) in `NAMES`: {', '.join(duplicates)}"
+                f'Found multiple instances of the following variable(s) in `NAMES`: {", ".join(duplicates)}'
             )
 
         # If `strict`, check that any variables set via `initial_values` match
