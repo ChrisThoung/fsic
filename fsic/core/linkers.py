@@ -161,6 +161,7 @@ Spans of submodels differ:
 
     def copy(self) -> 'BaseLinker':
         """Return a copy of the current object."""
+        # TODO: Differentiate copies from deep copies with respect to object views?
         copied = self.__class__(
             submodels={
                 copy.deepcopy(k): copy.deepcopy(v)
