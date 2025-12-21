@@ -45,6 +45,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ### Changed
 
+- Moved package code to `src/` in line with current Python packaging practices.
 - Reorganised `core` module into a subpackage of modules:
     - `containers`
     - `interfaces`
