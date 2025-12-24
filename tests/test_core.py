@@ -34,11 +34,16 @@ import fsic
 
 
 pandas_installed = True
-
 try:
     import pandas as pd
 except ModuleNotFoundError:
     pandas_installed = False
+
+polars_installed = True
+try:
+    import polars as pl
+except ModuleNotFoundError:
+    polars_installed = False
 
 
 class TestRegexes(unittest.TestCase):
@@ -1330,7 +1335,7 @@ H = H[-1] + YD - C
             self.Model(range(5), strict=True, A=5)
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
-    def test_from_dataframe(self):
+    def test_from_dataframe_pandas(self):
         # Test instantiation from a `pandas` DataFrame (if installed)
         from pandas import DataFrame
 
@@ -1363,7 +1368,7 @@ H = H[-1] + YD - C
                     self.assertTrue(np.allclose(model[k], 0.0))
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
-    def test_from_dataframe_timeseries_indexes(self):
+    def test_from_dataframe_pandas_timeseries_indexes(self):
         # Test instantiation from a `pandas` DataFrame (if installed),
         # preserving time-series indexes as `pandas` objects
         import pandas as pd
@@ -1421,6 +1426,41 @@ H = H[-1] + YD - C
                     if k not in ['alpha_1', 'alpha_2', 'G', 'theta']:
                         with self.subTest(variable=k):
                             self.assertTrue(np.allclose(model[k], 0.0))
+
+    @unittest.skipIf(not polars_installed, 'Requires `Polars`')
+    def test_from_dataframe_polars(self):
+        # Test instantiation from a `Polars` DataFrame (if installed)
+        # Comments below explain how this differs from the `pandas` version
+
+        # Input data with the span (index) and values
+        data = pl.DataFrame(
+            {
+                'alpha_1': 0.6,
+                'alpha_2': 0.4,
+                'G': 20,
+                'theta': 0.2,
+                # `Polars` DataFrames have no separate `index` attribute: Insert this as a regular column
+                'index': range(-5, 10),
+            },
+        )
+
+        # Use `index_col` to specify the column containing the values to use for the model's `span`
+        model = self.Model.from_dataframe(data, index_col='index')
+
+        # Check span matches
+        self.assertEqual(model.span, list(range(-5, 10)))
+
+        # Check specified values match
+        self.assertTrue(np.allclose(model.alpha_1, 0.6))
+        self.assertTrue(np.allclose(model.alpha_2, 0.4))
+        self.assertTrue(np.allclose(model.G, 20))
+        self.assertTrue(np.allclose(model.theta, 0.2))
+
+        # All other values should be zero
+        for k in model.names:
+            if k not in ['alpha_1', 'alpha_2', 'G', 'theta']:
+                with self.subTest(variable=k):
+                    self.assertTrue(np.allclose(model[k], 0.0))
 
 
 class TestInterface(unittest.TestCase):

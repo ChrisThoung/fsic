@@ -85,35 +85,56 @@ class BaseModel(SolverMixin, ModelInterface):
     @classmethod
     def from_dataframe(
         cls: 'BaseModel',
-        data: 'pandas.DataFrame',  # noqa: F821
+        data: Union['pandas.DataFrame', 'polars.DataFrame'],  # noqa: F821
         *args: Any,
+        index_col: Optional[Hashable] = None,
         **kwargs: Any,
     ) -> 'BaseModel':
-        """Initialise the model by taking the index and values from a `pandas` DataFrame(-like).
+        """Initialise a model from the contents of a DataFrame(-like) object. Supports both `pandas` and `Polars` DataFrames.
 
-        TODO: Consider keyword argument to control type conversion of the index
+        TODO: Consider moving this up to the `VectorContainer` class
+        TODO: Consider controls (including keyword arguments) to handle type
+              conversion of the index
 
         Parameters
         ----------
-        data : `pandas` DataFrame(-like)
-            The DataFrame's index (once converted to a list) becomes the
-            model's `span`.
-            The DataFrame's contents set the model's values, as with
-            `**initial_values` in the class `__init__()` method. Default values
-            continue to be set for any variables not included in the DataFrame.
+        data : DataFrame(-like)
+            Container with keys as variable names and values as series
+            contents. Default values continue to be set for any variables not
+            included in `data`.
+            See explanation of `index_col` (below) for how the model's `span`
+            is set.
+        index_col :
+            If `None`, use the contents of the `index` attribute of `data` to
+            set the model's `span`.
+            Otherwise, treat `index_col` as the key in `data` that stores the
+            values for the model's `span` (ignoring it as a variable in this
+            case).
+
         *args, **kwargs : further arguments to the class `__init__()` method
         """
-        # TODO: Consider a more general way to deal with this
-        from pandas import DatetimeIndex, MultiIndex, PeriodIndex, TimedeltaIndex
+        # Get the index
+        # TODO: Add check/error for no `index` attribute?
+        if index_col is None:
+            index = data.index
+        else:
+            index = data[index_col]
 
-        index = data.index
-
+        # Convert to a list if not a recognised index type (currently only
+        # supports `pandas` index types)
+        # TODO: Consider controls (including keyword arguments) to handle type
+        #       conversion of the index
         if not isinstance(
-            index, (DatetimeIndex, MultiIndex, PeriodIndex, TimedeltaIndex)
+            index, ('DatetimeIndex', 'MultiIndex', 'PeriodIndex', 'TimedeltaIndex')
         ):
             index = list(index)
 
-        return cls(index, *args, **{k: v.values for k, v in data.items()}, **kwargs)
+        return cls(
+            index,
+            *args,
+            **{k: data[k] for k in data.columns if k not in [index_col]},
+            **kwargs,
+        )
 
     def reindex(
         self,

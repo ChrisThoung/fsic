@@ -29,7 +29,7 @@ jobs:
         python -m pip install --upgrade pip
         sudo apt install ninja-build
         python -m pip install meson
-        python -m pip install .[test,tools]
+        python -m pip install .[compatibility,test,tools]
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       run: |

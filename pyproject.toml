@@ -37,7 +37,12 @@ classifiers = [
 keywords = ["economics", "modelling"]
 
 [project.optional-dependencies]
-all = ["fsic[development,doc,examples,extensions,sandbox,test,tools]"]
+all = ["fsic[compatibility,development,doc,examples,extensions,pandas,polars,sandbox,test,tools]"]
+
+compatibility = [
+    "fsic[pandas]",
+    "fsic[polars]",
+]
 development = [
 	"mypy",
 	"ruff",
@@ -54,6 +59,12 @@ examples = [
 extensions = [
 	"pandas",
 	"tqdm",
+]
+pandas = [
+	"pandas",
+]
+polars = [
+	"polars",
 ]
 sandbox = [
 	"tqdm",
