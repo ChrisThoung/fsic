@@ -134,6 +134,16 @@ class BaseModel(SolverMixin, ModelInterface):
         except ModuleNotFoundError:
             index = list(index)
 
+        # If possible, compress indexes consisting of integers, converting them
+        # to `range()` objects
+        # TODO: Consider controls (including keyword arguments) to handle type
+        #       conversion of the index
+        if set(map(type, index)) == {int} and len(index) > 1:
+            index_as_range = range(index[0], index[-1] + 1, index[1] - index[0])
+
+            if list(index_as_range) == index:
+                index = index_as_range
+
         return cls(
             index,
             *args,

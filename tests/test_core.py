@@ -1353,7 +1353,7 @@ H = H[-1] + YD - C
         model = self.Model.from_dataframe(data)
 
         # Check span matches
-        self.assertEqual(model.span, list(range(-5, 10)))
+        self.assertEqual(model.span, range(-5, 10))
 
         # Check specified values match
         self.assertTrue(np.allclose(model.alpha_1, 0.6))
@@ -1388,7 +1388,7 @@ H = H[-1] + YD - C
         model = self.Model.from_dataframe(data, index_col='theta')
 
         # Check span matches
-        self.assertEqual(model.span, list(range(-5, 10)))
+        self.assertEqual(model.span, range(-5, 10))
 
         # Check specified values match
         self.assertTrue(np.allclose(model.alpha_1, 0.6))
@@ -1485,7 +1485,7 @@ H = H[-1] + YD - C
         model = self.Model.from_dataframe(data, index_col='index')
 
         # Check span matches
-        self.assertEqual(model.span, list(range(-5, 10)))
+        self.assertEqual(model.span, range(-5, 10))
 
         # Check specified values match
         self.assertTrue(np.allclose(model.alpha_1, 0.6))

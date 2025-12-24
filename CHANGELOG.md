@@ -61,6 +61,8 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   in `VectorContainer`.
 - Changed treatment of lags and leads to derive instance-level attributes from
   class-level defaults in both `BaseModel` and `BaseLinker`.
+- Changed treatment in `from_dataframe()` to convert indexes consisting of
+  lists of integers to `range()` objects, if possible.
 
 ### Deprecated
 ### Removed
