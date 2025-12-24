@@ -124,9 +124,14 @@ class BaseModel(SolverMixin, ModelInterface):
         # supports `pandas` index types)
         # TODO: Consider controls (including keyword arguments) to handle type
         #       conversion of the index
-        if not isinstance(
-            index, ('DatetimeIndex', 'MultiIndex', 'PeriodIndex', 'TimedeltaIndex')
-        ):
+        try:
+            from pandas import DatetimeIndex, MultiIndex, PeriodIndex, TimedeltaIndex
+
+            if not isinstance(
+                index, (DatetimeIndex, MultiIndex, PeriodIndex, TimedeltaIndex)
+            ):
+                index = list(index)
+        except ModuleNotFoundError:
             index = list(index)
 
         return cls(
