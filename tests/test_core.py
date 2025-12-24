@@ -1368,6 +1368,43 @@ H = H[-1] + YD - C
                     self.assertTrue(np.allclose(model[k], 0.0))
 
     @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
+    def test_from_dataframe_pandas_index_col(self):
+        # Test instantiation from a `pandas` DataFrame (if installed),
+        # specifying the index column
+        from pandas import DataFrame
+
+        # Input data with the span (index) and values
+        data = DataFrame(
+            {
+                'alpha_1': 0.6,
+                'alpha_2': 0.4,
+                'G': 20,
+                # Set the values in theta to be the intended index (to be able
+                # to check later that theta is ignored as a data series)
+                'theta': range(-5, 10),
+            },
+        )
+
+        model = self.Model.from_dataframe(data, index_col='theta')
+
+        # Check span matches
+        self.assertEqual(model.span, list(range(-5, 10)))
+
+        # Check specified values match
+        self.assertTrue(np.allclose(model.alpha_1, 0.6))
+        self.assertTrue(np.allclose(model.alpha_2, 0.4))
+        self.assertTrue(np.allclose(model.G, 20))
+
+        # Theta should keep its default values
+        self.assertTrue(np.allclose(model.theta, 0.0))
+
+        # All other values should be zero
+        for k in model.names:
+            if k not in ['alpha_1', 'alpha_2', 'G', 'theta']:
+                with self.subTest(variable=k):
+                    self.assertTrue(np.allclose(model[k], 0.0))
+
+    @unittest.skipIf(not pandas_installed, 'Requires `pandas`')
     def test_from_dataframe_pandas_timeseries_indexes(self):
         # Test instantiation from a `pandas` DataFrame (if installed),
         # preserving time-series indexes as `pandas` objects
