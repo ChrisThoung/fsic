@@ -52,11 +52,11 @@ doc = [
 examples = [
 	"linearmodels<4.25",
 	"matplotlib",
-	"pandas",
+	"fsic[pandas]",
 	"tqdm",
 ]
 extensions = [
-	"pandas",
+	"fsic[pandas]",
 	"tqdm",
 ]
 pandas = [
@@ -75,7 +75,7 @@ test = [
 ]
 tools = [
 	"networkx",
-	"pandas",
+	"fsic[pandas]",
 	"sympy",
 ]
 

@@ -47,9 +47,13 @@ Available groups of dependencies are as follows:
 * package extras, to use all features of:
     * `fsic.extensions`: `extensions`
     * `fsic.tools`: `tools`
+* alternative supporting packages:
+    * DataFrames: Either `pandas` or `polars`
 * dependencies to run the examples: `examples`
 * dependencies to run experimental (sandbox) code: `sandbox`
 * test suite requirements (as in the [makefile](makefile) call): `test`
+    * install the following to test support for different supporting packages:
+      `compatibility`
 * useful dependencies for development: `development`
 * packages to generate documentation: `doc`
 
