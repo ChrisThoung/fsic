@@ -53,6 +53,7 @@ examples = [
 	"linearmodels<4.25",
 	"matplotlib",
 	"fsic[pandas]",
+	"fsic[polars]",
 	"tqdm",
 ]
 extensions = [
