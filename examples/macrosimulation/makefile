@@ -1,7 +1,10 @@
-all : new_keynesian_3_equation_model.png sraffian_supermultiplier_model.png
+all : new_keynesian_3_equation_model.png sraffian_supermultiplier_model.png kaldorian_endogenous_business_cycle_model.png
 
 new_keynesian_3_equation_model.png : new_keynesian_3_equation_model.py
 	python new_keynesian_3_equation_model.py
 
 sraffian_supermultiplier_model.png : sraffian_supermultiplier_model.py
 	python sraffian_supermultiplier_model.py
+
+kaldorian_endogenous_business_cycle_model.png : kaldorian_endogenous_business_cycle_model.py
+	python kaldorian_endogenous_business_cycle_model.py
