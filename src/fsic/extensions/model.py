@@ -118,12 +118,15 @@ class PandasIndexFeaturesMixin:
                 fill_limit = limit
                 fill_tolerance = tolerance
 
+            variable_as_series = Series(self[name], index=self.span)
+            if copy:
+                variable_as_series = variable_as_series.copy()
+
             reindexed[name] = (
-                Series(self[name], index=self.span)
+                variable_as_series
                 .reindex(
                     index=span,
                     method=fill_method,
-                    copy=copy,
                     fill_value=fill_values.get(name, fill_value),
                     limit=fill_limit,
                     tolerance=fill_tolerance,
