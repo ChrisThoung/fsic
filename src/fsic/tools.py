@@ -5,7 +5,7 @@ for dependencies additional to those of `fsic`.
 """
 
 import re
-from typing import Any, Dict, Hashable, List, Optional
+from typing import Any, Dict, Hashable, List
 
 import numpy as np
 
@@ -32,24 +32,16 @@ def dataframe_to_symbols(table: 'pandas.DataFrame') -> List[Symbol]:  # noqa: F8
     fsic.tools.symbols_to_dataframe()
     """
 
-    def convert_to_int_or_none(field: Any) -> Optional[int]:
-        """Convert NaNs to `None`; `int` otherwise."""
-        if np.isnan(field):
-            return None
-        return int(field)
-
-    symbols = []
-
-    for _, row in table.iterrows():
-        entry = dict(row)
-
+    def convert_row_to_symbol(entry: Dict[str, Any]) -> Symbol:
         entry['type'] = Type(entry['type'])  # Convert to `enum`erated variable type
-        entry['lags'] = convert_to_int_or_none(entry['lags'])
-        entry['leads'] = convert_to_int_or_none(entry['leads'])
+        entry['lags']  = None if np.isnan(x := entry['lags'])  else int(x)  # fmt: skip
+        entry['leads'] = None if np.isnan(x := entry['leads']) else int(x)
+        entry['equation'] = None if (x := entry['equation']) in [np.nan] else x
+        entry['code']     = None if (x := entry['code'])     in [np.nan] else x  # fmt: skip
 
-        symbols.append(Symbol(**entry))
+        return Symbol(**entry)
 
-    return symbols
+    return [convert_row_to_symbol(dict(row)) for _, row in table.iterrows()]
 
 
 def symbols_to_graph(symbols: List[Symbol]) -> 'networkx.DiGraph':  # noqa: F821
