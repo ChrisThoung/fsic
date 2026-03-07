@@ -85,7 +85,10 @@ class VectorContainer:
         locations = np.asarray(np.asarray(span, dtype=object) == period).nonzero()
 
         # For now(?), only support one-dimensional array-likes
-        assert len(locations) == 1
+        if len(locations) != 1:
+            msg = f'Expected just one location match but found {len(locations)}'
+            raise IndexError(msg)
+
         positions = locations[0]  # Take first (sole) set of axis indexes only
 
         # No matches: `period` not defined
