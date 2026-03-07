@@ -42,7 +42,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   `model_to_dataframe()` handling of internal model variables with names
   prefixed with an underscore.
 - Added new `PandasIndexFeaturesMixin` extension for more sophisticated `span`
-  handling.
+  handling (including compatibility with `pandas` version 3).
 - Added new `TracerMixin` extension for `BaseModel`-derived classes, to track
   iteration-by-iteration variable results.
 
