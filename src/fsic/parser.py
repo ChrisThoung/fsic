@@ -737,7 +737,7 @@ def parse_model(model: str, *, check_syntax: bool = True) -> List[Symbol]:
         # attempted equation
         lines = []
         for s in problem_statements:
-            line = f'    {s[0]}:  {[1]}\n'
+            line = f'    {s[0]}:  {s[1]}\n'
             line += ' ' * line.index(':')
             line += '-> ' + s[-1]
             lines.append(line)
