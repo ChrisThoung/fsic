@@ -99,7 +99,8 @@ class VectorContainer:
         if len(positions) == 1:
             return positions[0]
 
-        raise NotImplementedError('Multiple matches not supported')
+        msg = 'Multiple matches not supported'
+        raise NotImplementedError(msg)
 
     _VALID_INDEX_METHODS: List[Union[str, Callable]] = [
         'get_loc',
@@ -132,14 +133,12 @@ class VectorContainer:
     def add_attribute(self, name: str, value: Any) -> None:
         """Add an attribute to the container."""
         if name in self.__dict__['index']:
-            raise DuplicateNameError(
-                f"Variable with name '{name}' already defined in current object"
-            )
+            msg = f"Variable with name '{name}' already defined in current object"
+            raise DuplicateNameError(msg)
 
         if name in self.__dict__['_attributes']:
-            raise DuplicateNameError(
-                f"Attribute with name '{name}' already defined in current object"
-            )
+            msg = f"Attribute with name '{name}' already defined in current object"
+            raise DuplicateNameError(msg)
 
         super().__setattr__(name, value)
         self.__dict__['_attributes'].append(name)
@@ -162,9 +161,8 @@ class VectorContainer:
             type/dtype of `value`
         """
         if name in self.__dict__['index']:
-            raise DuplicateNameError(
-                f"'{name}' is already defined in the current object"
-            )
+            msg = f"'{name}' is already defined in the current object"
+            raise DuplicateNameError(msg)
 
         # Cast to a 1D array
         if isinstance(value, Sequence) and not isinstance(value, str):
@@ -178,12 +176,13 @@ class VectorContainer:
 
         # Check dimensions
         if value_as_array.shape[0] != len(self.__dict__['span']):
-            raise DimensionError(
+            msg = (
                 f"Invalid assignment for '{name}': "
                 f'must be either a single value or '
                 f'a sequence of identical length to `span`'
                 f'(expected {len(self.__dict__["span"])} elements)'
             )
+            raise DimensionError(msg)
 
         self.__dict__['_' + name] = value_as_array
         self.__dict__['index'].append(name)
@@ -270,9 +269,8 @@ class VectorContainer:
             if len(alternatives) == 1:
                 message += f". Did you mean: '{alternatives[0]}'?"
             elif len(alternatives) > 1:
-                raise NotImplementedError(
-                    'Handling of multiple name matches not yet implemented'
-                )
+                msg = 'Handling of multiple name matches not yet implemented'
+                raise NotImplementedError(msg)
 
             raise AttributeError(message)
 
@@ -292,13 +290,14 @@ class VectorContainer:
             value_as_array = np.array(value, dtype=self.__dict__['_' + name].dtype)
 
             if value_as_array.shape[0] != len(self.__dict__['span']):
-                raise DimensionError(
+                msg = (
                     f"Invalid assignment for '{name}': "
                     f'must be either a single value or '
                     f'a sequence of identical length to `span` '
                     f'(expected {len(self.__dict__["span"])} element[s] '
                     f'but found {value_as_array.shape[0]})'
                 )
+                raise DimensionError(msg)
 
             self.__dict__['_' + name] = value_as_array
 
@@ -340,16 +339,18 @@ class VectorContainer:
                     raise KeyError(period) from e
 
             else:
-                raise TypeError(
+                msg = (
                     f'Unrecognised type ({type(method)}) of search method '
                     f'with index {i} in `self._VALID_INDEX_METHODS`: {method}'
                 )
+                raise TypeError(msg)
 
-        raise AttributeError(
+        msg = (
             f'Unable to find valid search method in `span`; '
             f'expected one of the following, as listed in `self._VALID_INDEX_METHODS`: '
             f'{self._VALID_INDEX_METHODS}'
         )
+        raise AttributeError(msg)
 
     def _resolve_period_slice(self, index: slice) -> Tuple[int]:
         """Convert a slice into a 3-tuple of indexing information to use with `self.span`."""
@@ -387,17 +388,19 @@ class VectorContainer:
         # `key` is a string (variable name): return the corresponding array
         if isinstance(key, str):
             if key not in self.__dict__['index']:
-                raise KeyError(f"'{key}' not recognised as a variable name")
+                msg = f"'{key}' not recognised as a variable name"
+                raise KeyError(msg)
             return self.__getattr__(key)
 
         # `key` is a tuple (variable name plus index): return the selected
         # elements of the corresponding array
         if isinstance(key, tuple):
             if len(key) != 2:
-                raise IndexError(
+                msg = (
                     'Invalid index: must be of length one (variable name) '
                     'or length two (variable name, span index)'
                 )
+                raise IndexError(msg)
 
             # Unpack the key
             name: str
@@ -406,7 +409,8 @@ class VectorContainer:
 
             # Get the full array
             if name not in self.__dict__['index']:
-                raise KeyError(f"'{name}' not recognised as a variable name")
+                msg = f"'{name}' not recognised as a variable name"
+                raise KeyError(msg)
             values = self.__getattr__(name)
 
             # Extract and return the relevant subset
@@ -417,7 +421,8 @@ class VectorContainer:
             location = self._locate_period_in_span(index)
             return values[location]
 
-        raise TypeError(f'Invalid index type ({type(key)}): `{key}`')
+        msg = f'Invalid index type ({type(key)}): `{key}`'
+        raise TypeError(msg)
 
     def __setitem__(
         self,
