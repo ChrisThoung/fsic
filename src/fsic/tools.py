@@ -113,6 +113,25 @@ def model_to_dataframe(
 ) -> 'pandas.DataFrame':  # noqa: F821
     """Return the values and solution information from the model as a `pandas` DataFrame (also available as `fsic.BaseModel.to_dataframe()` / `fsic.core.BaseModel.to_dataframe()`). **Requires `pandas`**.
 
+    Parameters
+    ----------
+    model :
+        Model object from which to construct the DataFrame
+    status :
+        If `True`, include the solution status of each period in the final
+        DataFrame
+    iterations :
+        If `True`, include the number of iterations each period in the final
+        DataFrame
+    include_internal :
+        If `True`, include internal variables (denoted by a name beginning with
+        an underscore) in the final DataFrame; otherwise, exclude them
+
+    Returns
+    -------
+    df : `pandas` `DataFrame`
+        Model contents, one column per variable/attribute
+
     See also
     --------
     fsic.core.BaseModel.to_dataframe()

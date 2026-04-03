@@ -198,7 +198,33 @@ class BaseModel(SolverMixin, ModelInterface):
         iterations: bool = True,
         include_internal: bool = False,
     ) -> 'pandas.DataFrame':  # noqa: F821
-        """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**."""
+        """Return the values and solution information from the model as a `pandas` DataFrame. **Requires `pandas`**.
+
+        Parameters
+        ----------
+        status :
+            If `True`, include the solution status of each period in the final
+            DataFrame
+        iterations :
+            If `True`, include the number of iterations each period in the final
+            DataFrame
+        include_internal :
+            If `True`, include internal variables (denoted by a name beginning with
+            an underscore) in the final DataFrame; otherwise, exclude them
+
+        Notes
+        -----
+        This method wraps fsic.tools.model_to_dataframe()
+
+        Returns
+        -------
+        : `pandas` `DataFrame`
+            Model contents, one column per variable/attribute
+
+        See also
+        --------
+        fsic.tools.model_to_dataframe()
+        """
         return _model_to_dataframe(
             self,
             status=status,
