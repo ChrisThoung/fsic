@@ -3,7 +3,7 @@
 Tools for macroeconomic modelling in Python.
 """
 
-__version__ = '0.8.0.dev'
+__version__ = '0.9.0.dev'
 
 from fsic import core, exceptions, extensions, fortran, functions, parser, tools  # noqa: F401
 
