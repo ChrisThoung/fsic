@@ -7,7 +7,9 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.9.0.dev] - 2026-05-02
+
+Various new features and reorganised internals.
 
 ### Added
 
@@ -64,7 +66,6 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 - Changed treatment in `from_dataframe()` to convert indexes consisting of
   lists of integers to `range()` objects, if possible.
 
-### Deprecated
 ### Removed
 
 - Removed folder of requirements files. Requirements are now listed in
@@ -78,8 +79,6 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
   string in a list ('ABC' -> ['ABC']).
 - Reworked `tools.dataframe_to_symbols()` to ensure the correct dtypes and for
   compatibility with `pandas` version 3.
-
-### Security
 
 
 ## [0.8.0.dev] - 2023-01-22
